@@ -8,8 +8,8 @@ import type { Frame } from "../screens/geometry";
  * The frame size is the story frame at navigation time, in px.
  */
 export interface Entry {
-  /** sky: Cover → 02 · flow: 02 → 03 · fade: any other step between two sky slides · normal: T1 */
-  kind: "sky" | "flow" | "fade" | "normal";
+  /** sky: Cover → 02 · flow: 02 → 03 · focus: 03 → 04 · fade: any other step between two sky slides · normal: T1 */
+  kind: "sky" | "flow" | "focus" | "fade" | "normal";
   frame: Frame;
 }
 const EMPTY: Entry = { kind: "normal", frame: { W: 0, H: 0 } };
@@ -61,7 +61,7 @@ export const SKY_HANDOFF = {
 
 /**
  * Screen 02 → Screen 03, "Clock drops, seat rises" (forward, full motion), in s
- * from the tap. The night sky and the story chrome never move.
+ * from the tap. The background layer and the story chrome never move.
  *   A  0 → 0.18        Screen 02's headline, number and line fade; the clock holds
  *   B  0.15 → 0.57     the clock drops straight down below the frame (accelerating)
  *   C  0.36 → 0.86     the student's yellow chair rises from below and settles
@@ -84,4 +84,34 @@ export const FLOW = {
   stat: { at: 0.78, count: 0.5 },
   /** Taps are ignored until the entrance has essentially settled (ms). */
   lockMs: 1100,
+} as const;
+
+/**
+ * Screen 03 → Screen 04, "focus shift" (forward, full motion), in s from the tap.
+ * Screen 04 is an emotional pause after the attendance data: attention moves
+ * from the student's seat to the teacher, slowly, with a held breath before the
+ * name. Less celebration, more appreciation.
+ *   A  0 → 0.45        03's number, text and the other seats fade; the yellow seat lingers
+ *   B  0.3 → 1.45      04's room settles darker; the light comes up slowly from the top
+ *   C  0.6 → 1.6       the yellow seat fades away softly as the light pool forms
+ *   D  1.1 → 1.9       the teacher appears in the light; the framing line with it
+ *      ≈1.9 → 1.75…    a held stillness, then the name fades softly into place (≈2.6)
+ * Ownership: one GSAP master timeline (screens/focusHandoff.ts) drives 03's seats
+ * and 04's light and figure; Motion drives both screens' text.
+ */
+export const FOCUS = {
+  textOut: 0.3,
+  rowsOut: { at: 0, dur: 0.45 },
+  seatOut: { at: 0.6, dur: 0.55 },
+  /** Screen 03 is removed once its seat has gone. */
+  out: 1.2,
+  dim: { at: 0.3, dur: 0.9 },
+  beam: { at: 0.55, dur: 0.9 },
+  pool: { at: 0.8, dur: 0.8 },
+  figure: { at: 1.1, dur: 0.8 },
+  framing: { at: 1.0, dur: 0.8 },
+  /** After the figure has settled and a beat of stillness. */
+  name: { at: 1.75, dur: 0.9 },
+  /** Taps are ignored until the name has begun to appear (ms); a pause should not be skipped by accident. */
+  lockMs: 1900,
 } as const;

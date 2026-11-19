@@ -5,6 +5,7 @@ import { CoverFigma } from "./CoverFigma";
 import { StudyGeo } from "./StudyGeo";
 import { StudyClock } from "./StudyClock";
 import { LiveClass } from "./LiveClass";
+import { TeacherSpotlight } from "./TeacherSpotlight";
 import { useCoverVariant } from "../explore/variant";
 import { CoverTypographic } from "../explore/CoverTypographic";
 import { CoverGeometry } from "../explore/CoverGeometry";
@@ -31,7 +32,8 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       // Default: the live-class collection (Nov 2026 brief). The V2 attendance screen stays at ?live=v2.
       return new URLSearchParams(location.search).get("live") === "v2" ? <Attendance slide={slide} {...p} /> : <LiveClass slide={slide} {...p} />;
     case "teacher":
-      return <Teacher slide={slide} {...p} />;
+      // Default: "Teacher in the Spotlight" (Nov 2026 brief). The M1 placeholder stays at ?teacher=v2.
+      return new URLSearchParams(location.search).get("teacher") === "v2" ? <Teacher slide={slide} {...p} /> : <TeacherSpotlight slide={slide} {...p} />;
     case "quiz":
       return <Quiz slide={slide} {...p} />;
     case "video":
@@ -54,21 +56,23 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
 }
 
 /**
- * Surface system (M2, PROPOSED). The deck reads as one notebook:
- * front board → written pages → the stamped page → the certificate → back board.
- * Surfaces set colour roles only; each screen keeps its own composition.
+ * Surface = the colour roles a slide's text and chrome use (tokens.css). Every
+ * slide now sits on the Gentle Atmosphere background (story/background.ts →
+ * SCREEN_BACKGROUND), so all use light-on-dark roles. The marksheet keeps
+ * "certificate" (same roles; its paper sheet is foreground). "page" remains for
+ * the review board's paper samples only.
  */
 export type Surface = "cover" | "page" | "certificate" | "light";
 export const SURFACE: Record<Slide["id"], Surface> = {
   cover: "cover",
-  study: "cover", // white chrome over the shared night sky (the archived yellow M3 screen is ?study=geo)
-  live: "cover", // white chrome over the shared night sky (the V2 page screen is ?live=v2)
-  teacher: "page",
-  quiz: "page",
-  video: "page",
-  subject: "page",
-  peakDay: "page",
-  learnerType: "page",
+  study: "cover",
+  live: "cover",
+  teacher: "cover",
+  quiz: "cover",
+  video: "cover",
+  subject: "cover",
+  peakDay: "cover",
+  learnerType: "cover",
   marksheet: "certificate",
   close: "cover",
   freshCover: "cover",

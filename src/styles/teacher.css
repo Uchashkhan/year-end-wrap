@@ -1,0 +1,123 @@
+/*
+ * 04 Teacher — "Teacher in the Spotlight". Over the shared Gentle Atmosphere
+ * background (Soft Violet); this slide is transparent.
+ *   top     framing line, then the name (larger: the priority)
+ *   scene   a veil dims the room; a focused warm beam falls from the top edge
+ *           onto a portrait bust rising from the bottom edge; a glow behind
+ *           the shoulders (--tc-floor) is where the light lands.
+ * Everything is placed in cqw/cqh from the story frame, centred with margins
+ * (never transforms: GSAP owns these elements' transforms during the reveal).
+ */
+.slide.tc {
+  --tc-fig-w: 84cqw;      /* the bust (240 × 300 art): the screen's visual anchor */
+  /* shoulder line of the bust: where the beam lands (bust top + 55 % of its height) */
+  --tc-floor: calc(100cqh - var(--tc-fig-w) * 1.25 * 0.45);
+  --tc-beam-w: calc(var(--tc-fig-w) * 0.74); /* beam width at the shoulders */
+  --tc-light: 255, 220, 150; /* warm light: a softened Warning 500, a touch warmer */
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The room dims (navy veil, stronger toward the floor). */
+.tc-dim {
+  position: absolute;
+  inset: 0;
+  /* Lighter than a stage blackout: the room settles, it doesn't go dark. */
+  background: linear-gradient(180deg, rgba(17, 25, 115, 0.08) 0%, rgba(17, 25, 115, 0.22) 55%, rgba(17, 25, 115, 0.34) 100%);
+}
+
+/* The beam: a focused cone from a narrow source at the top edge, widening to the
+   teacher's shoulders. Feathered sides, a gentle brighter core, dissolving as it
+   reaches the figure — elegant warm light, not a stage spot. */
+.tc-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--tc-beam-w);
+  margin-left: calc(var(--tc-beam-w) / -2);
+  height: var(--tc-floor);
+  clip-path: polygon(46.5% 0, 53.5% 0, 100% 100%, 0 100%);
+  background:
+    linear-gradient(90deg, transparent 32%, rgba(var(--tc-light), 0.13) 50%, transparent 68%),
+    linear-gradient(180deg, rgba(var(--tc-light), 0.3) 0%, rgba(var(--tc-light), 0.16) 60%, rgba(var(--tc-light), 0.2) 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 82%, transparent 100%),
+    linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 82%, transparent 100%),
+    linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* Where the beam lands: a warm glow on the backdrop behind head and shoulders. */
+.tc-pool {
+  position: absolute;
+  left: 50%;
+  width: calc(var(--tc-fig-w) * 0.95);
+  height: calc(var(--tc-fig-w) * 0.75);
+  margin-left: calc(var(--tc-fig-w) * -0.475);
+  top: calc(var(--tc-floor) - var(--tc-fig-w) * 0.62);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--tc-light), 0.34) 0%, rgba(var(--tc-light), 0.14) 55%, rgba(var(--tc-light), 0) 100%);
+}
+
+/* The teacher: a portrait bust rising from the bottom edge into the light. */
+.tc-figure {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--tc-fig-w);
+  margin-left: calc(var(--tc-fig-w) / -2);
+}
+.tc-silhouette { display: block; width: 100%; height: auto; }
+/* The torso melts into the room instead of ending on the frame's edge. */
+.tc-figure:not(.tc-figure-photo) {
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0, #000 72%, transparent 100%);
+}
+/* Cleared photo: a circle in the light, Shikho-yellow ring, where the head would be. */
+.tc-figure-photo { --tc-photo-w: calc(var(--tc-fig-w) * 0.66); width: var(--tc-photo-w); margin-left: calc(var(--tc-photo-w) / -2); bottom: auto; top: calc(var(--tc-floor) - var(--tc-photo-w) * 0.62); }
+.tc-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 4px var(--ds-warning-500);
+}
+
+/* Copy */
+.tc-copy {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: clamp(88px, 12cqh, 116px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.tc-framing { margin: 0; font-size: 18px; line-height: 1.5; font-weight: 500; color: rgba(255, 255, 255, 0.8); }
+/* The name is the hero: largest thing on the screen, in a warm white that belongs to the light. */
+.tc-name {
+  margin: 0;
+  font: inherit;
+  font-size: clamp(40px, 12.4cqw, 54px);
+  line-height: 1.25;
+  font-weight: 700;
+  max-width: 100%;
+  color: #fff8ea;
+}
+.tc-name > span { display: block; text-wrap: balance; overflow-wrap: anywhere; }
+
+@container (max-height: 720px) {
+  .slide.tc { --tc-fig-w: 70cqw; }
+  .tc-copy { top: 72px; }
+  .tc-framing { font-size: 17px; }
+}
+
+/* pre-sequence state (full motion only): opacity only on GSAP-owned layers */
+.tc.is-pre :is(.tc-dim, .tc-beam, .tc-pool, .tc-figure, .tc-framing) { opacity: 0; }
+.tc.is-pre .tc-name > span { opacity: 0; }

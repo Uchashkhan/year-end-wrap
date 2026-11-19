@@ -7,8 +7,9 @@ import { usePrefs } from "../lib/prefs";
 import { ProgressBar } from "./ProgressBar";
 import { MOTION } from "../lib/motion";
 import { coverSurface, useCoverVariant } from "../explore/variant";
-import { EntryCtx, FLOW, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
-import { NightSky } from "./NightSky";
+import { EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
+import { StoryBackground } from "./StoryBackground";
+import { SCREEN_BACKGROUND, bgTransition } from "./background";
 
 const TAP_BACK_ZONE = 0.3; // left 30% = back (Stories convention)
 const SWIPE_X = 48;
@@ -17,8 +18,12 @@ const HOLD_MS = 250;
 
 // Motion tier T1 (nav). MotionConfig drops the x-shift under reduced motion.
 const D = MOTION.nav.distance;
-// Screens 01–03 share one night sky, rendered here behind the slides (those
-// slides are transparent), so moving between them never changes the background.
+// Background: one persistent Gentle Atmosphere layer (StoryBackground) behind every
+// slide, never remounted; its variant follows the active screen (SCREEN_BACKGROUND
+// in background.ts) and changes colour in place during the screen transition.
+// Slides on it are transparent. Only the archived cover explorations (?cover=…)
+// still paint their own ground over it.
+// Screens 01–03 additionally share the bespoke hand-overs below.
 // 02 → 03 (forward, full motion) is "flow": Screen 02 runs its own exit (StudyClock,
 // via usePresence) while Screen 03 rises in on top. Any other step between two
 // sky slides (e.g. going back) cross-fades in place: no sideways page slide.
@@ -31,7 +36,7 @@ interface NavCustom extends Entry {
 }
 const SLIDE_VARIANTS = {
   enter: (c: NavCustom) =>
-    c.kind === "sky" || c.kind === "flow" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
+    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
   center: { opacity: 1, x: 0 },
   exit: (c: NavCustom) =>
     // A real keyframe (1 → .99) so the exit lasts while the cover runs its own exit.
@@ -39,13 +44,17 @@ const SLIDE_VARIANTS = {
       ? { opacity: [1, 0.99], x: 0, transition: { duration: SKY_HANDOFF.coverOut, ease: "linear" as const } }
       : c.kind === "flow"
         ? { opacity: [1, 0.99], x: 0, transition: { duration: FLOW.out, ease: "linear" as const } }
+        : c.kind === "focus"
+          ? { opacity: [1, 0.99], x: 0, transition: { duration: FOCUS.out, ease: "linear" as const } }
         : c.kind === "fade"
           ? { opacity: 0, x: 0 }
           : { opacity: 0, x: c.d * -D },
 };
 
-/** Slides drawn over the shared night sky. Only the approved cover joins it. */
+/** Slides joined by the bespoke 01 → 02 → 03 hand-overs and in-place cross-fades. */
 const onSky = (id: string, coverVariant: string) => id === "study" || id === "live" || (id === "cover" && coverVariant === "current");
+/** Slides drawn over the shared background: all of them except archived cover explorations. */
+const onBg = (id: string, coverVariant: string) => id !== "cover" || coverVariant === "current";
 
 interface Props {
   plan: StoryPlan;
@@ -85,15 +94,17 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
         ? "sky"
         : bothSky && step && from.id === "study" && slide.id === "live"
           ? "flow"
-          : bothSky
-            ? "fade"
-            : "normal";
+          : step && from?.id === "live" && slide.id === "teacher" && onBg("live", coverVariant)
+            ? "focus"
+            : bothSky
+              ? "fade"
+              : "normal";
     nav.current = { d: index > prevIndex.current ? 1 : -1, kind, frame };
     if (kind === "sky") lockUntil.current = performance.now() + SKY_HANDOFF.lockMs;
     if (kind === "flow") lockUntil.current = performance.now() + FLOW.lockMs;
+    if (kind === "focus") lockUntil.current = performance.now() + FOCUS.lockMs;
     prevIndex.current = index;
   }
-  const skyOn = onSky(slide.id, coverVariant);
 
   const go = useCallback(
     (delta: number) => {
@@ -196,21 +207,10 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
         </button>
       </div>
 
-      {/* Shared background for Screens 01–03; fades away under any other slide. */}
-      <AnimatePresence initial={false}>
-        {skyOn && (
-          <motion.div
-            key="sky"
-            className="story-sky"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={reduced ? MOTION.navReduced : { duration: MOTION.nav.duration, ease: MOTION.nav.ease }}
-          >
-            <NightSky still={reduced} bright={slide.id === "study" || slide.id === "live"} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Persistent background: never unmounts while the story is open, so its twinkle never restarts. */}
+      <div className="story-bg">
+        <StoryBackground variant={SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
+      </div>
 
       <NavCtx.Provider value={nav.current}>
       <AnimatePresence initial={false} custom={nav.current} mode="popLayout">
@@ -218,7 +218,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
           key={`${slide.id}-${index}`}
           className="story-slide"
           data-surface={surface}
-          data-sky={onSky(slide.id, coverVariant) || undefined}
+          data-bg={onBg(slide.id, coverVariant) || undefined}
           custom={nav.current}
           variants={SLIDE_VARIANTS}
           initial="enter"

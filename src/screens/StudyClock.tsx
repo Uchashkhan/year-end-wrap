@@ -25,7 +25,7 @@ const MASK_OUT = [0.4, 0, 0.2, 1] as const;
  * (compose.ts), so there is no low-total state here. PRD's support line
  * ("প্রতিটা ঘণ্টা তোমার নিজের পরিশ্রম।") is not in V2 and is not shown.
  *
- * Composition, over the shared night sky (StoryViewer):
+ * Composition, over the shared Gentle Atmosphere background (StoryViewer):
  *   upper   the lead "এই বছর তুমি পড়েছ"
  *   centre  the hours (Warning 500, counting up) with ঘণ্টা, then the comparison
  *   bottom  the analog clock, 110 % of the width, only its upper 66cqw visible

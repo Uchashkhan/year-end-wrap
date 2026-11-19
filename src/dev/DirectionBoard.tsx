@@ -14,6 +14,9 @@ import { MOTION } from "../lib/motion";
 import { renderSlide, SLIDE_LABEL, SURFACE, type Surface } from "../screens/registry";
 import { AssetPlaceholder, BadgePill, CapstonePill, Stamp } from "../components/primitives";
 import type { BadgeId } from "../data/compose";
+import { StoryBackground } from "../story/StoryBackground";
+import { BG_STOPS, BG_VARIANTS, SCREEN_BACKGROUND, type BgVariant } from "../story/background";
+import { HomePreview } from "../home/HomePreview";
 
 type Status = "Approved" | "Proposed" | "Experimental" | "Needs clarification";
 const Tag = ({ s }: { s: Status }) => <span className={`dir-tag dir-tag-${s.split(" ")[0].toLowerCase()}`}>{s}</span>;
@@ -101,19 +104,24 @@ const TYPE_SCALE: { tok: string; spec: string; cls: string; sample: string }[] =
   { tok: "--t-small", spec: "14 · 500 · lh 1.5", cls: "note", sample: "শুক্রবার" },
 ];
 
-function MiniSlide({ children, surface, label }: { children: ReactNode; surface: Surface; label: string }) {
+function MiniSlide({ children, surface, label, bg }: { children: ReactNode; surface: Surface; label: string; bg?: BgVariant }) {
   return (
     <figure className="dir-mini">
       <div className="dir-mini-frame">
         <div className="story dir-mini-story" data-surface={surface}>
-          <div className="story-slide" data-surface={surface}>
+          {bg && (
+            <div className="story-bg">
+              <StoryBackground variant={bg} still />
+            </div>
+          )}
+          <div className="story-slide" data-surface={surface} data-bg={bg ? "" : undefined}>
             {children}
           </div>
         </div>
       </div>
       <figcaption>
         {label}
-        <span>{surface}</span>
+        <span>{bg ? BG_VARIANTS[bg].name : surface}</span>
       </figcaption>
     </figure>
   );
@@ -158,6 +166,37 @@ export function DirectionBoard() {
             <a href="?p=high">← back to prototype</a>
           </p>
         </header>
+
+        <Section
+          n="0"
+          title="Gentle Atmosphere — backgrounds per screen"
+          status="Approved"
+          lede="Figma 55:38. Four master backgrounds (vertical gradient, stops 0/35/75/100 %, one star and two particles). Every screen's background is set in one place: story/background.ts → SCREEN_BACKGROUND. Shown: the home banner, the High profile deck and Fresh Start, settled, each on its assigned background. Screens without a final design keep their existing placeholder foreground."
+        >
+          <div className="dir-strip">
+            {(Object.keys(BG_VARIANTS) as BgVariant[]).map((v) => (
+              <figure key={v} className="dir-mini">
+                <div className="dir-mini-frame" style={{ position: "relative" }}>
+                  <StoryBackground variant={v} still />
+                </div>
+                <figcaption>
+                  {BG_VARIANTS[v].name}
+                  <span>{BG_VARIANTS[v].stops.map((c, i) => `${c} ${BG_STOPS[i]}%`).join(" · ")}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="dir-strip">
+            <MiniSlide surface="cover" label={`00 Home banner · ${BG_VARIANTS[SCREEN_BACKGROUND.banner].name}`}>
+              <HomePreview name="নিশাত" seen={false} comingSoonOpen={false} onOpen={() => {}} onDismissSheet={() => {}} />
+            </MiniSlide>
+            {deck.map((s, i) => (
+              <MiniSlide key={i} surface={SURFACE[s.id]} label={SLIDE_LABEL[s.id]} bg={SCREEN_BACKGROUND[s.id]}>
+                {renderSlide(s, noop, true)}
+              </MiniSlide>
+            ))}
+          </div>
+        </Section>
 
         <Section
           n="1"

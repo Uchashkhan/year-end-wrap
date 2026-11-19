@@ -1,6 +1,9 @@
 import { AnimatePresence, motion } from "motion/react";
 import { COPY } from "../data/copy";
 import { Button, ShikhoMark } from "../components/primitives";
+import { StoryBackground } from "../story/StoryBackground";
+import { SCREEN_BACKGROUND } from "../story/background";
+import { usePrefs } from "../lib/prefs";
 
 /**
  * 00 — Home entry banner, sitting in the existing Year-Review slot.
@@ -20,6 +23,7 @@ export function HomePreview({
   onOpen: () => void;
   onDismissSheet: () => void;
 }) {
+  const { reduced } = usePrefs();
   return (
     <div className="home">
       <header className="home-top">
@@ -30,7 +34,9 @@ export function HomePreview({
       <div className="home-feed">
         <div className="sk sk-line" style={{ width: "46%" }} />
 
-        <section className={`banner ${seen ? "banner-seen" : ""}`} aria-label="Wrap ২০২৬">
+        <section className={`banner ${seen ? "banner-seen" : ""}`} aria-label="Wrap ২০২৬" data-surface="cover">
+          {/* Same Gentle Atmosphere background as the story, fitted to the card. */}
+          <StoryBackground variant={SCREEN_BACKGROUND.banner} still={reduced} />
           {!seen && <span className="banner-cue">{COPY.banner.newCue}</span>}
           <h2 className="banner-title">{name ? COPY.banner.headline(name) : COPY.banner.headlineNoName}</h2>
           <p className="banner-support">{COPY.banner.support}</p>

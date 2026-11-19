@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { useAnimate } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { useAnimate, usePresence } from "motion/react";
 import { COPY } from "../data/copy";
 import { bn } from "../lib/bangla";
 import { usePrefs } from "../lib/prefs";
 import { sequence, type Step } from "../lib/sequence";
 import { CountUp } from "../components/CountUp";
-import { FLOW, useEntry } from "../story/entry";
+import { FLOW, FOCUS, useEntry, useNav } from "../story/entry";
 import type { ScreenProps } from "./types";
 import { heroTimeline } from "./heroHandoff";
 import "../styles/live-class.css";
@@ -97,6 +97,9 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
   const countAt = FLOW.stat.at + 0.05 + shift;
   const [counting, setCounting] = useState(still);
   const [scope, animate] = useAnimate<HTMLDivElement>();
+  const nav = useNav();
+  const [isPresent, safeToRemove] = usePresence();
+  const heroRef = useRef<ReturnType<typeof heroTimeline> | null>(null);
 
   useEffect(() => {
     if (still) return;
@@ -105,6 +108,7 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
     // B–D (clock, chair, rows): one GSAP master timeline (heroHandoff.ts).
     const clock = fromStudy ? root.closest(".story")?.querySelector<HTMLElement>(".sc-clock") ?? null : null;
     const hero = heroTimeline(root, { clock, shift });
+    heroRef.current = hero;
     // E (Motion): headline, count, unit.
     const steps: Step[] = [
       [".fr-line-0 > span", { y: ["105%", "0%"] }, { duration: 0.45, ease: OUT, at: FLOW.stat.at + shift }],
@@ -122,6 +126,25 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
     // entry is fixed for this mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [still, animate, scope]);
+
+  // ── exit to Screen 04 ("focus shift"): 04's GSAP timeline takes over the seats;
+  // here only the text fades (Motion). Any other exit is immediate.
+  useEffect(() => {
+    if (isPresent) return;
+    heroRef.current?.kill();
+    if (nav.kind !== "focus" || !scope.current) {
+      safeToRemove?.();
+      return;
+    }
+    const c = animate(".fr-copy", { opacity: 0, y: -8 }, { duration: FOCUS.textOut, ease: [0.4, 0, 0.2, 1] });
+    const t = window.setTimeout(() => safeToRemove?.(), FOCUS.out * 1000);
+    return () => {
+      c.stop();
+      clearTimeout(t);
+    };
+    // nav is read at the moment Screen 03 starts leaving
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPresent]);
 
   const [l1, l2] = COPY.liveClass.headline;
   return (

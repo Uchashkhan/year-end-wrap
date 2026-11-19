@@ -3,6 +3,10 @@ import { CustomEase } from "gsap/CustomEase";
 import { FLOW } from "../story/entry";
 
 gsap.registerPlugin(CustomEase);
+// Hand-overs share choreography with Motion and timers that run on wall-clock
+// time, so GSAP must too: no lag smoothing (it would let GSAP fall behind after
+// a slow frame and desynchronise the two screens).
+gsap.ticker.lagSmoothing(0);
 
 /**
  * The Screen 02 → 03 hero hand-over as ONE GSAP master timeline: the outgoing

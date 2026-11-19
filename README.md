@@ -96,6 +96,65 @@ pnpm typecheck
     - Recordings and 50 ms frame strips: `review/m11/`.
   - **Not shown (V2 must-show):** classes held, and the ফার্স্ট বেঞ্চার badge. The V2 screen remains at `?live=v2`.
   - **Recordings and screenshots:** `review/m10/`. The previous seat-grid version's captures are in `review/m9/`.
+- [~] **Screen 04 — Teacher: "Teacher in the Spotlight"** (Nov 2026 brief). Files: `src/screens/TeacherSpotlight.tsx`, `src/screens/focusHandoff.ts`, `src/styles/teacher.css`. It sits on Soft Violet (central map). The M1 placeholder remains at `?teacher=v2`.
+  - **Copy (PRD, unchanged):** "যাঁর ক্লাসে সবচেয়ে বেশি ছিলে" · [শিক্ষকের নাম]. The name is larger and is the priority; both lines sit in the upper part, clear of the background's bright band.
+  - **Scene:** a navy veil dims the room. A warm, flat, two-layer beam falls from the top edge (fading in below the chrome and dissolving into the pool) onto a soft light pool, where the teacher stands. There are no props.
+  - **Teacher visual (V2 chain):** a cleared photo shows in a circle with a Warning 500 ring. Otherwise (generic avatar or none) a neutral, top-lit navy bust silhouette is shown; no face is ever guessed. Mock photos show the silhouette until a cleared asset exists.
+  - **Omission:** unchanged in `compose.ts`. No reliable teacher record, or the dev toggle off, means no slide.
+  - **03 → 04 "focus shift"** (`FOCUS` in `entry.ts`; taps locked 1.5 s). One GSAP timeline drives 03's seats and 04's light and figure; Motion drives both screens' text:
+    - 03's text and classroom fade by 0.4 s while the yellow seat holds.
+    - The room dims from 0.2 s, and the beam opens from the top from 0.4 s.
+    - The seat sinks away from 0.45 to 0.8 s as the pool forms from 0.6 s.
+    - The teacher appears from 0.8 s, the framing line from 0.7 s, and the name rises last, from 1.1 to 1.65 s.
+    - The background blends from Signature Blue to Soft Violet under it.
+  - **Other entries:** entered any other way, the same entrance plays without the seat. Reduced motion shows the settled frame.
+  - **Fix:** GSAP lag smoothing is off (`gsap.ticker.lagSmoothing(0)`) so the GSAP hand-overs stay on wall-clock time with Motion and the removal timers.
+  - **Recordings and screenshots:** `review/m13/`.
+  - **Portrait bust (Nov 19):** the generic avatar icon is replaced by an editorial bust: a three-quarter head, neck, shoulders and upper torso in a jacket with lapels, open collar and a pen in the breast pocket. No face and no gender cues.
+    - Duotone: warm light on the head and shoulders, deepening into the room's violet; the torso fades into the background.
+    - About 84 % of the screen width (70 % on short screens), rising from the bottom edge.
+    - The beam is narrower, with a soft brighter centre, widening to the shoulders; a glow behind the shoulders replaces the floor pool.
+    - The name is the hero (40–54 px); the framing line drops to 18 px. Copy unchanged.
+    - The cleared-photo variant was re-placed for the new layout but not yet seen with a real photo.
+  - **Refined as an emotional pause (Nov 19):** less data celebration, more human appreciation. Copy is unchanged; nothing was added.
+    - **Pace:**
+      - The seat lingers longer.
+      - The light comes up slowly, like dawn rather than a switch, from 0.55 to 1.45 s.
+      - The teacher appears with the framing line from 1.0 to 1.1 s.
+      - A held beat of stillness follows, then the name fades softly into place from 1.75 to about 2.65 s.
+      - Taps are locked for 1.9 s.
+    - **Light:**
+      - One warm beam with feathered sides (the hard core is removed).
+      - A warmer pool.
+      - A lighter veil: the room settles rather than going dark.
+    - **Figure:** warm-lit (one continuous light gradient, melting into the pool) instead of a dark navy cut-out.
+    - **Name:** warm white `#fff8ea`, with a soft fade-up instead of a mask snap.
+    - **Recordings and screenshots:** `review/m14/`.
+- [~] **Gentle Atmosphere background system** (Figma 55:38, Nov 2026). It replaces the night sky: the old orbital lines, glows, stars and particles were removed (`NightSky`, `night-sky.css` and 14 SVG layers deleted).
+  - **Files:**
+    - `src/story/background.ts`: every Figma value, the screen → background map (`SCREEN_BACKGROUND`), and transition lengths.
+    - `src/story/StoryBackground.tsx`: the component.
+    - `src/styles/gentle-atmosphere.css`.
+  - **Variants:** `signature-blue`, `ocean-blue`, `soft-violet` and `periwinkle`. Each is a 180° four-stop gradient (0/35/75/100 %) plus the shared decorations: one four-point star and two particles, white at Figma opacity.
+    - The decorations twinkle by opacity only, very gently, and stop under reduced motion.
+    - Each decoration can be turned off on its own (`decorations` prop).
+  - **Story:** one persistent layer behind every slide, never remounted. Its colours interpolate in place (registered CSS colour properties), so any variant can go to any other with no flash. Transition timing follows how the story moved:
+    - Cover → 02: about 1.45 s.
+    - 02 → 03: 0.65 s, with the clock drop.
+    - Any other step, back or jump: 0.6 s.
+  - **Screen map:** banner and Screens 01, 03, 06 and 11 Signature Blue; 02, 05 and 08 Ocean Blue; 04, 07 and 09 Soft Violet; 10 and Fresh Start Periwinkle. To change one, edit `SCREEN_BACKGROUND` only.
+  - **Screens 04–11 and Fresh Start:** they now use light-on-dark text roles (`SURFACE` all "cover"; marksheet "certificate"). Placeholder foregrounds are otherwise unchanged. The home banner has the background fitted to its card.
+  - **Archived explorations:** the old `?cover=` explorations keep their own grounds.
+  - **Validation (`review/m12/`):**
+    - The four renders match Figma: identical at every stop, mean difference 0.48/255.
+    - All journeys (High 11, Limited 7, Fresh 2) were walked with their backgrounds.
+    - Transitions stay within their endpoint colours.
+    - The review board (`?view=direction`, section 0) shows every screen on its background.
+  - **Open, contrast:** the gradients' light band (about 55–85 % of the height, brightest at the 75 % stop) takes white text below WCAG. The worst cases:
+    - 02's yellow number: 2.05:1.
+    - 02's comparison line: 2.4:1.
+    - Placeholder support lines on 05, 07, 08, 09 and 10: 1.7–3:1.
+    - Needs a design decision; not patched in code.
 - [ ] M3 Anchor screens (01, 02, 09) · M4 Remaining screens · M5 Marksheet & export · M6 Motion polish · M7 QA & handoff
 
 ## Needs product clarification

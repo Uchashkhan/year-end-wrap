@@ -11,8 +11,8 @@
  */
 .slide.cf {
   --u: calc(100cqw / 412);
-  /* The ground and night sky (Figma 20:514–20:541) live one level up, shared with
-     Screen 02 — see story/NightSky.tsx and styles/night-sky.css. */
+  /* The ground is the story-level Gentle Atmosphere background (Figma 55:38),
+     shared by every screen — see story/StoryBackground.tsx and story/background.ts. */
   background: transparent;
   color: #fff;
   padding: 0;

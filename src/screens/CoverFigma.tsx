@@ -56,7 +56,7 @@ const DIGITS = [
  *   from where it is to its slot in one centred horizontal row (tl, tr, bl, br
  *   → 1st–4th) — straightening, one size, one baseline, equal gaps, keeping
  *   their weight and colours — hold 200 ms, then the four scale up slightly
- *   (1.12×) and fade as Screen 02 arrives. Geometry: assembleYear.ts. The night sky
+ *   (1.12×) and fade as Screen 02 arrives. Geometry: assembleYear.ts. The background
  *   (story level) never moves.
  * Reduced motion / repeat view: the settled frame, no entrance, plain nav.
  */
@@ -123,7 +123,7 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
     ambient.current.forEach((c) => c.stop());
     const root = scope.current;
     const H = SKY_HANDOFF;
-    // The four digits are drawn together into one year; the night sky (story level) never moves.
+    // The four digits are drawn together into one year; the background (story level) never moves.
     root.classList.add("is-assembling");
     const moves = assembleYear(root, TILTS);
     const anims: AnimationPlaybackControls[] = [];
