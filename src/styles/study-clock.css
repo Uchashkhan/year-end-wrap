@@ -1,0 +1,78 @@
+/*
+ * 02 Study time. Background is the shared night sky (night-sky.css); this slide
+ * is transparent. Three zones, top to bottom:
+ *   upper   the lead line, clear of the story chrome
+ *   centre  the hours (+ ঘণ্টা, + the comparison when shown), centred in the
+ *           space between the lead and the clock
+ *   bottom  the clock: 110cqw wide, centred, only its upper 66cqw visible
+ *           (≈ 31 % less than the previous 96cqw), so it frames the page
+ *           instead of competing with the number.
+ */
+.slide.sc {
+  --sc-clock-w: 110cqw;
+  --sc-clock-show: 66cqw;
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+
+.sc-copy {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: 0;
+  bottom: calc(var(--sc-clock-show) + clamp(16px, 4cqh, 40px));
+  padding-top: clamp(84px, 13cqh, 120px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+/* The heading's parts are laid out by .sc-copy; it is still read as one sentence. */
+.sc-hero { display: contents; margin: 0; font: inherit; }
+.sc-lead { display: block; font-size: 26px; line-height: 1.45; font-weight: 700; text-wrap: balance; }
+
+.sc-stat { margin-top: auto; display: flex; flex-direction: column; align-items: center; }
+.sc-plain .sc-stat { margin-bottom: auto; }
+.sc-num {
+  display: block;
+  font-size: var(--sc-size, min(34cqw, 19cqh));
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ds-warning-500);
+  font-variant-numeric: tabular-nums;
+}
+.sc-num .countup { display: inline-grid; }
+.sc-num .countup > * { grid-area: 1 / 1; }
+.sc-num .countup-ghost { visibility: hidden; }
+.sc-unit { display: block; margin-top: 2px; font-size: 24px; line-height: 1.4; font-weight: 700; }
+.sc-cmp {
+  margin: 16px 0 auto;
+  max-width: 30ch;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+  text-wrap: balance;
+}
+
+.sc-clock {
+  position: absolute;
+  width: var(--sc-clock-w);
+  left: calc((100cqw - var(--sc-clock-w)) / 2);
+  top: calc(100cqh - var(--sc-clock-show));
+}
+
+@container (max-height: 720px) {
+  .slide.sc { --sc-clock-show: 58cqw; }
+  .sc-copy { padding-top: 76px; }
+  .sc-lead { font-size: 22px; }
+  .sc-unit { font-size: 20px; }
+  .sc-cmp { margin-top: 10px; font-size: 15px; }
+}
+
+/* pre-sequence state (full motion only): first paint = first keyframe */
+.sc.is-pre .sc-clock { transform: translateY(80%); } /* fully below the frame */
+.sc.is-pre :is(.sc-lead, .sc-num, .sc-unit, .sc-cmp) { opacity: 0; }

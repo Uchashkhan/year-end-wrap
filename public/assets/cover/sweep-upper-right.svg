@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="230" height="309" viewBox="0 0 230 309" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Upper-right atmospheric sweep">
+<path id="Vector" d="M0 0C6 100 84 141 151 182C200 213 213 245 230 309V0H0Z" fill="url(#paint0_linear_0_39)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_39" x1="122" y1="62" x2="-16" y2="297" gradientUnits="userSpaceOnUse">
+<stop stop-color="#6653C8" stop-opacity="0.18"/>
+<stop offset="0.5" stop-color="#4341C2" stop-opacity="0.1"/>
+<stop offset="1" stop-color="#3049DC" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>

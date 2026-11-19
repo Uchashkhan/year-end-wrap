@@ -1,0 +1,71 @@
+/*
+ * 03 Live classes — "The Front-Row Seat". Over the shared night sky
+ * (night-sky.css); this slide is transparent.
+ *   upper   headline (two lines) and the number with its unit on the baseline,
+ *           left-set on the gutter: asymmetric, unlike Screen 02's centred stack
+ *   lower   the hall (one SVG, full-bleed, anchored to the bottom edge): rows of
+ *           chairs receding from a large front row. Colours step from Primary
+ *           500 (front) to a thinning 700 (back), so depth reads as atmosphere; the
+ *           student's chair is Warning 500.
+ * The hall's height follows the width (viewBox); on short frames it is capped
+ * and slices from the top (xMidYMax), so the front row — and the student's
+ * chair — always stay whole above the bottom edge.
+ */
+.slide.fr { background: transparent; color: #fff; padding: 0; overflow: hidden; }
+
+.fr-copy {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: clamp(84px, 11.5cqh, 112px);
+}
+.fr-head { margin: 0; font: inherit; display: flex; flex-direction: column; align-items: flex-start; }
+.fr-line { display: block; overflow: hidden; padding-bottom: 0.06em; } /* mask; room for matras */
+.fr-line > span { display: block; font-size: 30px; line-height: 1.4; font-weight: 700; }
+
+.fr-stat { display: flex; align-items: baseline; gap: 12px; margin-top: clamp(4px, 1.5cqh, 18px); }
+.fr-num {
+  display: block;
+  font-size: min(32cqw, 17cqh);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ds-warning-500);
+}
+.fr-num .countup { display: inline-grid; }
+.fr-num .countup > * { grid-area: 1 / 1; }
+.fr-num .countup-ghost { visibility: hidden; }
+.fr-unit { font-size: 24px; line-height: 1.4; font-weight: 700; white-space: nowrap; }
+
+/* ── the hall ── */
+.fr-hall {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 54cqh;
+}
+.fr-row-0 { fill: var(--ds-primary-500); }
+.fr-row-1 { fill: var(--ds-primary-600); }
+.fr-row-2 { fill: var(--ds-primary-700); }
+/* Further rows thin out into the sky rather than going dark: atmospheric depth. */
+.fr-row-3 { fill: var(--ds-primary-700); fill-opacity: 0.78; }
+.fr-row-4 { fill: var(--ds-primary-700); fill-opacity: 0.6; }
+.fr-row-5 { fill: var(--ds-primary-700); fill-opacity: 0.44; }
+.fr-row-6 { fill: var(--ds-primary-700); fill-opacity: 0.3; }
+.fr-you { fill: var(--ds-warning-500); }
+.fr-hall g { will-change: transform, opacity; }
+
+@container (max-height: 720px) {
+  .fr-copy { top: 76px; }
+  .fr-line > span { font-size: 26px; }
+  .fr-unit { font-size: 20px; }
+}
+
+/* pre-sequence state (full motion only): first paint = first keyframe */
+.fr.is-pre .fr-line > span { transform: translateY(105%); }
+.fr.is-pre :is(.fr-row, .fr-num, .fr-unit) { opacity: 0; }
+/* GSAP owns these transforms (as SVG attributes), so the pre-state is opacity only. */
+.fr.is-pre .fr-you { opacity: 0; }

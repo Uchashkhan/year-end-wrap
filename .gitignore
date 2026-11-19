@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+# review captures (recordings/screenshots) stay local
+review/
+# local tool settings
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.codex/
+.mcp.json

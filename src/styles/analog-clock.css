@@ -1,0 +1,20 @@
+/*
+ * Analog clock (Screen 02). Square box; every layer fills it, so all geometry is
+ * in the 1000-unit viewBox and scales crisply. Hands rotate about the box centre.
+ * Colours: DS 1.1 tokens except the dial's cyan-blue pair, which the brief asks
+ * for and DS has no token for (flagged extension; kept local to the clock).
+ */
+.clk { position: relative; width: 100%; aspect-ratio: 1; }
+.clk > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.clk svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.clk-hand { transform-origin: 50% 50%; will-change: transform; }
+
+.clk-rim { fill: var(--ds-bg-dark); }               /* dark navy outer border */
+.clk-dial-edge { fill: #1fa3f0; }                    /* cyan-blue, deeper ring */
+.clk-dial { fill: #3dbcfb; }                         /* bright cyan-blue face */
+.clk-tick { stroke: var(--ds-primary-900); stroke-width: 12; stroke-linecap: round; }
+.clk-hour rect { fill: var(--ds-primary-900); }
+.clk-min rect { fill: #fff; }
+.clk-sec rect { fill: var(--ds-warning-500); }
+.clk-hub-outer { fill: var(--ds-warning-500); }
+.clk-hub-inner { fill: var(--ds-primary-900); }

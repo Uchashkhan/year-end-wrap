@@ -1,0 +1,106 @@
+/*
+ * 01 Cover — APPROVED static design, Figma th2CA9ugtc2BZixN4UBH3Z node 10:274
+ * ("Android Compact - 1", 412 × 917 frame since the Nov 2026 update). Do not redesign.
+ *
+ * The four digits are measured in Figma units (--u = 1/412 of the frame width)
+ * so they keep the approved crop at 390 and 360 widths; the top pair is pinned
+ * to the top edge, the bottom pair to the bottom edge. The centre stack keeps the
+ * DS type sizes in px. The four digits live in ONE motion layer (.cf-digits,
+ * the "canvas"; motion owns its transform). Inside it, each .cf-dg is the static
+ * Figma box and .cf-glyph the rotated glyph — never animated individually.
+ */
+.slide.cf {
+  --u: calc(100cqw / 412);
+  /* The ground and night sky (Figma 20:514–20:541) live one level up, shared with
+     Screen 02 — see story/NightSky.tsx and styles/night-sky.css. */
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ── oversized digits: one composition ────────────────────────────── */
+.cf-digits { position: absolute; inset: 0; pointer-events: none; transform-origin: 50% 50%; will-change: transform; }
+.cf-dg {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+/* Ambient float layer (motion owns its transform); the glyph's static rotate stays on .cf-glyph. */
+.cf-float { display: flex; align-items: center; justify-content: center; }
+/* While the digits assemble (Cover → 02), each is its own compositor layer, so the
+   scale-down reuses one raster instead of re-rasterising 300-unit glyphs per step. */
+.cf.is-assembling .cf-float { will-change: transform, opacity; }
+.cf-glyph {
+  display: block;
+  flex: none;
+  font-weight: 700;
+  font-size: calc(300 * var(--u));
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.cf-dg-tl { left: calc(-118 * var(--u)); top: calc(73.35 * var(--u));  width: calc(350.953 * var(--u)); height: calc(474.691 * var(--u)); }
+.cf-dg-tr { left: calc(166 * var(--u));  top: calc(63.41 * var(--u));  width: calc(358.954 * var(--u)); height: calc(478.812 * var(--u)); }
+.cf-dg-bl { left: calc(-125 * var(--u)); top: calc(100cqh - (917 - 857.35) * var(--u)); width: calc(350.953 * var(--u)); height: calc(474.691 * var(--u)); }
+.cf-dg-br { left: calc(150 * var(--u));  top: calc(100cqh - (917 - 850.2) * var(--u)); width: calc(400.119 * var(--u)); height: calc(514.398 * var(--u)); }
+/* 20:545: the ৬ sits in a fixed 207 × 472 text box, vertically centred. */
+.cf-dg-br .cf-glyph { width: calc(207 * var(--u)); height: calc(472 * var(--u)); display: flex; flex-direction: column; justify-content: center; }
+.cf-dg-tl .cf-glyph, .cf-dg-br .cf-glyph { transform: rotate(-27.25deg); }
+.cf-dg-tr .cf-glyph, .cf-dg-bl .cf-glyph { transform: rotate(27.25deg); }
+.cf-dg-bl .cf-glyph, .cf-dg-br .cf-glyph { color: var(--ds-secondary-500); }
+
+/* ── centre stack (Figma 20:546) ──────────────────────────────────── */
+.cf-center {
+  position: absolute;
+  left: calc(50% + 0.5px);
+  top: calc(50% + 0.38px);
+  width: 263px;
+  max-width: calc(100% - 32px);
+  transform: translate(-50%, -50%);
+}
+.cf-stack { display: flex; flex-direction: column; align-items: center; gap: 13px; }
+.cf-logo { display: block; width: 62.02px; height: 40.76px; margin: 5px 0; }
+.cf-copy { display: flex; flex-direction: column; align-items: center; width: 100%; text-align: center; }
+.cf-title { margin: 0; font: inherit; width: 200px; display: flex; flex-direction: column; align-items: center; }
+/* Masks for the upward reveal; the line box (1.5) leaves room for matras and descenders. */
+.cf-mask { display: block; overflow: hidden; width: 100%; }
+.cf-mask > span { display: block; }
+.cf-head { font-size: 32px; line-height: 1.5; font-weight: 600; }
+.cf-year { font-size: 36px; line-height: 1.5; font-weight: 700; color: var(--ds-warning-500); }
+.cf-support { margin: 0; font-size: 16px; line-height: 1.6; font-weight: 500; }
+
+/* ── start control (Figma 20:579) — 683 / 917 sits 224.5u below the frame centre ── */
+.cf-cta {
+  all: unset;
+  position: absolute;
+  left: calc(50% + 0.5px - 30.5px); /* centred without a transform: motion owns .cf-cta's transform */
+  top: calc(50% + 224.5 * var(--u));
+  width: 61px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cf-cta:focus-visible { outline: 2px solid var(--ds-warning-500); outline-offset: 4px; border-radius: 12px; }
+.cf-cta-label { font-size: 16px; line-height: 1.6; font-weight: 400; white-space: nowrap; }
+.cf-cta-btn { position: relative; width: 34px; height: 34px; border-radius: 30px; background: rgba(255, 255, 255, 0.3); overflow: hidden; }
+.cf-arrow { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; transform: rotate(180deg); }
+/* Same asset twice: shaft = x > 10.4 (stretches about the tail cap at 19.31), head = x < 10.6 (travels). */
+.cf-arrow > img { position: absolute; inset: 0; display: block; width: 22px; height: 22px; }
+.cf-arrow-shaft { clip-path: inset(0 0 0 10.4px); transform-origin: 19.31px 50%; }
+.cf-arrow-head { clip-path: inset(0 11.4px 0 0); }
+
+/* ── pre-sequence state (full motion only): first paint = first keyframe ── */
+.cf.is-pre .cf-digits { transform: translateY(2%) scale(1.08); }
+.cf.is-pre :is(.cf-head, .cf-year) > span { transform: translateY(105%); }
+.cf.is-pre :is(.cf-logo, .cf-support, .cf-cta) { opacity: 0; }
+
+/* App-layer chrome stays legible where it crosses the white ২ / ০ (this cover only):
+   a thin navy halo, no change to the chrome's own colours or layout. */
+.story:has(.story-slide .slide.cf) :is(.progress, .story-close) { filter: drop-shadow(0 0 1.5px rgba(17, 25, 115, 0.9)); }
+

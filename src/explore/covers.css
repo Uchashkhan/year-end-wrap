@@ -1,0 +1,149 @@
+/*
+ * Bold & Energetic — three Cover explorations (static, M2c).
+ * Colour: Shikho Design System 1.1 tokens only (--ds-*, tokens.css).
+ * Type:   Baloo Da 2 only. DS styles cap at Title 36 / Bold 700; the year uses
+ *         the same family at 800 (ExtraBold) and display sizes above 36 px —
+ *         flagged as a proposed display extension, not a new font.
+ * Units:  cqw/cqh resolve against the story frame (container-type: size), so
+ *         every size answers to the phone, not the browser window.
+ *
+ * Name tiers (explore/shared.ts) step type down instead of truncating:
+ *   .cx-n-l ≤ 8 · .cx-n-m ≤ 14 · .cx-n-s ≤ 24 · .cx-n-xs > 24 characters.
+ */
+
+/* ── A · Typographic Impact ─────────────────────────────────────────── */
+.slide.cxa {
+  background: var(--ds-primary-600);
+  color: #fff;
+  padding: 62px var(--gutter) 30px;
+  overflow: hidden;
+}
+.cxa-logo { width: 68px; height: auto; display: block; flex: none; }
+.cxa-head { font-size: 20px; line-height: 1.5; font-weight: 600; margin-top: clamp(10px, 3cqh, 32px); }
+.cxa-year {
+  flex: none;
+  margin: 0 calc(-1 * var(--gutter));
+  display: flex; flex-direction: column;
+  font-size: min(68cqw, 27cqh);
+  line-height: .84;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+/* Two crops from two different edges: the asymmetry is in the cut, not a tilt. */
+.cxa-y1 { align-self: flex-end; color: var(--ds-warning-500); transform: translateX(12%); margin-top: .12em; }
+.cxa-y2 { align-self: flex-start; position: relative; isolation: isolate; transform: translateX(-2.5%); margin-top: -.04em; }
+.cxa-y2-t { position: relative; color: #fff; }
+/* Overprint slab: one flat magenta block that runs off the left edge under ২৬. */
+.cxa-slab { position: absolute; z-index: -1; left: -40%; right: 26%; top: 30%; bottom: 8%; background: var(--ds-secondary-500); }
+.cxa-id { margin-top: auto; padding-top: 12px; }
+/* No name: the year takes the freed height instead of leaving a void above the class line. */
+.cxa-anon .cxa-year { flex: 1; justify-content: center; font-size: min(80cqw, 34cqh); }
+.cxa-anon .cxa-id { margin-top: 0; }
+.cxa-name { font-weight: 700; line-height: 1.12; overflow-wrap: anywhere; padding-bottom: .06em; }
+.cx-n-l .cxa-name { font-size: min(21cqw, 10.4cqh); }
+.cx-n-m .cxa-name { font-size: min(14.5cqw, 7.4cqh); }
+.cx-n-s .cxa-name { font-size: min(9.8cqw, 5.4cqh); line-height: 1.2; }
+.cx-n-xs .cxa-name { font-size: min(7.8cqw, 4.4cqh); line-height: 1.25; }
+/* 19 px Bold = WCAG "large" — Warning 500 on Primary 600 passes at 3:1. */
+.cxa-class { font-size: 19px; line-height: 1.4; font-weight: 700; color: var(--ds-warning-500); margin-top: 2px; }
+.cxa-support { font-size: 16px; line-height: 1.6; font-weight: 500; color: rgba(255, 255, 255, .94); margin-top: 14px; max-width: 30ch; }
+
+/* ── B · Playful Geometry ───────────────────────────────────────────── */
+.slide.cxb {
+  background: var(--ds-bg-dark);
+  color: #fff;
+  padding: 62px var(--gutter) 30px;
+}
+.cxb-logo { width: 68px; height: auto; display: block; flex: none; }
+.cxb-head { font-size: 24px; line-height: 1.5; font-weight: 600; color: #fff; margin-top: auto; }
+.cxb-grid {
+  flex: none;
+  width: min(82%, 38cqh);
+  margin-top: 10px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  padding: 0 8px 8px 0; /* room for the hard offset */
+  container-type: inline-size;
+}
+.cxb-t {
+  aspect-ratio: 1;
+  display: grid; place-items: center;
+  font-size: 33cqi; font-weight: 800; line-height: 1;
+  border-radius: 20px;
+}
+.cxb-d { display: block; transform: translateY(.06em); } /* optical centre of Bengali digits */
+/* Diagonal rhythm: leaf · circle / circle · leaf. Leaves curve into the centre. */
+.cxb-t1 { background: var(--ds-primary-500); color: #fff; border-bottom-right-radius: 100%; box-shadow: 8px 8px 0 var(--ds-primary-800); }
+.cxb-t1 .cxb-d { transform: translate(-9%, -4%); }
+.cxb-t2 { background: var(--ds-warning-500); color: var(--ds-bg-dark); border-radius: 50%; box-shadow: 8px 8px 0 var(--ds-warning-900); }
+.cxb-t3 { background: var(--ds-secondary-500); color: #fff; border-radius: 50%; box-shadow: 8px 8px 0 var(--ds-secondary-700); }
+.cxb-t4 { background: var(--ds-highlight); color: var(--ds-bg-dark); border-top-left-radius: 100%; box-shadow: 8px 8px 0 var(--ds-ict-dark); }
+.cxb-t4 .cxb-d { transform: translate(9%, 14%); }
+.cxb-anon .cxb-grid { width: min(100%, 50cqh); }
+.cxb-id { padding-top: clamp(18px, 4.5cqh, 40px); }
+.cxb-name { font-weight: 700; line-height: 1.12; overflow-wrap: anywhere; padding-bottom: .06em; }
+.cx-n-l .cxb-name { font-size: min(20cqw, 10cqh); }
+.cx-n-m .cxb-name { font-size: min(14cqw, 7.2cqh); }
+.cx-n-s .cxb-name { font-size: min(9.4cqw, 5.1cqh); line-height: 1.2; }
+.cx-n-xs .cxb-name { font-size: min(7.6cqw, 4.3cqh); line-height: 1.25; }
+.cxb-class { font-size: 18px; line-height: 1.4; font-weight: 600; color: var(--ds-highlight); margin-top: 2px; }
+.cxb-support { font-size: 16px; line-height: 1.6; font-weight: 500; color: rgba(255, 255, 255, .82); margin-top: auto; padding-top: 12px; max-width: 30ch; }
+
+/* ── C · Editorial Celebration ──────────────────────────────────────── */
+.slide.cxc {
+  background: var(--ds-bg-light);
+  color: var(--ds-bg-dark);
+  padding: 0;
+}
+.cxc-top {
+  flex: 1; min-height: 0;
+  padding: 66px var(--gutter) 18px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+/* Masthead: the full-colour Shikho logo pins the top edge, so the space below reads as chosen. */
+.cxc-mast { width: 92px; height: auto; display: block; margin-bottom: auto; }
+.cxc-name { color: var(--ds-primary-900); font-weight: 700; line-height: 1.04; letter-spacing: -.01em; overflow-wrap: anywhere; padding: .14em 0 .06em; }
+.cx-n-l .cxc-name { font-size: min(30cqw, 15cqh); letter-spacing: -.02em; }
+.cx-n-m .cxc-name { font-size: min(16.5cqw, 8.6cqh); line-height: 1.1; }
+.cx-n-s .cxc-name { font-size: min(11.5cqw, 6.2cqh); line-height: 1.16; }
+.cx-n-xs .cxc-name { font-size: min(8.8cqw, 5cqh); line-height: 1.22; }
+
+.cxc-blocks { flex: none; display: grid; grid-template-columns: 1fr 33%; }
+.cxc-b { min-width: 0; }
+.cxc-year { grid-column: 1 / -1; background: var(--ds-secondary-500); color: #fff; padding: 16px var(--gutter) 0; overflow: hidden; }
+.cxc-head { font-size: 20px; line-height: 1.5; font-weight: 600; margin-bottom: .2em; }
+/* The year is cropped by the seam below it: it sits *in* the block, not on it. */
+.cxc-y { font-size: min(35cqw, 16cqh); line-height: .9; font-weight: 800; letter-spacing: -.02em; margin: .04em 0 -.24em -.04em; }
+.cxc-say { background: var(--ds-warning-500); padding: 16px 16px 30px var(--gutter); }
+.cxc-say p { font-size: 17px; line-height: 1.5; font-weight: 600; max-width: 18ch; }
+.cxc-cls { background: var(--ds-primary-600); color: #fff; padding: 16px 16px 30px; display: flex; flex-direction: column; justify-content: flex-start; }
+.cxc-cls span { display: block; font-size: 17px; line-height: 1.45; font-weight: 700; overflow-wrap: anywhere; }
+.cxc-say:last-child { grid-column: 1 / -1; }
+.cxc-say:last-child p { max-width: 30ch; }
+
+/* No name: the cover star is absent, so the year block takes the stage instead of leaving a void. */
+.cxc-anon .cxc-top { flex: none; }
+.cxc-anon .cxc-mast { margin-bottom: 0; }
+.cxc-anon .cxc-blocks { flex: 1; grid-template-rows: 1fr auto; }
+.cxc-anon .cxc-year { display: flex; flex-direction: column; justify-content: flex-end; }
+
+/* ── small Android (≤ 700 px tall) ──────────────────────────────────── */
+@container (max-height: 700px) {
+  .slide.cxa, .slide.cxb { padding-top: 54px; padding-bottom: 20px; }
+  .cxa-logo, .cxb-logo { width: 56px; }
+  .cxa-head, .cxb-head, .cxc-head { font-size: 17px; }
+  .cxa-support, .cxb-support { font-size: 15px; margin-top: 8px; }
+  .cxb-class { font-size: 16px; }
+  .cxa-class { font-size: 19px; }
+  .cxc-top { padding-top: 56px; }
+  .cxc-say, .cxc-cls { padding-bottom: 20px; }
+  .cxc-cls span { font-size: 15px; }
+  .cxc-mast { width: 64px; }
+  .cxc-say p { font-size: 15px; }
+  .cxb-grid { gap: 10px; padding: 0 6px 6px 0; }
+}
+@container (max-height: 700px) {
+  .cxb-t1 { box-shadow: 6px 6px 0 var(--ds-primary-800); }
+  .cxb-t2 { box-shadow: 6px 6px 0 var(--ds-warning-900); }
+  .cxb-t3 { box-shadow: 6px 6px 0 var(--ds-secondary-700); }
+  .cxb-t4 { box-shadow: 6px 6px 0 var(--ds-ict-dark); }
+}

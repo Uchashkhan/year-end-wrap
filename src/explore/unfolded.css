@@ -1,0 +1,67 @@
+/*
+ * YOUR YEAR, UNFOLDED — Screen 01 (M2d, static).
+ * Colour: DS 1.1 only. Primary 900 ground (blue leads by area), Secondary 500/700
+ * sheet (pink leads by weight), Warning 500 for the one class line. Teal unused.
+ * Type: Baloo Da 2. The year is 800 at display size — the flagged display extension.
+ */
+.slide.cxu {
+  /* One anchor for the whole composition: the sheet's width and its centre line.
+     Headline and name are placed from the same numbers, so they stay in their pockets at any size. */
+  /* Never narrower than 108cqw, so the open end always runs off the right edge, even at 360×640. */
+  --sw: max(min(117cqw, 56cqh), 108cqw);
+  --sy: 50cqh;
+  background: var(--ds-primary-900);
+  color: #fff;
+  padding: 62px var(--gutter) 30px;
+  overflow: hidden;
+}
+.cxu-logo { width: 64px; height: auto; display: block; flex: none; }
+/* Upper-left pocket: the headline sits just above the pleated end, so it reads straight into the year. */
+.cxu-head {
+  position: absolute;
+  left: var(--gutter);
+  bottom: calc(100cqh - var(--sy) + var(--sw) * .345);
+  font-size: 28px; line-height: 1.4; font-weight: 700;
+}
+
+/* Rising diagonal: the pleated end sits low-left, the open end climbs off the right edge.
+   That leaves two pockets — upper-left for the headline, lower-left for the name. */
+.cxu-sheet {
+  position: absolute;
+  left: 24px;
+  top: calc(var(--sy) - var(--sw) * var(--half)); /* --half: half the viewBox aspect, set from the geometry */
+  width: var(--sw);
+  height: auto;
+  overflow: visible;
+}
+.cxu-tilt { transform: rotate(-17deg); transform-origin: 0% 50%; transform-box: view-box; }
+.cxu-lit .cxu-paper { fill: var(--ds-secondary-500); }
+.cxu-turn .cxu-paper { fill: var(--ds-secondary-700); }
+.cxu-ink { font-family: var(--f-bn); font-weight: 800; letter-spacing: 0; }
+.cxu-lit .cxu-ink { fill: #fff; }
+.cxu-turn .cxu-ink { fill: var(--ds-secondary-100); }
+
+/* Lower-left pocket: the name lands right under the pleats — the first thing the unfolding reaches. */
+.cxu-id {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: calc(var(--sy) + var(--sw) * .37);
+}
+.cxu-name { font-weight: 700; line-height: 1.12; overflow-wrap: anywhere; padding-bottom: .04em; }
+.cx-n-l .cxu-name { font-size: min(13cqw, 6.4cqh); }
+.cx-n-m .cxu-name { font-size: min(10.5cqw, 5.2cqh); }
+.cx-n-s .cxu-name { font-size: min(8.2cqw, 4.4cqh); line-height: 1.2; }
+.cx-n-xs .cxu-name { font-size: min(6.8cqw, 3.8cqh); line-height: 1.25; }
+/* No name: the class line takes the name's place, one step up. */
+.cxu-anon .cxu-class { font-size: 24px; margin-top: 0; }
+.cxu-class { font-size: 18px; line-height: 1.4; font-weight: 700; color: var(--ds-warning-500); margin-top: 4px; }
+.cxu-support { margin-top: 22px; font-size: 16px; line-height: 1.6; font-weight: 500; color: rgba(255, 255, 255, .86); max-width: 30ch; }
+
+@container (max-height: 700px) {
+  .slide.cxu { padding-top: 54px; padding-bottom: 20px; }
+  .cxu-logo { width: 54px; }
+  .cxu-head { font-size: 22px; }
+  .cxu-support { font-size: 15px; }
+  .cxu-class { font-size: 16px; }
+}

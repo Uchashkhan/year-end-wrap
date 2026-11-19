@@ -1,0 +1,119 @@
+/*
+ * 01 Cover + 02 Study Time — the geometric system (M3, PROPOSED).
+ * Colour: Shikho DS 1.1 only. Cover = Primary 600 ground, Warning 500 dome,
+ * Secondary 500 moon. Study Time = the dome's yellow becomes the ground.
+ * Type: Baloo Da 2. Year and hours numbers use 800 at display size (flagged
+ * extension above Title 36 / Bold 700).
+ * Geometry numbers mirror src/screens/geometry.ts — change both together.
+ * Animated shapes never carry CSS transforms (motion owns `transform`).
+ */
+
+/* ── shared primitives ──────────────────────────────────────────────── */
+.geo { position: absolute; border-radius: 50%; pointer-events: none; }
+.geo-dome { width: 150cqw; height: 150cqw; left: -25cqw; top: 52cqh; background: var(--ds-warning-500); }
+.geo-moon { background: var(--ds-secondary-500); }
+
+/* ── 01 Cover ───────────────────────────────────────────────────────── */
+.slide.cv {
+  background: var(--ds-primary-600);
+  color: #fff;
+  padding: 62px var(--gutter) 0;
+  overflow: hidden;
+}
+.cv .geo-moon { width: 46cqw; height: 46cqw; left: 62cqw; top: calc(52cqh - 44cqw); }
+.cv-logo { position: relative; width: 64px; height: auto; display: block; }
+.cv-top { position: relative; margin-top: clamp(28px, 7cqh, 72px); }
+.cv-head { font-size: 24px; line-height: 1.4; font-weight: 700; }
+.cv-year {
+  display: flex;
+  font-size: min(37cqw, 18cqh);
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  margin-left: -.03em;
+  padding-bottom: .04em;
+}
+.cv-d { display: block; }
+
+/* The student's line sits *on* the dome — the shape is the stage, not a card. */
+.cv-id {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: calc(52cqh + 9cqh);
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--ds-primary-900);
+}
+.cv-name { font-weight: 800; line-height: 1.12; overflow-wrap: anywhere; padding-bottom: .04em; }
+.cv-n-l .cv-name { font-size: min(13.5cqw, 6.6cqh); }
+.cv-n-m .cv-name { font-size: min(10.5cqw, 5.2cqh); }
+.cv-n-s .cv-name { font-size: min(8.2cqw, 4.3cqh); line-height: 1.2; }
+.cv-n-xs .cv-name { font-size: min(6.8cqw, 3.7cqh); line-height: 1.25; }
+.cv-class { font-size: 18px; line-height: 1.4; font-weight: 700; color: var(--ds-primary-700); margin-top: 4px; }
+.cv-anon .cv-class { font-size: 24px; color: var(--ds-primary-900); margin-top: 0; }
+.cv-support { margin-top: 22px; font-size: 16px; line-height: 1.55; font-weight: 600; color: var(--ds-primary-900); max-width: 30ch; }
+
+/* Cover → Study: the student's line clears before the dome swells. */
+.story[data-grow] :is(.cv-id, .cv-top) { opacity: 0; transition: opacity .14s ease-out; }
+
+/* ── 02 Study Time ──────────────────────────────────────────────────── */
+.slide.st {
+  background: var(--ds-warning-500);
+  color: var(--ds-primary-900);
+  padding: 76px var(--gutter) 28px;
+  overflow: hidden;
+}
+.st .geo-moon { width: 52cqw; height: 52cqw; left: 62cqw; top: 13cqh; }
+/* Study inverts the cover: blue dome low, holding the days in the cover's yellow. */
+.st .geo-dome { top: 52cqh; background: var(--ds-primary-600); }
+.st-hero { position: relative; margin: 0; font: inherit; }
+.st-lead { display: block; }
+.st-lead { position: relative; font-size: 24px; line-height: 1.4; font-weight: 700; margin-top: clamp(8px, 3cqh, 32px); }
+.st-num {
+  position: relative;
+  display: flex; align-items: baseline; flex-wrap: wrap; column-gap: .14em;
+  font-weight: 800;
+  line-height: 1;
+  margin-top: .5cqh;
+}
+.st-big { font-size: var(--st-size, min(44cqw, 22cqh)); letter-spacing: -.02em; padding-top: .06em; }
+.st-unit { font-size: min(10cqw, 5cqh); font-weight: 700; }
+.st-big .countup { display: inline-grid; }
+.st-big .countup > * { grid-area: 1 / 1; }
+.st-big .countup-ghost { visibility: hidden; }
+
+/* Days: one dot = one 6-hour day, exactly the V2 comparison. Never decorative. */
+.st-days { position: absolute; left: var(--gutter); right: var(--gutter); top: calc(52cqh + 9cqh); bottom: 28px; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; color: #fff; }
+.st-cmp { font-size: 18px; line-height: 1.45; font-weight: 700; max-width: 32ch; text-wrap: balance; margin-bottom: 16px; }
+.st-grid { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: var(--gap); width: min(100%, var(--gw)); }
+.st-dot { aspect-ratio: 1; border-radius: 50%; background: var(--ds-warning-500); }
+
+/* No comparison (Limited): the number alone, stated plainly — the dome returns to hold it. */
+.st-plain .geo-dome { top: 80cqh; }
+/* Limited: the number alone, centred in the page — the boldest frame, not the emptiest. */
+.st-plain .st-hero { margin-top: auto; margin-bottom: auto; padding-bottom: 14cqh; }
+
+@container (max-height: 700px) {
+  .slide.cv { padding-top: 54px; }
+  .cv-logo { width: 54px; }
+  .cv-head { font-size: 20px; }
+  .cv-support { font-size: 15px; }
+  .cv-class { font-size: 16px; }
+  .cv-id { bottom: 18px; top: calc(52cqh + 7cqh); }
+  .slide.st { padding-top: 64px; padding-bottom: 18px; }
+  .st-lead { font-size: 20px; }
+  .st-cmp { font-size: 16px; margin-bottom: 10px; }
+}
+
+/* ── pre-sequence state (full motion only) ─────────────────────────────
+   The first paint already matches each beat's first keyframe, so nothing
+   flashes before its turn. Motion's inline styles take over from here. */
+.cv.is-pre .geo-dome { transform: translateY(58%); }
+.cv.is-pre .geo-moon { transform: scale(0); }
+.cv.is-pre :is(.cv-logo, .cv-head, .cv-d, .cv-name, .cv-class, .cv-support) { opacity: 0; }
+.st.is-pre .geo-moon, .st.is-pre .st-dot { transform: scale(0); }
+.st.is-pre .geo-dome { transform: translateY(70%); }
+.st.is-pre :is(.st-lead, .st-big, .st-unit, .st-cmp) { opacity: 0; }

@@ -1,0 +1,141 @@
+/*
+ * Wrap 2026 — design tokens (Milestone 2: visual direction).
+ *
+ * Three layers:
+ *   1. primitives  — raw values. Brand values are APPROVED (PRD §G / @shikho/tokens);
+ *                    anything marked PROPOSED is a design decision awaiting sign-off.
+ *   2. surfaces    — the খাতা metaphor: cover (navy board) → page (paper) → certificate.
+ *                    Each slide declares a surface; components only read --on-* roles,
+ *                    so a screen never hard-codes "white text" or "navy text".
+ *   3. type / space / motion scales.
+ *
+ * See ?view=direction for the visual board of everything below.
+ */
+:root {
+  /* ── 1 · primitives ───────────────────────────────────────────── */
+  /* APPROVED (PRD §G) */
+  --c-navy: #354895;
+  --c-blue: #5468ff;
+  --c-magenta: #e2008d;
+  --c-gold: #ffc93c;
+  --c-ground: #f3f5f9;
+  --c-card: #ffffff;
+  --c-physics: #6070e9;
+  --c-math: #ff7b33;
+
+  /* Shikho Design System 1.1 (Figma RXnHTzu0fk5jcFbHQetv31, node 370:1319) — VERIFIED.
+     Used by the Bold & Energetic cover explorations (?view=covers). */
+  --ds-primary-900: #111973;
+  --ds-primary-800: #1e2b99;
+  --ds-primary-700: #303ebf;
+  --ds-primary-600: #4558e6;
+  --ds-primary-500: #5468ff;
+  --ds-primary-400: #87a5ff;
+  --ds-primary-200: #d5e7ff;
+  --ds-secondary-700: #ac005b;
+  --ds-secondary-500: #e2008d;
+  --ds-secondary-100: #fce3f7;
+  --ds-warning-500: #f3be28;
+  --ds-warning-200: #f9de86;
+  --ds-warning-900: #ef7217;
+  --ds-ict-dark: #2fbda5; /* Subject/ICT/ICT Dark */
+  --ds-highlight: #00d6ca;
+  --ds-bg-dark: #171531;
+  --ds-bg-light: #f3f5f9;
+  --ds-gray-900: #222222;
+
+  /* PROPOSED — derived from navy for depth / ink, not new hues */
+  --c-navy-900: #1b2656;   /* cover board, deepest stage */
+  --c-navy-800: #24336e;   /* stage */
+  --c-ink-navy: #1f2b5c;   /* "ballpoint" ink on paper */
+  --c-paper: #fbfaf6;      /* notebook page — a warm white, not cream */
+  --c-paper-rule: rgba(53, 72, 149, 0.09);
+  --c-paper-margin: rgba(226, 0, 141, 0.22);
+  --c-magenta-ink: #c4007a; /* stamp ink on paper: magenta darkened for 5.6:1 */
+  --c-gold-ink: #3a2a00;    /* text on gold */
+
+  /* neutrals (UI chrome, home, dev) */
+  --c-ink: #1a1d26;
+  --c-ink-2: #4b5060;
+  --c-ink-3: #868a98;
+  --c-line: #e3e6ee;
+
+  /* ── 2 · surface roles (defaults = cover/stage) ───────────────── */
+  --surface: var(--c-navy-800);
+  --on: #ffffff;
+  --on-2: rgba(255, 255, 255, 0.76);
+  --on-3: rgba(255, 255, 255, 0.56);
+  --on-line: rgba(255, 255, 255, 0.18);
+  --on-accent: var(--c-gold);         /* the one highlighted word/number */
+
+  /* ── 3 · type (Baloo Da 2 — APPROVED; scale PROPOSED) ─────────── */
+  --f-bn: "Baloo Da 2", "Hind Siliguri", system-ui, sans-serif;
+  --f-ui: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Bangla needs taller line boxes than Latin: matras sit above, vowel signs below. */
+  --t-hero: clamp(80px, 28cqw, 120px);   /* the one number   · 800 · lh 1.0  */
+  --t-display: clamp(32px, 9.4cqw, 42px); /* the one name/idea · 700 · lh 1.25 */
+  --t-title: 24px;                        /* card titles       · 700 · lh 1.35 */
+  --t-lead: 19px;                         /* framing line      · 500 · lh 1.45 */
+  --t-body: 17px;                         /* support           · 400 · lh 1.55 */
+  --t-small: 14px;                        /* notes             · 500 · lh 1.5  */
+  --t-label: 13px;                        /* row labels        · 600 · lh 1.3  */
+
+  /* space (4-pt) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 40px;
+  --sp-8: 56px;
+  --gutter: var(--sp-5);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --tap: 48px; /* ≥44px touch target */
+
+  /* motion (mirrors src/lib/motion.ts — keep in sync) */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-feedback: 120ms;
+  --dur-nav: 280ms;
+  --dur-content: 560ms;
+}
+
+/* ── surfaces ─────────────────────────────────────────────────────
+ * cover        01, 11, Fresh Start — the notebook's front/back board.
+ * page         02–09 — ruled paper; the student's year written in ink.
+ * certificate  10 — navy stage holding one paper sheet (the keepable artifact).
+ */
+[data-surface="cover"],
+[data-surface="certificate"] {
+  --surface: var(--c-navy-800);
+  --on: #ffffff;
+  --on-2: rgba(255, 255, 255, 0.76);
+  --on-3: rgba(255, 255, 255, 0.56);
+  --on-line: rgba(255, 255, 255, 0.18);
+  --on-accent: var(--c-gold);
+}
+[data-surface="cover"] { --surface: var(--c-navy-900); }
+
+[data-surface="page"] {
+  --surface: var(--c-paper);
+  --on: var(--c-ink-navy);
+  --on-2: #4a5478;
+  --on-3: #5f6789;
+  --on-line: rgba(31, 43, 92, 0.16);
+  --on-accent: var(--c-magenta-ink);
+}
+
+/* Light ground (Editorial cover exploration): Background Dark ink on Background Light. */
+[data-surface="light"] {
+  --surface: var(--ds-bg-light);
+  --on: var(--ds-bg-dark);
+  --on-2: rgba(23, 21, 49, 0.78);
+  --on-3: rgba(23, 21, 49, 0.62);
+  --on-line: rgba(23, 21, 49, 0.16);
+  --on-accent: var(--ds-secondary-500);
+}
