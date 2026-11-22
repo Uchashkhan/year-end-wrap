@@ -3,11 +3,10 @@
  * Atmosphere background (Soft Violet, background.ts); this slide is transparent.
  * Geometry from the prototype (390 × 844): x and sizes in cqw, vertical
  * positions in cqh (1px = 0.2564cqw / 0.1185cqh).
- *   top     headline (PRD), the subject name (hero; two lines, the last in
- *           Shikho yellow), its yellow underbar
- *   lower   the subject's illustration (subjectArt.tsx), bleeding off both sides
+ *   top     headline (PRD), the subject name (hero; one line, Shikho yellow), its yellow underbar
+ *   lower   the subject's original Shikho icon (subjectArt.tsx), centred
  *   bottom  the supporting line (PRD)
- *   field   entrance only: the other subjects in one tilted typographic band
+ *   reel    entrance only: the other subjects scroll through a centred focus zone
  */
 .slide.sb {
   --sb-base: min(13.1cqw, 51px); /* the name's design size; fitted down per name (--sb-fs) */
@@ -19,10 +18,11 @@
 .sb-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 
 /* ── the Subject Reel (entrance only) ──
-   Placed at runtime on the final name's first line (the focus slot); each name's
-   transform and opacity are set per frame from its distance to that slot. Type
-   is exactly the final name's, so the settled subject IS the name. */
-.sb-reel { position: absolute; left: 8.2cqw; top: 25cqh; z-index: 7; pointer-events: none; opacity: 0; }
+   Placed at runtime on the focus zone (the frame's vertical centre, the name's
+   left edge); each name's transform and opacity are set per frame from its
+   distance to that zone. The student's subject is not in here: it is .sb-title
+   itself, driven by the same function, which then lifts into the headline. */
+.sb-reel { position: absolute; left: 8.2cqw; top: 48cqh; z-index: 7; pointer-events: none; opacity: 0; }
 .sb-ri {
   position: absolute;
   left: 0;
@@ -35,9 +35,6 @@
   transform-origin: 0% 50%;
   will-change: transform, opacity;
 }
-.sb-ri-in > span { display: inline-block; }
-/* The student's subject: exactly the final name's (fitted) size. */
-.sb-ri.sb-ri-sel { font-size: var(--sb-fs, var(--sb-base)); }
 
 /* ── the subject's world: its original Shikho icon (Figma "Subject Icon") ──
    Centred in the space between the underbar and the supporting line; the SVG
@@ -47,7 +44,7 @@
   --sb-icon: min(58cqw, 29cqh);
   position: absolute;
   left: 50%;
-  top: 57cqh;
+  top: 55cqh;
   width: var(--sb-icon);
   height: var(--sb-icon);
   margin: calc(var(--sb-icon) / -2) 0 0 calc(var(--sb-icon) / -2);
@@ -58,6 +55,7 @@
 
 /* ── the copy ── */
 .sb-copy { position: absolute; left: 8.2cqw; right: 8.2cqw; top: 18cqh; z-index: 6; }
+.sb-title { position: relative; z-index: 8; transform-origin: 0% 35%; will-change: transform, opacity; }
 .sb-head { margin: 0; font-size: 19px; line-height: 1.4; font-weight: 700; }
 .sb-name {
   margin: 3.2cqh 0 0;
@@ -99,7 +97,7 @@
   .sb-copy { top: 13cqh; }
   .slide.sb { --sb-base: min(12cqw, 44px); }
   .sb-name { margin-top: 2cqh; }
-  .sb-art { --sb-icon: min(50cqw, 27cqh); top: 55cqh; }
+  .sb-art { --sb-icon: min(50cqw, 27cqh); top: 53cqh; }
   .sb-support { bottom: 5cqh; font-size: 15px; line-height: 1.7; }
 }
 

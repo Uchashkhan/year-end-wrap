@@ -26,16 +26,15 @@ const TRAIL = 2;
  * no subject data or the top two are effectively tied. No ranking language.
  *
  * Many subjects → one takes focus → its visual world takes over:
- *   reel    the Subject Reel: the student's OWN other subjects (cycled, never
- *           padded with others) scroll up through one focus slot — the final
- *           name's first line — along a gently curved, swivelling path, then
- *           decelerate onto their subject; the others fade; it turns Shikho
- *           yellow where it rests — one line, already at the final name's size
- *           and place — and the final name takes over in place
- *   reveal  the headline above, the yellow underbar below
- *   world   the subject's original Shikho icon (SUBJECT_ICON, from Figma)
- *   settle  the supporting line. Then still.
- * From Screen 06, 06's yellow watchline slides into place as the underbar.
+ *   scroll  0–0.95 s: the student's OWN other subjects (cycled, never padded)
+ *           move up through a focus zone at the frame's vertical centre, with
+ *           a shallow arc and swivel; scale and opacity fall off with distance
+ *   lock    0.95–1.35 s: the reel decelerates onto their subject; the others fade
+ *   lift    1.25–1.65 s: that same element (.sb-title — no swap, no copy) rises
+ *           into the headline, turning Shikho yellow; its underbar draws left →
+ *           right at the lock and travels with it
+ *   world   1.45–1.9 s: the headline, the subject's Shikho icon, the support line
+ * From Screen 06, 06's watchline leaves with 06's text (no underline mid-scroll).
  * One Motion sequence. Reduced motion / repeat view: the final frame.
  */
 export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
@@ -96,92 +95,109 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
     };
     const u = root.clientWidth / 390; // prototype px → frame px
 
-    // ── from 06: its watchline becomes the underbar ──
-    const bar = q(".sb-bar") as HTMLElement | null;
+    // ── from 06: its watchline leaves with 06's text (no underline while scrolling) ──
     const line = fromVideo ? root.closest(".story")?.querySelector<HTMLElement>(".slide.vw .vw-line") : null;
-    if (line && bar) {
-      const lr = line.getBoundingClientRect();
-      const br = bar.getBoundingClientRect();
-      const fill = line.querySelector(".vw-line-fill");
-      const fillW = fill ? fill.getBoundingClientRect().width : lr.width;
-      add(line.querySelector(".vw-line-track"), { opacity: [1, 0] }, 0, 0.16, "linear");
-      add(line.querySelector(".vw-line-knob"), { opacity: [1, 0], scale: [1, 0.4] }, 0, 0.16, "linear");
-      add(
-        line,
-        {
-          x: [0, br.left - lr.left],
-          y: [0, br.top + br.height / 2 - (lr.top + lr.height / 2)],
-          scaleX: [1, br.width / fillW],
-          scaleY: [1, br.height / lr.height],
-          transformOrigin: ["0% 50%", "0% 50%"],
-        },
-        T.bar.at,
-        T.bar.dur,
-        [0.55, 0, 0.25, 1],
-      );
-      add(bar, { opacity: [0, 1] }, T.bar.at + T.bar.dur - 0.04, 0.04, "linear");
-      add(line, { opacity: [1, 0] }, T.bar.at + T.bar.dur, 0.04, "linear");
-    } else if (bar) {
-      add(bar, { opacity: [0, 1], scaleX: [0, 1] }, at(T.name.at), T.name.dur, OUT);
-    }
+    if (line) add(line, { opacity: [1, 0] }, T.lineOut.at, T.lineOut.dur, "linear");
+
+    const title = q(".sb-title") as HTMLElement | null;
+    const nameEl = q(".sb-name") as HTMLElement | null;
+    const bar = q(".sb-bar") as HTMLElement | null;
+    const stops: { stop: () => void }[] = [];
 
     // ── the Subject Reel ──
-    const stops: { stop: () => void }[] = [];
+    // One persistent element: the final title (.sb-title — the name with its
+    // underbar) IS the reel's selected slot. It scrolls with the other names
+    // through a focus zone at the frame's vertical centre, decelerates, locks,
+    // and lifts into its headline position. Nothing is swapped or duplicated.
     const reelEl = q(".sb-reel") as HTMLElement | null;
-    const nameEl = q(".sb-name") as HTMLElement | null;
     const items = [...root.querySelectorAll<HTMLElement>(".sb-ri")];
     const R = T.reel;
-    if (reelEl && nameEl && items.length) {
-      // The focus slot is the final name's first line.
-      reelEl.style.left = `${nameEl.offsetLeft + (nameEl.offsetParent as HTMLElement).offsetLeft}px`;
-      reelEl.style.top = `${nameEl.offsetTop + (nameEl.offsetParent as HTMLElement).offsetTop}px`;
-      const lineH = items[0].offsetHeight;
-      const P = lineH * 1.08; // pitch
-      const place = (pos: number) =>
-        items.forEach((el, i) => {
-          const d = i - pos;
-          const ad = Math.min(Math.abs(d), 3);
-          el.style.transform = `translate3d(${(22 * u * d * d).toFixed(2)}px, ${(d * P).toFixed(2)}px, 0) perspective(700px) rotateX(${(-15 * d).toFixed(2)}deg) scale(${(1 - 0.1 * ad).toFixed(4)})`;
-          el.style.opacity = String(Math.max(0, 1 - 0.42 * Math.abs(d)));
-        });
+    if (reelEl && title && nameEl && items.length) {
+      const copy = title.offsetParent as HTMLElement;
+      const left = copy.offsetLeft + title.offsetLeft;
+      const titleTop = copy.offsetTop + title.offsetTop;
+      const lineH = nameEl.offsetHeight;
+      // Focus zone: the line's centre at the frame's vertical centre.
+      const focusTop = Math.round(root.clientHeight * 0.48 - lineH / 2);
+      reelEl.style.left = `${left}px`;
+      reelEl.style.top = `${focusTop}px`;
+      const liftY = focusTop - titleTop; // focus zone → final place
+      const P = lineH * 1.02; // pitch
+      // Distance from the focus zone → pose. Controlled: a shallow arc (≤ 10px
+      // at two lines out), a gentle swivel, scale and opacity falling off so
+      // about three or four names read at once.
+      const pose = (d: number) => {
+        const ad = Math.abs(d);
+        const c = Math.min(ad, 2.5);
+        return {
+          x: 2.5 * u * c * c,
+          y: d * P,
+          rx: -13 * Math.max(-2.5, Math.min(2.5, d)),
+          s: 1 - 0.13 * Math.min(ad, 2.5),
+          o: Math.max(0, 1 - 0.42 * ad - 0.04 * ad * ad),
+        };
+      };
+      const tf = (x: number, y: number, rx: number, s: number) =>
+        `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) perspective(700px) rotateX(${rx.toFixed(2)}deg) scale(${s.toFixed(4)})`;
+
       const p0 = sel - R.travel;
-      place(p0);
-      // Cruise at constant speed, then decelerate (velocity-continuous) onto the subject.
+      // Cruise at constant speed, then decelerate (velocity-continuous) and lock.
       const v = R.travel / (R.cruise + R.settle / 2);
-      const total = R.cruise + R.settle;
-      const pos = (t: number) => {
-        const tc = t * total;
+      const pos = (tc: number) => {
+        if (tc <= 0) return p0;
         if (tc <= R.cruise) return p0 + v * tc;
-        const k = (tc - R.cruise) / R.settle;
+        const k = Math.min(1, (tc - R.cruise) / R.settle);
         return p0 + v * R.cruise + ((v * R.settle) / 2) * (1 - (1 - k) * (1 - k));
       };
+      // The lift (focus zone → headline): smooth in-out, overlapping the lock.
+      const L = T.lift;
+      const liftK = (tc: number) => {
+        const k = Math.min(1, Math.max(0, (tc - L.at) / L.dur));
+        return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      };
+      const frame = (tc: number) => {
+        const p = pos(tc);
+        items.forEach((el) => {
+          const f = pose(Number(el.dataset.i) - p);
+          el.style.transform = tf(f.x, f.y, f.rx, f.s);
+          el.style.opacity = f.o.toFixed(3);
+        });
+        const f = pose(sel - p);
+        const m = liftK(tc);
+        title.style.transform = tf(f.x, liftY * (1 - m) + f.y, f.rx, f.s);
+        title.style.opacity = f.o.toFixed(3);
+        nameEl.style.opacity = "1";
+      };
+      frame(0);
+      const end = Math.max(R.cruise + R.settle, L.at + L.dur);
+      const startAt = at(R.at);
       stops.push(
-        (animate as unknown as (a: number, b: number, o: object) => { stop: () => void })(0, 1, {
-          duration: total,
-          delay: at(R.at),
+        (animate as unknown as (a: number, b: number, o: object) => { stop: () => void })(0, end, {
+          duration: end,
+          delay: startAt,
           ease: "linear",
-          onUpdate: (t: number) => place(pos(t)),
+          onUpdate: (tc: number) => frame(tc),
+          onComplete: () => {
+            title.style.transform = "none";
+            title.style.opacity = "1";
+          },
         }),
       );
-      add(reelEl, { opacity: [0, 1] }, at(R.at), 0.25, "linear");
-      // The others fade away; the subject turns Shikho yellow where it rests —
-      // it is already the final name (same line, size and place), which takes
-      // over in place once the others have gone.
-      items.forEach((el, i) => {
-        if (i !== sel) add(el.firstElementChild, { opacity: [1, 0] }, at(T.othersOut.at), T.othersOut.dur, "linear");
-      });
-      add(items[sel].querySelector(".sb-ri-b"), { color: ["#ffffff", "#f9c531"] }, at(T.accent.at), T.accent.dur, "linear");
-      add(nameEl, { opacity: [0, 1] }, at(T.morph.at), 0.001, "linear");
-      add(reelEl, { opacity: [1, 0] }, at(T.morph.at), 0.001, "linear");
+      reelEl.style.opacity = "1";
+      // The others fade away as the subject locks; it turns Shikho yellow as it lifts.
+      add(reelEl, { opacity: [1, 0] }, at(T.othersOut.at), T.othersOut.dur, "linear");
+      add(nameEl, { color: ["#ffffff", "#f9c531"] }, at(T.accent.at), T.accent.dur, "linear");
+      add(bar, { opacity: [0, 1], scaleX: [0, 1] }, at(T.bar.at), T.bar.dur, OUT);
     } else {
       add(nameEl, { opacity: [0, 1], y: [30, 0], scale: [0.92, 1] }, at(T.name.at), T.name.dur, OUT);
+      add(bar, { opacity: [0, 1], scaleX: [0, 1] }, at(T.name.at + 0.2), T.bar.dur, OUT);
     }
 
     // ── the reveal and the subject's world ──
-    add(q(".sb-head"), { opacity: [0, 1], y: [21, 0] }, at(T.head.at), T.head.dur, OUT);
-    // The subject's own Shikho icon comes in (a calm rise; no spin).
-    add(q(".sb-art"), { opacity: [0, 1], y: [40 * u, 0], scale: [0.8, 1] }, at(T.art.at), T.art.dur, OUT);
-    add(q(".sb-support"), { opacity: [0, 1], y: [17, 0] }, at(T.support.at), T.support.dur, OUT);
+    add(q(".sb-head"), { opacity: [0, 1], y: [14, 0] }, at(T.head.at), T.head.dur, OUT);
+    // The subject's own Shikho icon comes in beneath it (a calm rise; no spin).
+    add(q(".sb-art"), { opacity: [0, 1], y: [28 * u, 0], scale: [0.88, 1] }, at(T.art.at), T.art.dur, OUT);
+    add(q(".sb-support"), { opacity: [0, 1], y: [14, 0] }, at(T.support.at), T.support.dur, OUT);
 
     const c = (animate as unknown as (s: unknown) => { stop: () => void })(segs);
     const all = { stop: () => [c, ...stops].forEach((x) => x.stop()) };
@@ -201,7 +217,10 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
         wasLeaving.current = false;
         const done = { duration: 0 };
         animate(".sb-head, .sb-name, .sb-bar, .sb-art, .sb-support", { opacity: 1, x: 0, y: 0, scale: 1, scaleX: 1, rotate: 0 }, done);
+        animate(".sb-name", { color: "#f9c531" }, done);
         animate(".sb-reel", { opacity: 0 }, done);
+        const title = scope.current.querySelector<HTMLElement>(".sb-title");
+        if (title) Object.assign(title.style, { transform: "none", opacity: "1" });
       }
       return;
     }
@@ -225,17 +244,13 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
           through the focus slot and settle on their own subject. */}
       {!still && hasReel && (
         <div className="sb-reel" aria-hidden="true">
-          {reel.map((id, i) => (
-            <div key={i} className={`sb-ri ${id ? "" : "sb-ri-sel"}`} style={{ color: id ? TINTS[i % TINTS.length] : "#fff" }}>
-              <div className="sb-ri-in">
-                {id ? (
-                  SUBJECTS[id].name
-                ) : (
-                  <span className="sb-ri-b">{subject.name}</span>
-                )}
+          {reel.map((id, i) =>
+            id ? (
+              <div key={i} className="sb-ri" data-i={i} style={{ color: TINTS[i % TINTS.length] }}>
+                {SUBJECTS[id].name}
               </div>
-            </div>
-          ))}
+            ) : null,
+          )}
         </div>
       )}
 
@@ -246,10 +261,13 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
 
       <div className="sb-copy" aria-hidden="true">
         <p className="sb-head">{COPY.subject.prdHeadline}</p>
-        <h1 className="sb-name">
-          <span>{subject.name}</span>
-        </h1>
-        <i className="sb-bar" />
+        {/* The title: the reel's selected subject itself, with its underbar. */}
+        <div className="sb-title">
+          <h1 className="sb-name">
+            <span>{subject.name}</span>
+          </h1>
+          <i className="sb-bar" />
+        </div>
       </div>
       <p className="sb-support" aria-hidden="true">
         {COPY.subject.prdSupport}

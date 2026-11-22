@@ -234,18 +234,22 @@ export const WATCH = {
  */
 export const TAKEOVER = {
   textOut: 0.2,
-  bar: { at: 0.08, dur: 0.38 },
-  /** Screen 06 is removed once its line has become the underbar. */
+  /** Screen 06's watchline leaves with 06's text; the underbar only arrives at the lock. */
+  lineOut: { at: 0, dur: 0.2 },
+  /** Screen 06 is removed after its exit. */
   out: 0.5,
-  reel: { at: 0.1, cruise: 1.1, settle: 0.55, travel: 5 },
-  othersOut: { at: 1.45, dur: 0.32 },
-  accent: { at: 1.3, dur: 0.4 },
-  /** The final name takes over in place, once the others are gone and the yellow is in. */
-  morph: { at: 1.78, dur: 0 },
-  /** After the reel names above the focus slot have gone. */
-  head: { at: 1.74, dur: 0.38 },
-  name: { at: 1.6, dur: 0.45 },
-  art: { at: 1.62, dur: 0.45 },
-  support: { at: 1.85, dur: 0.3 },
+  /** Scroll 0–0.95 s at a constant speed, then decelerate and lock 0.95–1.35 s. */
+  reel: { at: 0, cruise: 0.95, settle: 0.4, travel: 4 },
+  othersOut: { at: 1.1, dur: 0.3 },
+  /** The selected name lifts from the focus zone into the headline, 1.25–1.65 s. */
+  lift: { at: 1.25, dur: 0.4 },
+  accent: { at: 1.25, dur: 0.35 },
+  /** Drawn left → right as the subject locks; it travels with the name. */
+  bar: { at: 1.3, dur: 0.35 },
+  head: { at: 1.45, dur: 0.4 },
+  art: { at: 1.45, dur: 0.45 },
+  support: { at: 1.6, dur: 0.3 },
+  /** No reel (a single subject): the name alone rises in. */
+  name: { at: 0.35, dur: 0.45 },
   lockMs: 1300,
 } as const;
