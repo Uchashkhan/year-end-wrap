@@ -225,9 +225,9 @@ export const WATCH = {
  *   0.1 → 1.2    the reel: the student's subjects scroll up through one focus
  *                slot along a gently curved, swivelling path (3–4 readable)
  *   1.2 → 1.75   it decelerates smoothly onto the most-active subject
- *   1.45 → 1.75  the other subjects fade away; the subject's accent turns yellow
- *   1.6 → 2.05   the subject settles into its final two-line form (its second
- *                part slides under the first); the world comes in (1.62)
+ *   1.45 → 1.77  the other subjects fade away; the subject turns Shikho yellow
+ *   1.78         the final name takes over in place (one line, same size and
+ *                place as the reel's subject); its icon comes in (1.62 → 2.07)
  *   1.74 → 2.15  the headline (once the reel has cleared above), then the line
  * Entered any other way, the same entrance runs without the hand-over and the
  * underbar grows with the name.
@@ -240,7 +240,8 @@ export const TAKEOVER = {
   reel: { at: 0.1, cruise: 1.1, settle: 0.55, travel: 5 },
   othersOut: { at: 1.45, dur: 0.32 },
   accent: { at: 1.3, dur: 0.4 },
-  morph: { at: 1.6, dur: 0.45 },
+  /** The final name takes over in place, once the others are gone and the yellow is in. */
+  morph: { at: 1.78, dur: 0 },
   /** After the reel names above the focus slot have gone. */
   head: { at: 1.74, dur: 0.38 },
   name: { at: 1.6, dur: 0.45 },

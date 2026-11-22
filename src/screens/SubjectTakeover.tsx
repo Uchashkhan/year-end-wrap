@@ -1,9 +1,9 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { useAnimate, usePresence } from "motion/react";
 import { COPY, SUBJECTS } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { TAKEOVER, useEntry } from "../story/entry";
-import { SUBJECT_VISUAL } from "./subjectArt";
+import { SUBJECT_ICON } from "./subjectArt";
 import type { ScreenProps } from "./types";
 import "../styles/subject.css";
 
@@ -29,11 +29,11 @@ const TRAIL = 2;
  *   reel    the Subject Reel: the student's OWN other subjects (cycled, never
  *           padded with others) scroll up through one focus slot — the final
  *           name's first line — along a gently curved, swivelling path, then
- *           decelerate onto their subject; the others fade; its last part turns
- *           yellow and slides under the first; the final name takes over in
- *           place (it is the same text, continued)
+ *           decelerate onto their subject; the others fade; it turns Shikho
+ *           yellow where it rests — one line, already at the final name's size
+ *           and place — and the final name takes over in place
  *   reveal  the headline above, the yellow underbar below
- *   world   the subject's illustration (SUBJECT_VISUAL; Physics = the atom)
+ *   world   the subject's original Shikho icon (SUBJECT_ICON, from Figma)
  *   settle  the supporting line. Then still.
  * From Screen 06, 06's yellow watchline slides into place as the underbar.
  * One Motion sequence. Reduced motion / repeat view: the final frame.
@@ -49,7 +49,7 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
   const ctl = useRef<{ stop: () => void } | null>(null);
 
   const subject = SUBJECTS[slide.subject];
-  const visual = SUBJECT_VISUAL[slide.subject];
+  const icon = SUBJECT_ICON[slide.subject];
   // The reel: the student's OWN other subjects, cycled, then their subject.
   const others = slide.others;
   const hasReel = others.length > 0;
@@ -61,9 +61,28 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
       ]
     : [];
   const sel = LEAD;
-  const headLines = visual.lines.slice(0, -1);
-  const lastLine = visual.lines[visual.lines.length - 1];
-  const joiner = visual.lines.join("") === subject.name ? "" : " ";
+
+  // One line, always: the name's size is fitted to the available width (never
+  // larger than the design size). The reel's subject uses the same size, so it
+  // settles as the final name without reflowing.
+  const [fit, setFit] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const name = scope.current?.querySelector<HTMLElement>(".sb-name");
+      const text = name?.firstElementChild as HTMLElement | null;
+      if (!name || !text) return;
+      // Always measure at the design size (not a previously fitted one).
+      name.style.fontSize = "var(--sb-base)";
+      const base = parseFloat(getComputedStyle(name).fontSize);
+      const avail = name.clientWidth;
+      const w = text.getBoundingClientRect().width;
+      name.style.fontSize = "";
+      setFit(w > avail ? Math.floor(((base * avail) / w) * 0.98 * 10) / 10 : null);
+    };
+    measure();
+    document.fonts?.ready.then(measure);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (still) return;
@@ -125,12 +144,6 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
           el.style.transform = `translate3d(${(22 * u * d * d).toFixed(2)}px, ${(d * P).toFixed(2)}px, 0) perspective(700px) rotateX(${(-15 * d).toFixed(2)}deg) scale(${(1 - 0.1 * ad).toFixed(4)})`;
           el.style.opacity = String(Math.max(0, 1 - 0.42 * Math.abs(d)));
         });
-      // Measure the hand-over first: where the subject's last part sits in the
-      // reel at rest vs in the final name.
-      place(sel);
-      const b0 = items[sel].querySelector(".sb-ri-b")?.getBoundingClientRect();
-      const nameSpans = nameEl.querySelectorAll("span");
-      const b1 = nameSpans[nameSpans.length - 1]?.getBoundingClientRect();
       const p0 = sel - R.travel;
       place(p0);
       // Cruise at constant speed, then decelerate (velocity-continuous) onto the subject.
@@ -151,30 +164,23 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
         }),
       );
       add(reelEl, { opacity: [0, 1] }, at(R.at), 0.25, "linear");
-      // The others fade away; the subject's accent turns yellow …
+      // The others fade away; the subject turns Shikho yellow where it rests —
+      // it is already the final name (same line, size and place), which takes
+      // over in place once the others have gone.
       items.forEach((el, i) => {
         if (i !== sel) add(el.firstElementChild, { opacity: [1, 0] }, at(T.othersOut.at), T.othersOut.dur, "linear");
       });
       add(items[sel].querySelector(".sb-ri-b"), { color: ["#ffffff", "#f9c531"] }, at(T.accent.at), T.accent.dur, "linear");
-      // … and settles into its final form: the last part slides under the first,
-      // exactly onto the final name, which then takes over in place.
-      if (b0 && b1)
-        add(
-          items[sel].querySelector(".sb-ri-b"),
-          { x: [0, b1.left - b0.left], y: [0, b1.top - b0.top] },
-          at(T.morph.at),
-          T.morph.dur,
-          [0.55, 0, 0.25, 1],
-        );
-      add(nameEl, { opacity: [0, 1] }, at(T.morph.at + T.morph.dur), 0.001, "linear");
-      add(reelEl, { opacity: [1, 0] }, at(T.morph.at + T.morph.dur), 0.001, "linear");
+      add(nameEl, { opacity: [0, 1] }, at(T.morph.at), 0.001, "linear");
+      add(reelEl, { opacity: [1, 0] }, at(T.morph.at), 0.001, "linear");
     } else {
       add(nameEl, { opacity: [0, 1], y: [30, 0], scale: [0.92, 1] }, at(T.name.at), T.name.dur, OUT);
     }
 
     // ── the reveal and the subject's world ──
     add(q(".sb-head"), { opacity: [0, 1], y: [21, 0] }, at(T.head.at), T.head.dur, OUT);
-    add(q(".sb-art"), { opacity: [0, 1], y: [88 * u, 0], scale: [0.72, 1], rotate: [-13, 0] }, at(T.art.at), T.art.dur, OUT);
+    // The subject's own Shikho icon comes in (a calm rise; no spin).
+    add(q(".sb-art"), { opacity: [0, 1], y: [40 * u, 0], scale: [0.8, 1] }, at(T.art.at), T.art.dur, OUT);
     add(q(".sb-support"), { opacity: [0, 1], y: [17, 0] }, at(T.support.at), T.support.dur, OUT);
 
     const c = (animate as unknown as (s: unknown) => { stop: () => void })(segs);
@@ -205,12 +211,11 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPresent]);
 
-  const { Art } = visual;
   return (
     <div
       ref={scope}
       className={`slide sb ${still ? "" : "is-pre"}`}
-      style={{ "--sb-color": subject.color } as CSSProperties}
+      style={{ "--sb-color": subject.color, ...(fit ? { "--sb-fs": `${fit}px` } : {}) } as CSSProperties}
     >
       <p className="sb-sr">
         {COPY.subject.prdHeadline}: {subject.name}। {COPY.subject.prdSupport}
@@ -221,15 +226,12 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
       {!still && hasReel && (
         <div className="sb-reel" aria-hidden="true">
           {reel.map((id, i) => (
-            <div key={i} className="sb-ri" style={{ color: id ? TINTS[i % TINTS.length] : "#fff" }}>
+            <div key={i} className={`sb-ri ${id ? "" : "sb-ri-sel"}`} style={{ color: id ? TINTS[i % TINTS.length] : "#fff" }}>
               <div className="sb-ri-in">
                 {id ? (
                   SUBJECTS[id].name
                 ) : (
-                  <>
-                    {headLines.length > 0 && <span className="sb-ri-a">{headLines.join(joiner)}{joiner}</span>}
-                    <span className="sb-ri-b">{lastLine}</span>
-                  </>
+                  <span className="sb-ri-b">{subject.name}</span>
                 )}
               </div>
             </div>
@@ -237,18 +239,15 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
         </div>
       )}
 
+      {/* The subject's original Shikho icon (Figma "Subject Icon" set). */}
       <div className="sb-art" aria-hidden="true">
-        <Art color={subject.color} />
+        <img src={icon.src} alt="" width={40} height={40} draggable={false} />
       </div>
 
       <div className="sb-copy" aria-hidden="true">
         <p className="sb-head">{COPY.subject.prdHeadline}</p>
-        <h1 className={`sb-name ${visual.lines.length > 1 ? "" : "sb-name-one"}`}>
-          {visual.lines.map((l, i) => (
-            <span key={i} className={i === visual.lines.length - 1 ? "sb-accent" : ""}>
-              {l}
-            </span>
-          ))}
+        <h1 className="sb-name">
+          <span>{subject.name}</span>
         </h1>
         <i className="sb-bar" />
       </div>
