@@ -18,10 +18,10 @@ export type Slide =
   | { id: "cover"; name: string | null; className: string | null; group: string | null }
   | { id: "study"; hours: number; comparisonDays: number | null }
   | { id: "live"; attended: number; held: number; badge: BadgeId | null }
-  | { id: "teacher"; name: string; photoUrl: string | null; avatar: "male" | "female" | null }
+  | { id: "teacher"; name: string; photoUrl: string | null; portraitUrl: string | null; avatar: "male" | "female" | null }
   | { id: "quiz"; count: number; badge: BadgeId | null; nudge: { gap: number; milestone: string } | null }
-  | { id: "video"; minutes: number; hours: number | null; badge: BadgeId | null }
-  | { id: "subject"; subject: SubjectId; runnersUp: SubjectId[] }
+  | { id: "video"; minutes: number; hours: number | null; films: number | null; badge: BadgeId | null }
+  | { id: "subject"; subject: SubjectId; runnersUp: SubjectId[]; others: SubjectId[] }
   | { id: "peakDay"; date: string; hours: number | null }
   | {
       id: "learnerType";
@@ -133,7 +133,7 @@ export function composeStory(r: WrapRecord, opts: ComposeOptions): StoryPlan {
   // 04 Teacher
   if (!opts.teacherSlideEnabled) skip("teacher", "held: teacher data not launch-ready (dev toggle)");
   else if (!r.teacher || !clean(r.teacher.name)) skip("teacher", "no reliable teacher record");
-  else built.set("teacher", { id: "teacher", name: r.teacher.name.trim(), photoUrl: r.teacher.photoUrl, avatar: r.teacher.avatar });
+  else built.set("teacher", { id: "teacher", name: r.teacher.name.trim(), photoUrl: r.teacher.photoUrl, portraitUrl: r.teacher.portraitUrl ?? null, avatar: r.teacher.avatar });
 
   // 05 Quiz
   if (r.quizzesCompleted >= RULES.quizMinCompleted.value) {
@@ -153,6 +153,10 @@ export function composeStory(r: WrapRecord, opts: ComposeOptions): StoryPlan {
       id: "video",
       minutes: r.videoMinutes,
       hours: vh >= RULES.videoHoursLineMinHours.value ? vh : null,
+      films: (() => {
+        const y = Math.round(r.videoMinutes / RULES.filmMinutes.value);
+        return y >= RULES.videoFilmLineMinFilms.value ? y : null;
+      })(),
       badge: badges.includes("videoMarathoner") ? "videoMarathoner" : null,
     });
   } else skip("video", `${r.videoMinutes} min < ${RULES.videoMinMinutes.value} min`);
@@ -164,7 +168,7 @@ export function composeStory(r: WrapRecord, opts: ComposeOptions): StoryPlan {
   if (!top) skip("subject", "no subject-level data");
   else if (second && (top.seconds - second.seconds) / top.seconds < RULES.subjectTieTolerance.value)
     skip("subject", `tie: ${top.id} vs ${second.id} within ${RULES.subjectTieTolerance.value * 100}% (TBD)`);
-  else built.set("subject", { id: "subject", subject: top.id, runnersUp: ranked.slice(1, 3).map((s) => s.id) });
+  else built.set("subject", { id: "subject", subject: top.id, runnersUp: ranked.slice(1, 3).map((s) => s.id), others: ranked.slice(1).map((s) => s.id) });
 
   // 08 Most-active day
   if (r.peakDay) {

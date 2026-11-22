@@ -1,0 +1,111 @@
+/*
+ * 07 Subject of the year — "Subject Takes Over". Over the shared Gentle
+ * Atmosphere background (Soft Violet, background.ts); this slide is transparent.
+ * Geometry from the prototype (390 × 844): x and sizes in cqw, vertical
+ * positions in cqh (1px = 0.2564cqw / 0.1185cqh).
+ *   top     headline (PRD), the subject name (hero; two lines, the last in
+ *           Shikho yellow), its yellow underbar
+ *   lower   the subject's illustration (subjectArt.tsx), bleeding off both sides
+ *   bottom  the supporting line (PRD)
+ *   field   entrance only: the other subjects in one tilted typographic band
+ */
+.slide.sb {
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+.sb-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* ── the Subject Reel (entrance only) ──
+   Placed at runtime on the final name's first line (the focus slot); each name's
+   transform and opacity are set per frame from its distance to that slot. Type
+   is exactly the final name's, so the settled subject IS the name. */
+.sb-reel { position: absolute; left: 8.2cqw; top: 25cqh; z-index: 7; pointer-events: none; opacity: 0; }
+.sb-ri {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-weight: 800;
+  font-size: min(13.1cqw, 51px);
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  transform-origin: 0% 50%;
+  will-change: transform, opacity;
+}
+.sb-ri-in > span { display: inline-block; }
+
+/* ── the subject's world ── */
+.sb-art {
+  position: absolute;
+  left: -16.7cqw;
+  right: -21.8cqw;
+  bottom: 13.2cqh;
+  height: min(110cqw, 51cqh);
+  z-index: 4;
+  pointer-events: none;
+  transform-origin: 53% 57%;
+}
+.sb-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.sb-orbit { fill: none; stroke-width: 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.sb-o1 { stroke: #45d5d9; }
+.sb-o2 { stroke: #fff; opacity: 0.85; }
+.sb-o3 { stroke: #ed59bc; opacity: 0.9; }
+.sb-ring-thin { fill: none; stroke: rgba(255, 255, 255, 0.13); stroke-width: 1.5; }
+.sb-electron { fill: #f9c531; }
+.sb-electron.sb-b { fill: #55d7eb; }
+.sb-electron.sb-c { fill: #fa7ecf; }
+.sb-nucleus { fill: #f9c531; }
+.sb-core { fill: #1f2682; }
+.sb-spark { fill: #fff; }
+
+/* ── the copy ── */
+.sb-copy { position: absolute; left: 8.2cqw; right: 8.2cqw; top: 18cqh; z-index: 6; }
+.sb-head { margin: 0; font-size: 19px; line-height: 1.4; font-weight: 700; }
+.sb-name {
+  margin: 3.2cqh 0 0;
+  font: inherit;
+  font-weight: 800;
+  font-size: min(13.1cqw, 51px);
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  transform-origin: left center;
+}
+.sb-name > span { display: block; white-space: nowrap; }
+.sb-accent { color: #f9c531; }
+.sb-name-one .sb-accent { color: #f9c531; }
+.sb-bar {
+  display: block;
+  width: 25.6cqw;
+  height: 6px;
+  margin-top: 2.4cqh;
+  border-radius: 9px;
+  background: #f9c531;
+  transform-origin: left center;
+}
+.sb-support {
+  position: absolute;
+  left: 8.5cqw;
+  right: 8.2cqw;
+  bottom: 8cqh;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.9;
+  font-weight: 600;
+  color: #f0efff;
+  text-wrap: balance;
+  z-index: 6;
+}
+
+/* Short frames */
+@container (max-height: 720px) {
+  .sb-copy { top: 13cqh; }
+  .sb-name { font-size: min(12cqw, 44px); margin-top: 2cqh; }
+  .sb-ri { font-size: min(12cqw, 44px); }
+  .sb-art { height: min(90cqw, 46cqh); bottom: 12cqh; }
+  .sb-support { bottom: 5cqh; font-size: 15px; line-height: 1.7; }
+}
+
+/* pre-sequence state (full motion only) */
+.sb.is-pre :is(.sb-head, .sb-name, .sb-bar, .sb-art, .sb-support) { opacity: 0; }

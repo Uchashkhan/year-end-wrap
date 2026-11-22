@@ -37,9 +37,17 @@ export const COPY = {
   },
 
   /** Screen 03 "The Front-Row Seat" (Nov 2026 brief) — the default Live classes screen. */
+  /**
+   * 03 Live classes — PRD Screen 3 copy (Nov 22): headline "লাইভ ক্লাসে তোমার
+   * উপস্থিতি" · primary "[X]টি ক্লাসে অংশ নিয়েছ তুমি" (split for layout; it reads
+   * whole) · held total for context (V2 line) · ribbon only when earned.
+   */
   liveClass: {
-    headline: ["এই বছর তুমি", "লাইভ ক্লাসে ছিলে"],
-    unit: "টি ক্লাসে",
+    headline: ["লাইভ ক্লাসে", "তোমার উপস্থিতি"],
+    unitTop: "টি",
+    unitBottom: "ক্লাসে",
+    tail: "অংশ নিয়েছ তুমি",
+    statement: (n: number) => `${bn(n)}টি ক্লাসে অংশ নিয়েছ তুমি`,
   },
 
   /** V2 Live classes copy — used by the archived screen (?live=v2). */
@@ -65,11 +73,16 @@ export const COPY = {
     lead: "ভিডিও দেখে শিখেছ",
     unit: "মিনিট",
     hours: (h: number) => `প্রায় ${bn(h)} ঘণ্টা ভিডিওতে শেখা।`,
+    /** PRD optional comparison, split for layout; joined it reads exactly: "১২০ মিনিটের সিনেমা ধরলে, প্রায় [Y]টি!" */
+    films: (y: number) => ({ line1: "১২০ মিনিটের সিনেমা ধরলে,", lead: "প্রায়", count: `${bn(y)}টি!` }),
   },
 
   subject: {
     headline: "এই বছর কোন বিষয়ে বেশি ডুবে ছিলে?",
     support: "এই বিষয়েই তুমি সবচেয়ে বেশি সময় দিয়েছ।",
+    /** PRD Screen 7 copy (used by "Subject Takes Over", Nov 22). */
+    prdHeadline: "তোমার বছরের বিষয়",
+    prdSupport: "এই বিষয়েই তুমি সবচেয়ে বেশি সময় দিয়েছ এই বছর।",
     runnersUp: (names: string[]) => `এরপর ${names.join(" · ")}`,
   },
 

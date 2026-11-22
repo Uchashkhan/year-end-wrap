@@ -186,6 +186,17 @@ export function DirectionBoard() {
               </figure>
             ))}
           </div>
+          {/* Cover background test: the same cover on both candidate grounds. */}
+          <div className="dir-strip">
+            {(["cover-indigo", "cover-soft"] as BgVariant[]).map((v) => {
+              const c = deck.find((s) => s.id === "cover");
+              return c ? (
+                <MiniSlide key={v} surface="cover" label={`01 Cover test · ${v === "cover-indigo" ? "preferred" : "?coverbg=soft"}`} bg={v}>
+                  {renderSlide(c, noop, true)}
+                </MiniSlide>
+              ) : null;
+            })}
+          </div>
           <div className="dir-strip">
             <MiniSlide surface="cover" label={`00 Home banner · ${BG_VARIANTS[SCREEN_BACKGROUND.banner].name}`}>
               <HomePreview name="নিশাত" seen={false} comingSoonOpen={false} onOpen={() => {}} onDismissSheet={() => {}} />

@@ -31,9 +31,6 @@
 }
 /* Ambient float layer (motion owns its transform); the glyph's static rotate stays on .cf-glyph. */
 .cf-float { display: flex; align-items: center; justify-content: center; }
-/* While the digits assemble (Cover → 02), each is its own compositor layer, so the
-   scale-down reuses one raster instead of re-rasterising 300-unit glyphs per step. */
-.cf.is-assembling .cf-float { will-change: transform, opacity; }
 .cf-glyph {
   display: block;
   flex: none;
@@ -61,7 +58,28 @@
   max-width: calc(100% - 32px);
   transform: translate(-50%, -50%);
 }
-.cf-stack { display: flex; flex-direction: column; align-items: center; gap: 13px; }
+.cf-stack { position: relative; display: flex; flex-direction: column; align-items: center; gap: 13px; }
+
+/* Contrast for the centre (Nov 2026 background test): a soft, wide darkening
+   behind the stack, and a faint cool light behind the bird. No edges, no glow halo. */
+.cf-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 62% 30% at 50% 50%, rgba(8, 11, 52, 0.34) 0%, rgba(8, 11, 52, 0.16) 55%, rgba(8, 11, 52, 0) 100%);
+}
+.cf-bird-light {
+  position: absolute;
+  left: 50%;
+  top: 25px;
+  width: 128px;
+  height: 96px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(150, 178, 255, 0.2) 0%, rgba(150, 178, 255, 0.07) 60%, rgba(150, 178, 255, 0) 100%);
+}
+.cf-logo { position: relative; }
 .cf-logo { display: block; width: 62.02px; height: 40.76px; margin: 5px 0; }
 .cf-copy { display: flex; flex-direction: column; align-items: center; width: 100%; text-align: center; }
 .cf-title { margin: 0; font: inherit; width: 200px; display: flex; flex-direction: column; align-items: center; }
@@ -96,9 +114,9 @@
 .cf-arrow-head { clip-path: inset(0 11.4px 0 0); }
 
 /* ── pre-sequence state (full motion only): first paint = first keyframe ── */
-.cf.is-pre .cf-digits { transform: translateY(2%) scale(1.08); }
+.cf.is-pre .cf-digits { opacity: 0; } /* the opening shows them as a cluster first */
 .cf.is-pre :is(.cf-head, .cf-year) > span { transform: translateY(105%); }
-.cf.is-pre :is(.cf-logo, .cf-support, .cf-cta) { opacity: 0; }
+.cf.is-pre :is(.cf-logo, .cf-bird-light, .cf-support, .cf-cta) { opacity: 0; }
 
 /* App-layer chrome stays legible where it crosses the white ২ / ০ (this cover only):
    a thin navy halo, no change to the chrome's own colours or layout. */

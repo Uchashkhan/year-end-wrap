@@ -71,6 +71,9 @@
   margin-left: calc(var(--tc-fig-w) / -2);
 }
 .tc-silhouette { display: block; width: 100%; height: auto; }
+/* Cleared illustrated portrait: same 4:5 slot as the bust, a touch larger (the art has side margins). */
+.tc-figure-portrait { --tc-fig-w: 96cqw; }
+.tc-portrait { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; }
 /* The torso melts into the room instead of ending on the frame's edge. */
 .tc-figure:not(.tc-figure-photo) {
   -webkit-mask-image: linear-gradient(180deg, #000 0, #000 72%, transparent 100%);
@@ -114,6 +117,7 @@
 
 @container (max-height: 720px) {
   .slide.tc { --tc-fig-w: 70cqw; }
+  .tc-figure-portrait { --tc-fig-w: 80cqw; }
   .tc-copy { top: 72px; }
   .tc-framing { font-size: 17px; }
 }

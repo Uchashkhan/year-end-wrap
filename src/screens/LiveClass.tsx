@@ -1,123 +1,117 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useAnimate, usePresence } from "motion/react";
 import { COPY } from "../data/copy";
 import { bn } from "../lib/bangla";
 import { usePrefs } from "../lib/prefs";
 import { sequence, type Step } from "../lib/sequence";
 import { CountUp } from "../components/CountUp";
+import { BadgePill } from "../components/primitives";
 import { FLOW, FOCUS, useEntry, useNav } from "../story/entry";
 import type { ScreenProps } from "./types";
-import { heroTimeline } from "./heroHandoff";
+import { heroTimeline, settleHall } from "./heroHandoff";
 import "../styles/live-class.css";
 
 const OUT = [0.22, 1, 0.36, 1] as const;
 
-// ── The hall: rows of chairs seen from the front of the room ────────────────
-// The front row (row 0) is nearest: largest, lowest, brightest. Each row behind
-// it is smaller and higher, converging on the frame's centre (one vanishing
-// axis), and alternate rows sit half a seat over, like tiered classroom seating.
-// SVG units: the hall is 400 wide; y grows downward from the front row's floor.
-const VB_W = 400;
-const ROWS = 7;
-const FRONT = 1; // front-row chair scale (chair box: 100 × 110)
-const SHRINK = 0.84; // each row back
-const PITCH = 1.28; // seat spacing, in chair widths
-const STEP_UP = 0.8; // how far each row sits above the one in front, in chair heights
-const FLOOR_PAD = 20; // space under the front row so the student's seat is never clipped
+// ── The classroom (reference: "The Roll Call") ──────────────────────────────
+// Four rows seen from the front of the room, in hall units (390 wide): each row
+// further back is smaller, higher and dimmer. Row 3 is the front row; the
+// student's seat is its third chair (just right of centre).
+export const HALL_W = 390;
+export const HALL_H = 300;
+const ROWS = [
+  { n: 7, y: 8, w: 26, fill: "#6175d5", opacity: 0.32 },
+  { n: 6, y: 65, w: 34, fill: "#5d77e7", opacity: 0.47 },
+  { n: 5, y: 133, w: 43, fill: "#526cf0", opacity: 0.62 },
+  { n: 4, y: 216, w: 56, fill: "#4059d7", opacity: 0.84 },
+];
+const YOU = { row: 3, seat: 2 };
+/** The chair's box: 100 × 132 (backrest, seat, two legs — one consistent geometry). */
+const CHAIR_H = 132;
 
-type Seat = { x: number; y: number; s: number };
-type Row = { r: number; seats: Seat[] };
+type Place = { x: number; y: number; s: number };
+const placeOf = (r: (typeof ROWS)[number], j: number): Place => {
+  const s = r.w / 100;
+  return { x: (j + 0.5) * (HALL_W / r.n) - r.w / 2, y: r.y, s };
+};
+const YOU_AT = placeOf(ROWS[YOU.row], YOU.seat);
+const tf = (p: Place) => `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) scale(${p.s.toFixed(4)})`;
 
-function buildHall() {
-  const rows: Row[] = [];
-  let floor = 0;
-  let you: Seat | null = null;
-  for (let r = 0; r < ROWS; r++) {
-    const s = FRONT * Math.pow(SHRINK, r);
-    const pitch = 100 * PITCH * s;
-    const offset = r % 2 === 0 ? 0.5 : 0;
-    const k = Math.ceil(VB_W / 2 / pitch) + 1;
-    const seats: Seat[] = [];
-    for (let i = -k; i <= k; i++) {
-      const cx = VB_W / 2 + (i + offset) * pitch;
-      const seat = { x: cx - 50 * s, y: floor - 110 * s, s };
-      if (cx + 50 * s < -2 || cx - 50 * s > VB_W + 2) continue;
-      // The student's seat: front row, just right of centre, balancing the left-set text.
-      if (r === 0 && i === 0) you = seat;
-      else seats.push(seat);
-    }
-    rows.push({ r, seats });
-    floor -= 110 * s * STEP_UP;
-  }
-  const top = floor - 110 * FRONT * Math.pow(SHRINK, ROWS - 1) * (1 - STEP_UP) - 8;
-  return { rows, you: you!, top, height: FLOOR_PAD - top };
-}
-const HALL = buildHall();
-
-/** One chair silhouette, front view: backrest, two posts, seat, two legs. */
+/** One chair, front view: a rounded backrest with a soft top edge, the seat, two legs. */
 function ChairDef() {
   return (
     <g id="fr-chair">
-      <rect x="16" y="0" width="68" height="48" rx="13" />
-      <rect x="27" y="44" width="8" height="14" />
-      <rect x="65" y="44" width="8" height="14" />
-      <rect x="6" y="56" width="88" height="17" rx="8.5" />
-      <rect x="15" y="70" width="9" height="40" rx="4.5" />
-      <rect x="76" y="70" width="9" height="40" rx="4.5" />
+      <rect x="16" y="0" width="68" height="68" rx="16" />
+      <rect x="8" y="73" width="84" height="21" rx="10.5" />
+      <rect x="17" y="91" width="9" height="41" rx="3" />
+      <rect x="74" y="91" width="9" height="41" rx="3" />
+      <rect x="24" y="5" width="52" height="4" rx="2" className="fr-chair-lip" />
     </g>
   );
 }
 
-const place = (p: Seat) => `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) scale(${p.s.toFixed(4)})`;
+/** The count steps down with digit count. */
+function numSize(n: number): CSSProperties {
+  const len = bn(n).length;
+  return { "--fr-num": len <= 2 ? "min(27cqw, 13.5cqh)" : "min(22cqw, 11cqh)" } as CSSProperties;
+}
 
 /**
- * 03 Live classes — "The Front-Row Seat" (Nov 2026 brief).
- * Copy: "এই বছর তুমি / লাইভ ক্লাসে ছিলে" · [X] · "টি ক্লাসে";
- * X = classes attended, from the record (compose.ts → slide.attended).
+ * 03 Live classes — "The Roll Call" (Nov 22 brief + HTML prototype).
+ * Copy (PRD Screen 3): headline "লাইভ ক্লাসে তোমার উপস্থিতি"; primary "[X]টি
+ * ক্লাসে অংশ নিয়েছ তুমি" (X = classes attended, from the record); the held
+ * total for context ("[Y]টি ক্লাসের মধ্যে"); the ফার্স্ট বেঞ্চার ribbon only when
+ * earned (≥ 85%, config.ts). No percentage. The prototype's eyebrow, footer and
+ * "LIVE" label are not PRD copy and are not used.
  *
- * Asymmetric editorial layout (not Screen 02's centred stack): headline and
- * number left-set on the gutter in the upper part; below, a hall of chairs
- * receding from a large front row at the bottom edge. The student's chair, in
- * the front row just right of centre, is Shikho yellow.
- *
- * Entrance — from Screen 02 ("clock drops, seat rises", FLOW): the yellow chair
- * rises from below the frame while 02's clock drops away; the other rows stand
- * up in place from the front backwards while it settles; then the headline, the
- * count and the unit. Clock, chair and rows run on one GSAP master timeline
- * (heroHandoff.ts); the text and count are Motion. From anywhere else the same
- * sequence runs without the clock, starting at once. No loops, no bounce.
- * Reduced motion / repeat view: the settled frame, final number.
+ * One continuous entrance, three checkpoints (heroHandoff.ts):
+ *   01 classroom  the room establishes: four rows of seats as one arrangement
+ *   02 present    the student's front-row seat (yellow) is the focus: a ring
+ *                 marks it; the other seats recede
+ *   03 reveal     the count rises above the room, with the statement; the
+ *                 classroom stays behind as support; the yellow seat stays
+ * From Screen 02 ("clock drops, seat rises"): 02's clock drops out of the frame
+ * while the yellow seat rises from the same place. To Screen 04 the yellow seat
+ * is the outgoing anchor (focusHandoff.ts). Reduced motion / repeat view: the
+ * settled frame.
  */
 export function LiveClass({ slide }: ScreenProps<"live">) {
   const { reduced, repeatView } = usePrefs();
   const still = reduced || repeatView;
   const fromStudy = useEntry().kind === "flow";
-  // Without the clock to wait for, everything starts ~0.35 s earlier.
+  // Without the clock to wait for, everything starts earlier.
   const shift = fromStudy ? 0 : -(FLOW.seat.at - 0.05);
-  const countAt = FLOW.stat.at + 0.05 + shift;
+  const at = (t: number) => Math.max(0, t + shift);
   const [counting, setCounting] = useState(still);
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const nav = useNav();
   const [isPresent, safeToRemove] = usePresence();
   const heroRef = useRef<ReturnType<typeof heroTimeline> | null>(null);
+  const textRef = useRef<{ stop: () => void } | null>(null);
+  const wasLeaving = useRef(false);
 
   useEffect(() => {
     if (still) return;
     const root = scope.current;
     if (!root) return;
-    // B–D (clock, chair, rows): one GSAP master timeline (heroHandoff.ts).
+    // Clock, room, seat, recede: one GSAP master timeline (heroHandoff.ts).
     const clock = fromStudy ? root.closest(".story")?.querySelector<HTMLElement>(".sc-clock") ?? null : null;
     const hero = heroTimeline(root, { clock, shift });
     heroRef.current = hero;
-    // E (Motion): headline, count, unit.
+    // Text (Motion): the heading early; the count as the room recedes.
+    const st = FLOW.stat;
     const steps: Step[] = [
-      [".fr-line-0 > span", { y: ["105%", "0%"] }, { duration: 0.45, ease: OUT, at: FLOW.stat.at + shift }],
-      [".fr-line-1 > span", { y: ["105%", "0%"] }, { duration: 0.45, ease: OUT, at: FLOW.stat.at + 0.06 + shift }],
-      [".fr-num", { opacity: [0, 1] }, { duration: 0.2, ease: OUT, at: countAt }],
-      [".fr-unit", { opacity: [0, 1] }, { duration: 0.3, ease: OUT, at: countAt + 0.2 }],
+      [".fr-line-0 > span", { y: ["130%", "0%"] }, { duration: 0.42, ease: OUT, at: at(FLOW.head.at) }],
+      [".fr-line-1 > span", { y: ["130%", "0%"] }, { duration: 0.42, ease: OUT, at: at(FLOW.head.at + 0.06) }],
+      [".fr-focus", { opacity: [0, 1], scaleY: [0.3, 1] }, { duration: 0.4, ease: OUT, at: at(st.at) }],
+      [".fr-num-mask > span", { y: ["120%", "0%"] }, { duration: 0.55, ease: OUT, at: at(st.at) }],
+      [".fr-unit-mask > span", { y: ["130%", "0%"] }, { duration: 0.5, ease: OUT, at: at(st.at + 0.07) }],
+      [".fr-tail-mask > span", { y: ["130%", "0%"] }, { duration: 0.5, ease: OUT, at: at(st.at + 0.13) }],
+      [".fr-meta", { opacity: [0, 1], y: [8, 0] }, { duration: 0.45, ease: OUT, at: at(st.at + 0.22) }],
     ];
     const c = sequence(root, animate, steps);
-    const t = window.setTimeout(() => setCounting(true), countAt * 1000);
+    textRef.current = c ?? null;
+    const t = window.setTimeout(() => setCounting(true), at(st.at) * 1000);
     return () => {
       hero.kill();
       c?.stop();
@@ -130,8 +124,22 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
   // ── exit to Screen 04 ("focus shift"): 04's GSAP timeline takes over the seats;
   // here only the text fades (Motion). Any other exit is immediate.
   useEffect(() => {
-    if (isPresent) return;
+    if (isPresent) {
+      // Revived while leaving (e.g. back from 04 within its hand-over): the
+      // entrance and the exit were both cut short — show the settled frame.
+      if (wasLeaving.current && scope.current) {
+        wasLeaving.current = false;
+        settleHall(scope.current);
+        animate(".fr-copy", { opacity: 1, y: 0 }, { duration: 0 });
+        animate(".fr-line > span, .fr-num-mask > span, .fr-unit-mask > span, .fr-tail-mask > span", { y: "0%" }, { duration: 0 });
+        animate(".fr-focus, .fr-meta", { opacity: 1, y: 0, scaleY: 1 }, { duration: 0 });
+        setCounting(true);
+      }
+      return;
+    }
+    wasLeaving.current = true;
     heroRef.current?.kill();
+    textRef.current?.stop();
     if (nav.kind !== "focus" || !scope.current) {
       safeToRemove?.();
       return;
@@ -146,48 +154,73 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPresent]);
 
-  const [l1, l2] = COPY.liveClass.headline;
+  const L = COPY.liveClass;
+  const yc = YOU_AT.x + 50 * YOU_AT.s; // the seat's centre and floor, for its ring
+  const yf = YOU_AT.y + CHAIR_H * YOU_AT.s;
   return (
-    <div ref={scope} className={`slide fr ${still ? "" : "is-pre"}`}>
-      <div className="fr-copy">
-        {/* One heading, read as one sentence; the counting digits are hidden from screen readers. */}
-        <h1 className="fr-head" aria-label={`${l1} ${l2} ${bn(slide.attended)}${COPY.liveClass.unit}`}>
-          <span className="fr-line fr-line-0" aria-hidden="true">
-            <span>{l1}</span>
-          </span>
-          <span className="fr-line fr-line-1" aria-hidden="true">
-            <span>{l2}</span>
-          </span>
-          <span className="fr-stat" aria-hidden="true">
-            <span className="fr-num">
-              <CountUp to={slide.attended} run={counting} duration={FLOW.stat.count} />
-            </span>
-            <span className="fr-unit">{COPY.liveClass.unit}</span>
-          </span>
-        </h1>
-      </div>
-
-      <svg
-        className="fr-hall"
-        viewBox={`0 ${HALL.top.toFixed(1)} ${VB_W} ${HALL.height.toFixed(1)}`}
-        preserveAspectRatio="xMidYMax slice"
-        aria-hidden="true"
-      >
-        <defs>
-          <ChairDef />
-        </defs>
-        {/* Back rows first, so nearer chairs overlap the ones behind them. */}
-        {[...HALL.rows].reverse().map(({ r, seats }) => (
-          <g key={r} className={`fr-row fr-row-${r}`}>
-            {seats.map((p, i) => (
-              <use key={i} href="#fr-chair" transform={place(p)} />
+    <div ref={scope} className={`slide fr ${still ? "" : "is-pre"}`} style={numSize(slide.attended)}>
+      {/* The classroom. The hall shifts down a step as it recedes (its resting place). */}
+      <div className="fr-stage" aria-hidden="true">
+        <svg className="fr-hall" viewBox={`0 0 ${HALL_W} ${HALL_H}`}>
+          <defs>
+            <ChairDef />
+          </defs>
+          <g className="fr-rows">
+            {ROWS.map((r, ri) => (
+              <g key={ri} className={`fr-row fr-row-${ri}`} fill={r.fill} fillOpacity={r.opacity}>
+                {Array.from({ length: r.n }, (_, j) =>
+                  ri === YOU.row && j === YOU.seat ? null : <use key={j} href="#fr-chair" transform={tf(placeOf(r, j))} />,
+                )}
+              </g>
             ))}
           </g>
-        ))}
-        <g className="fr-you">
-          <use href="#fr-chair" transform={place(HALL.you)} />
-        </g>
-      </svg>
+          <ellipse className="fr-halo" cx={yc} cy={yf - 2} rx="45" ry="15" />
+          <g className="fr-you">
+            <ellipse className="fr-you-aura" cx={yc} cy={yf - CHAIR_H * YOU_AT.s * 0.55} rx="58" ry="58" />
+            <ellipse className="fr-you-glow" cx={yc} cy={yf - 4} rx="38" ry="10" />
+            <use href="#fr-chair" transform={tf(YOU_AT)} />
+          </g>
+        </svg>
+      </div>
+
+      <div className="fr-copy">
+        <p className="fr-sr">
+          {L.headline.join(" ")}। {L.statement(slide.attended)}।{slide.held > 0 ? ` ${COPY.live.held(slide.held)}।` : ""}
+        </p>
+        <h1 className="fr-head" aria-hidden="true">
+          <span className="fr-line fr-line-0">
+            <span>{L.headline[0]}</span>
+          </span>
+          <span className="fr-line fr-line-1">
+            <span>{L.headline[1]}</span>
+          </span>
+        </h1>
+
+        <div className="fr-stat" aria-hidden="true">
+          <i className="fr-focus" />
+          <div className="fr-figure">
+            <span className="fr-num-mask">
+              <span className="fr-num">
+                <CountUp to={slide.attended} run={counting} duration={FLOW.stat.count} />
+              </span>
+            </span>
+            <span className="fr-unit-mask">
+              <span className="fr-unit">
+                {L.unitTop}
+                <br />
+                {L.unitBottom}
+              </span>
+            </span>
+          </div>
+          <span className="fr-tail-mask">
+            <span className="fr-tail">{L.tail}</span>
+          </span>
+          <div className="fr-meta">
+            {slide.held > 0 && <p className="fr-held">{COPY.live.held(slide.held)}</p>}
+            {slide.badge && <BadgePill id={slide.badge} />}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

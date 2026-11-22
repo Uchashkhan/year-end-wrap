@@ -1,71 +1,84 @@
 /*
- * 03 Live classes — "The Front-Row Seat". Over the shared Gentle Atmosphere background
- * (story/StoryBackground.tsx); this slide is transparent.
- *   upper   headline (two lines) and the number with its unit on the baseline,
- *           left-set on the gutter: asymmetric, unlike Screen 02's centred stack
- *   lower   the hall (one SVG, full-bleed, anchored to the bottom edge): rows of
- *           chairs receding from a large front row. Colours step from Primary
- *           500 (front) to a thinning 700 (back), so depth reads as atmosphere; the
- *           student's chair is Warning 500.
- * The hall's height follows the width (viewBox); on short frames it is capped
- * and slices from the top (xMidYMax), so the front row — and the student's
- * chair — always stay whole above the bottom edge.
+ * 03 Live classes — "The Roll Call". Over the shared Gentle Atmosphere
+ * background (Signature Blue, background.ts); this slide is transparent.
+ * Geometry from the reference prototype (390 × 844), converted: x and sizes in
+ * cqw, vertical positions in cqh.
+ *   top     the PRD headline, two lines, left-set
+ *   middle  the count — number + "টি / ক্লাসে", "অংশ নিয়েছ তুমি", the held
+ *           total, the ribbon
+ *   bottom  the classroom: four rows (one SVG, anchored to the bottom edge),
+ *           receded at rest; the student's front-row seat in Shikho yellow
+ * Text sits on the darker upper two-thirds of the gradient; the rows take the
+ * light band. Resting state is CSS; heroHandoff.ts owns every transform.
  */
-.slide.fr { background: transparent; color: #fff; padding: 0; overflow: hidden; }
-
-.fr-copy {
-  position: absolute;
-  left: var(--gutter);
-  right: var(--gutter);
-  top: clamp(84px, 11.5cqh, 112px);
+.slide.fr {
+  --fr-g: 8.2cqw; /* the reference's 32px margin */
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
 }
-.fr-head { margin: 0; font: inherit; display: flex; flex-direction: column; align-items: flex-start; }
-.fr-line { display: block; overflow: hidden; padding-bottom: 0.06em; } /* mask; room for matras */
-.fr-line > span { display: block; font-size: 30px; line-height: 1.4; font-weight: 700; }
+.fr-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 
-.fr-stat { display: flex; align-items: baseline; gap: 12px; margin-top: clamp(4px, 1.5cqh, 18px); }
+/* ── headline ── */
+.fr-copy { position: absolute; inset: 0; pointer-events: none; }
+.fr-head { position: absolute; left: 6.9cqw; right: var(--fr-g); top: 13.3cqh; margin: 0; font: inherit; display: flex; flex-direction: column; align-items: flex-start; }
+.fr-line { display: block; overflow: hidden; padding: 0.3em 0 0.06em; margin-top: -0.3em; } /* headroom for ি/ী */
+.fr-line + .fr-line { margin-top: -0.36em; }
+.fr-line > span { display: block; font-size: 28px; line-height: 1.43; font-weight: 800; letter-spacing: -0.01em; }
+
+/* ── the classroom ── */
+/* Hung from 55% of the height (reference); its resting place is one step back
+   (+6.6cqh, the reference's 56px). During checkpoints 01–02 heroHandoff lifts it
+   to 55%. Front row ends ≈ 4% above the bottom edge. */
+.fr-stage { position: absolute; left: 0; right: 0; top: 61.6cqh; }
+.fr-hall { display: block; width: 100%; height: auto; overflow: visible; }
+.fr-rows { opacity: 0.6; } /* receded at rest */
+.fr-chair-lip { fill: #fff; fill-opacity: 0.1; }
+.fr-you { fill: var(--ds-warning-500); }
+.fr-you .fr-chair-lip { fill-opacity: 0.45; fill: #fff4b6; }
+.fr-you-glow { fill: var(--ds-warning-500); fill-opacity: 0.22; filter: blur(6px); }
+/* The seat's light: comes up at the "present" beat and stays, softly. */
+.fr-you-aura { fill: var(--ds-warning-500); fill-opacity: 0.2; filter: blur(16px); }
+.fr-halo { fill: none; stroke: #ffd754; stroke-width: 2; opacity: 0; }
+
+/* ── the count ── */
+.fr-stat { position: absolute; left: var(--fr-g); right: var(--fr-g); top: 34.5cqh; }
+.fr-focus { position: absolute; left: -1.3cqw; top: 1.4cqh; width: 3px; height: calc(var(--fr-num) * 0.62); border-radius: 5px; background: var(--ds-warning-500); transform-origin: 50% 100%; }
+.fr-figure { display: flex; align-items: flex-end; gap: 2.6cqw; padding-left: 2.2cqw; }
+.fr-num-mask,
+.fr-unit-mask,
+.fr-tail-mask { display: block; overflow: hidden; padding: 0.3em 0 0.08em; margin-top: -0.3em; }
+.fr-num-mask > span,
+.fr-unit-mask > span,
+.fr-tail-mask > span { display: block; }
 .fr-num {
-  display: block;
-  font-size: min(32cqw, 17cqh);
-  line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: var(--fr-num);
+  line-height: 1.07;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   color: var(--ds-warning-500);
+  /* a flat navy offset holds the yellow's edge against the mid-blue */
+  text-shadow: 0 0.06em 0 rgba(15, 37, 127, 0.4);
 }
 .fr-num .countup { display: inline-grid; }
 .fr-num .countup > * { grid-area: 1 / 1; }
 .fr-num .countup-ghost { visibility: hidden; }
-.fr-unit { font-size: 24px; line-height: 1.4; font-weight: 700; white-space: nowrap; }
+.fr-unit { font-size: 22px; line-height: 1.35; font-weight: 800; padding-bottom: calc(var(--fr-num) * 0.14); }
+.fr-tail-mask { margin-left: 2.2cqw; margin-top: calc(0.6cqh - 0.3em); }
+.fr-tail { font-size: 20px; line-height: 1.45; font-weight: 700; }
+.fr-meta { margin: 1.4cqh 0 0 2.2cqw; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.fr-held { margin: 0; font-size: 15px; line-height: 1.4; font-weight: 600; color: rgba(255, 255, 255, 0.86); }
 
-/* ── the hall ── */
-.fr-hall {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 54cqh;
-}
-.fr-row-0 { fill: var(--ds-primary-500); }
-.fr-row-1 { fill: var(--ds-primary-600); }
-.fr-row-2 { fill: var(--ds-primary-700); }
-/* Further rows thin out into the sky rather than going dark: atmospheric depth. */
-.fr-row-3 { fill: var(--ds-primary-700); fill-opacity: 0.78; }
-.fr-row-4 { fill: var(--ds-primary-700); fill-opacity: 0.6; }
-.fr-row-5 { fill: var(--ds-primary-700); fill-opacity: 0.44; }
-.fr-row-6 { fill: var(--ds-primary-700); fill-opacity: 0.3; }
-.fr-you { fill: var(--ds-warning-500); }
-.fr-hall g { will-change: transform, opacity; }
-
+/* Short frames: the headline and count tighten; the hall stays anchored. */
 @container (max-height: 720px) {
-  .fr-copy { top: 76px; }
-  .fr-line > span { font-size: 26px; }
-  .fr-unit { font-size: 20px; }
+  .fr-head { top: 10cqh; }
+  .fr-line > span { font-size: 24px; }
+  .fr-stat { top: 30cqh; }
+  .fr-meta { gap: 6px; }
+  .fr-stage { top: 52cqh; }
 }
 
-/* pre-sequence state (full motion only): first paint = first keyframe */
-.fr.is-pre .fr-line > span { transform: translateY(105%); }
-.fr.is-pre :is(.fr-row, .fr-num, .fr-unit) { opacity: 0; }
-/* GSAP owns these transforms (as SVG attributes), so the pre-state is opacity only. */
-.fr.is-pre .fr-you { opacity: 0; }
+/* pre-sequence state (full motion only): text waits below its masks; GSAP-owned layers by opacity */
+.fr.is-pre :is(.fr-line, .fr-num-mask, .fr-unit-mask, .fr-tail-mask) > span { transform: translateY(130%); }
+.fr.is-pre :is(.fr-focus, .fr-meta, .fr-you, .fr-row) { opacity: 0; }

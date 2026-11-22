@@ -7,7 +7,7 @@ import { usePrefs } from "../lib/prefs";
 import { ProgressBar } from "./ProgressBar";
 import { MOTION } from "../lib/motion";
 import { coverSurface, useCoverVariant } from "../explore/variant";
-import { EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
+import { ANSWER, WATCH, TAKEOVER, EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
 import { StoryBackground } from "./StoryBackground";
 import { SCREEN_BACKGROUND, bgTransition } from "./background";
 
@@ -36,7 +36,7 @@ interface NavCustom extends Entry {
 }
 const SLIDE_VARIANTS = {
   enter: (c: NavCustom) =>
-    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
+    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" || c.kind === "answer" || c.kind === "watch" || c.kind === "takeover" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
   center: { opacity: 1, x: 0 },
   exit: (c: NavCustom) =>
     // A real keyframe (1 → .99) so the exit lasts while the cover runs its own exit.
@@ -46,6 +46,12 @@ const SLIDE_VARIANTS = {
         ? { opacity: [1, 0.99], x: 0, transition: { duration: FLOW.out, ease: "linear" as const } }
         : c.kind === "focus"
           ? { opacity: [1, 0.99], x: 0, transition: { duration: FOCUS.out, ease: "linear" as const } }
+        : c.kind === "answer"
+          ? { opacity: [1, 0.99], x: 0, transition: { duration: ANSWER.out, ease: "linear" as const } }
+        : c.kind === "takeover"
+          ? { opacity: [1, 0.99], x: 0, transition: { duration: TAKEOVER.out, ease: "linear" as const } }
+        : c.kind === "watch"
+          ? { opacity: [1, 0.99], x: 0, transition: { duration: WATCH.out, ease: "linear" as const } }
         : c.kind === "fade"
           ? { opacity: 0, x: 0 }
           : { opacity: 0, x: c.d * -D },
@@ -96,6 +102,12 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
           ? "flow"
           : step && from?.id === "live" && slide.id === "teacher" && onBg("live", coverVariant)
             ? "focus"
+            : step && from?.id === "teacher" && slide.id === "quiz"
+              ? "answer"
+            : step && from?.id === "quiz" && slide.id === "video"
+              ? "watch"
+            : step && from?.id === "video" && slide.id === "subject"
+              ? "takeover"
             : bothSky
               ? "fade"
               : "normal";
@@ -103,6 +115,9 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
     if (kind === "sky") lockUntil.current = performance.now() + SKY_HANDOFF.lockMs;
     if (kind === "flow") lockUntil.current = performance.now() + FLOW.lockMs;
     if (kind === "focus") lockUntil.current = performance.now() + FOCUS.lockMs;
+    if (kind === "answer") lockUntil.current = performance.now() + ANSWER.lockMs;
+    if (kind === "watch") lockUntil.current = performance.now() + WATCH.lockMs;
+    if (kind === "takeover") lockUntil.current = performance.now() + TAKEOVER.lockMs;
     prevIndex.current = index;
   }
 

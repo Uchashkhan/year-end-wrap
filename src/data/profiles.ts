@@ -29,7 +29,7 @@ const high: WrapRecord = {
   longestStreak: 24,
   studySeconds: 210 * H,
   live: { attended: 60, held: 68 },
-  teacher: { name: "রাহেলা ম্যাম", photoUrl: "mock://teacher-photo", avatar: "female" },
+  teacher: { name: "এনাম ভাইয়া", photoUrl: "mock://teacher-photo", portraitUrl: "/assets/teacher/enam-bhaiya.png", avatar: "male" },
   quizzesCompleted: 95,
   videoMinutes: 1620,
   subjects: [
@@ -61,7 +61,7 @@ export const PROFILES: MockProfile[] = [
       longestStreak: 9,
       studySeconds: 142 * H,
       live: { attended: 48, held: 68 },
-      teacher: { name: "করিম স্যার", photoUrl: null, avatar: "male" },
+      teacher: { name: "এনাম ভাইয়া", photoUrl: null, avatar: "male" },
       quizzesCompleted: 46,
       videoMinutes: 960,
       subjects: [
@@ -131,11 +131,18 @@ export const PROFILES: MockProfile[] = [
     id: "longName",
     label: "Very long name",
     group: "Edge case",
-    note: "Name overflow on banner + cover; night-owl type (VERIFY axis).",
+    note: "Name overflow on banner + cover; night-owl type (VERIFY axis); longest subject name (উচ্চতর গণিত) on 07.",
     record: {
       ...high,
       student: { name: "মোহাম্মদ আব্দুল্লাহ আল মামুন চৌধুরী", className: "একাদশ", group: "মানবিক" },
       learnerType: "nightOwl",
+      subjects: [
+        { id: "higherMath", seconds: 70 * H },
+        { id: "physics", seconds: 44 * H },
+        { id: "biology", seconds: 31 * H },
+        { id: "bangla", seconds: 18 * H },
+        { id: "english", seconds: 12 * H },
+      ],
     },
   },
   {

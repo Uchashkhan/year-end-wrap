@@ -30,6 +30,8 @@ export const RULES = {
   } as Sourced<number>,
   hoursPerSchoolDay: { value: 6, source: "V2" } as Sourced<number>,
   videoHoursLineMinHours: { value: 2, source: "TBD", note: "'≈ [Y] hours' line when meaningful" } as Sourced<number>,
+  filmMinutes: { value: 120, source: "TBD", note: "film length from the PRD line '১২০ মিনিটের সিনেমা ধরলে, প্রায় [Y]টি!' (PRD, not V2)" } as Sourced<number>,
+  videoFilmLineMinFilms: { value: 1, source: "TBD", note: "film comparison only when Y (rounded) ≥ this" } as Sourced<number>,
   streakMinDays: { value: 3, source: "V2", note: "streak shown only if ≥ 3 days" } as Sourced<number>,
   quizNudgeWindow: { value: 5, source: "V2", note: "'only within ~5 of a tier'" } as Sourced<number>,
 

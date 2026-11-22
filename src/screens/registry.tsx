@@ -6,6 +6,9 @@ import { StudyGeo } from "./StudyGeo";
 import { StudyClock } from "./StudyClock";
 import { LiveClass } from "./LiveClass";
 import { TeacherSpotlight } from "./TeacherSpotlight";
+import { QuizRecap } from "./QuizRecap";
+import { VideoWatchline } from "./VideoWatchline";
+import { SubjectTakeover } from "./SubjectTakeover";
 import { useCoverVariant } from "../explore/variant";
 import { CoverTypographic } from "../explore/CoverTypographic";
 import { CoverGeometry } from "../explore/CoverGeometry";
@@ -35,11 +38,14 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       // Default: "Teacher in the Spotlight" (Nov 2026 brief). The M1 placeholder stays at ?teacher=v2.
       return new URLSearchParams(location.search).get("teacher") === "v2" ? <Teacher slide={slide} {...p} /> : <TeacherSpotlight slide={slide} {...p} />;
     case "quiz":
-      return <Quiz slide={slide} {...p} />;
+      // Default: "The Answer Parade — One Last Question" (Nov 2026 brief). The V2 stat screen stays at ?quiz=v2.
+      return new URLSearchParams(location.search).get("quiz") === "v2" ? <Quiz slide={slide} {...p} /> : <QuizRecap slide={slide} {...p} />;
     case "video":
-      return <Video slide={slide} {...p} />;
+      // Default: "The Watchline" (Nov 2026 brief + V3 reference). The V2 stat screen stays at ?video=v2.
+      return new URLSearchParams(location.search).get("video") === "v2" ? <Video slide={slide} {...p} /> : <VideoWatchline slide={slide} {...p} />;
     case "subject":
-      return <Subject slide={slide} {...p} />;
+      // Default: "Subject Takes Over" (Nov 22 prototype). The M1 placeholder stays at ?subject=v2.
+      return new URLSearchParams(location.search).get("subject") === "v2" ? <Subject slide={slide} {...p} /> : <SubjectTakeover slide={slide} {...p} />;
     case "peakDay":
       return <PeakDay slide={slide} {...p} />;
     case "learnerType":

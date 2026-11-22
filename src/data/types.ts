@@ -54,6 +54,8 @@ export interface WrapRecord {
   teacher: {
     name: string;
     photoUrl: string | null;
+    /** Cleared illustrated cut-out portrait (transparent bust, 4:5). Preferred over the photo. */
+    portraitUrl?: string | null;
     /** Used only to pick the generic avatar. null → name only. */
     avatar: "male" | "female" | null;
   } | null;

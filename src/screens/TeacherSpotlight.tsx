@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import { useAnimate } from "motion/react";
+import { useAnimate, usePresence } from "motion/react";
 import { COPY } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { sequence, type Step } from "../lib/sequence";
-import { FOCUS, useEntry } from "../story/entry";
+import { ANSWER, FOCUS, useEntry, useNav } from "../story/entry";
 import { focusTimeline } from "./focusHandoff";
 import type { ScreenProps } from "./types";
 import "../styles/teacher.css";
@@ -102,7 +102,9 @@ function Silhouette() {
  * name sit in the upper part; one focused warm beam falls from the top edge onto
  * a portrait bust rising from the bottom edge, lit on the head and shoulders.
  * A light veil settles the room (and keeps the lower band calm).
- * Teacher visual, V2 fallback chain: cleared photo → in a yellow-ringed circle;
+ * Teacher visual, fallback chain: cleared illustrated portrait (transparent 4:5
+ * bust, e.g. /assets/teacher/enam-bhaiya.png) → in the bust's place, at full
+ * colour; cleared photo → in a yellow-ringed circle;
  * otherwise (generic avatar or none) → the neutral portrait bust. Mock photos
  * (mock://) render the silhouette until a cleared asset exists.
  *
@@ -122,7 +124,11 @@ export function TeacherSpotlight({ slide }: ScreenProps<"teacher">) {
   const at = (t: number) => Math.max(0, t + shift);
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const tlRef = useRef<ReturnType<typeof focusTimeline> | null>(null);
-  const photo = slide.photoUrl && !slide.photoUrl.startsWith("mock://") ? slide.photoUrl : null;
+  const textRef = useRef<{ stop: () => void } | null>(null);
+  const nav = useNav();
+  const [isPresent, safeToRemove] = usePresence();
+  const portrait = slide.portraitUrl || null;
+  const photo = !portrait && slide.photoUrl && !slide.photoUrl.startsWith("mock://") ? slide.photoUrl : null;
 
   useEffect(() => {
     if (still) return;
@@ -137,6 +143,7 @@ export function TeacherSpotlight({ slide }: ScreenProps<"teacher">) {
       [".tc-name > span", { opacity: [0, 1], y: [10, 0] }, { duration: FOCUS.name.dur, ease: SOFT, at: at(FOCUS.name.at) }],
     ];
     const c = sequence(root, animate, steps);
+    textRef.current = c ?? null;
     return () => {
       tl.kill();
       c?.stop();
@@ -145,13 +152,40 @@ export function TeacherSpotlight({ slide }: ScreenProps<"teacher">) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [still, animate, scope]);
 
+  // ── exit to Screen 05 ("Spotlight → Answer Reveal"): 05's GSAP timeline takes
+  // over the figure, light and veil; here only the text fades (Motion). Any
+  // other exit is immediate.
+  useEffect(() => {
+    if (isPresent) return;
+    tlRef.current?.kill();
+    textRef.current?.stop();
+    if (nav.kind !== "answer" || !scope.current) {
+      safeToRemove?.();
+      return;
+    }
+    const c = animate(".tc-copy", { opacity: 0, y: -8 }, { duration: ANSWER.textOut, ease: [0.4, 0, 0.2, 1] });
+    const t = window.setTimeout(() => safeToRemove?.(), ANSWER.out * 1000);
+    return () => {
+      c.stop();
+      clearTimeout(t);
+    };
+    // nav is read at the moment Screen 04 starts leaving
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPresent]);
+
   return (
     <div ref={scope} className={`slide tc ${still ? "" : "is-pre"}`}>
       <div className="tc-dim" aria-hidden="true" />
       <div className="tc-beam" aria-hidden="true" />
       <div className="tc-pool" aria-hidden="true" />
-      <div className={`tc-figure ${photo ? "tc-figure-photo" : ""}`} aria-hidden="true">
-        {photo ? <img className="tc-photo" src={photo} alt="" /> : <Silhouette />}
+      <div className={`tc-figure ${photo ? "tc-figure-photo" : portrait ? "tc-figure-portrait" : ""}`} aria-hidden="true">
+        {portrait ? (
+          <img className="tc-portrait" src={portrait} alt="" decoding="async" />
+        ) : photo ? (
+          <img className="tc-photo" src={photo} alt="" />
+        ) : (
+          <Silhouette />
+        )}
       </div>
 
       <div className="tc-copy">

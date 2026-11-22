@@ -1,5 +1,5 @@
 import type { Slide } from "../data/compose";
-import { FLOW, FOCUS, SKY_HANDOFF, type Entry } from "./entry";
+import { ANSWER, WATCH, FLOW, FOCUS, SKY_HANDOFF, type Entry } from "./entry";
 
 /**
  * "Gentle Atmosphere" — the Wrap 2026 background system.
@@ -11,7 +11,9 @@ import { FLOW, FOCUS, SKY_HANDOFF, type Entry } from "./entry";
  * 0 / 35 / 75 / 100 %. All four frames carry the identical decoration layer
  * (55:41 / 55:45 / 55:49 / 55:53): one soft four-point star and two particles.
  */
-export type BgVariant = "signature-blue" | "ocean-blue" | "soft-violet" | "periwinkle";
+export type BgVariant = "signature-blue" | "ocean-blue" | "soft-violet" | "periwinkle" | CoverBg;
+/** Cover-only test variants (Nov 2026): darker grounds for bird + type contrast. */
+export type CoverBg = "cover-indigo" | "cover-soft";
 
 /** Stop positions (%), shared by every variant. */
 export const BG_STOPS = [0, 35, 75, 100] as const;
@@ -21,7 +23,18 @@ export const BG_VARIANTS: Record<BgVariant, { name: string; figma: string; stops
   "ocean-blue": { name: "Ocean Blue", figma: "55:44", stops: ["#15458e", "#2777cf", "#83cfef", "#2464ad"] },
   "soft-violet": { name: "Soft Violet", figma: "55:48", stops: ["#36258d", "#6051cc", "#ac9bee", "#5d4db7"] },
   periwinkle: { name: "Periwinkle", figma: "55:52", stops: ["#292d99", "#4c58ca", "#95abf4", "#485dc2"] },
+  // Cover tests (brief, not Figma): three colours given (top → bottom); the
+  // third holds from the 75 % stop to the foot.
+  "cover-indigo": { name: "Cover · Deep Indigo", figma: "brief", stops: ["#101553", "#202a91", "#364cbe", "#364cbe"] },
+  "cover-soft": { name: "Cover · Soft Blue", figma: "brief", stops: ["#171c68", "#344ab8", "#769cec", "#769cec"] },
 };
+
+/**
+ * Which cover test is live: Deep Indigo (preferred, default) or Soft Blue via
+ * `?coverbg=soft`. Read once at load; the review board shows both side by side.
+ */
+export const COVER_BG: CoverBg =
+  typeof location !== "undefined" && new URLSearchParams(location.search).get("coverbg") === "soft" ? "cover-soft" : "cover-indigo";
 
 /**
  * Decorations, in reference-frame units (412 × 852), all white.
@@ -48,7 +61,7 @@ export const STAR_PATH = "M6 0C6 4 8 6 12 6C8 6 6 8 6 12C6 8 4 6 0 6C4 6 6 4 6 0
  */
 export const SCREEN_BACKGROUND: Record<Slide["id"] | "banner", BgVariant> = {
   banner: "signature-blue", // 00 Home banner
-  cover: "signature-blue", // 01
+  cover: COVER_BG, // 01 — under test: Deep Indigo (default) / Soft Blue (?coverbg=soft)
   study: "ocean-blue", // 02
   live: "signature-blue", // 03
   teacher: "soft-violet", // 04 (P0 only if data is launch-ready)
@@ -70,8 +83,11 @@ export const SCREEN_BACKGROUND: Record<Slide["id"] | "banner", BgVariant> = {
  */
 export function bgTransition(kind: Entry["kind"], reduced: boolean) {
   if (reduced) return 0.3;
-  if (kind === "sky") return SKY_HANDOFF.revealAt; // drifts under the digits' hand-over, settled as 02 arrives
+  if (kind === "sky") return SKY_HANDOFF.bgDur; // drifts under the whole hand-over
   if (kind === "flow") return FLOW.out; // with the clock's drop
   if (kind === "focus") return FOCUS.beam.at + FOCUS.beam.dur; // under the room dimming and the beam opening
+  if (kind === "answer") return ANSWER.out;
+  if (kind === "watch") return WATCH.out;
+  if (kind === "takeover") return 0.8; // under the field's pass // blue → signature blue while the underline hands over // violet → blue while the spotlight hands over
   return 0.6; // ordinary steps: a little longer than the page turn, so it reads as atmosphere
 }

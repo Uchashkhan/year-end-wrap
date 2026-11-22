@@ -4,7 +4,7 @@ import { COPY } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { sequence, type Step } from "../lib/sequence";
 import { SKY_HANDOFF, useNav } from "../story/entry";
-import { assembleYear } from "./assembleYear";
+import { clusterYear } from "./assembleYear";
 import type { ScreenProps } from "./types";
 import "../styles/cover-figma.css";
 
@@ -14,6 +14,25 @@ const OUT = [0.22, 1, 0.36, 1] as const;
 const FADE = [0.2, 0, 0.4, 1] as const;
 
 const SINE = [0.37, 0, 0.63, 1] as const;
+
+/**
+ * Opening (≈ 1.9 s): ২০২৬ appears as one compact 2 × 2 cluster in the centre,
+ * holds, then opens out to the four corners in one movement (a 30 ms stagger,
+ * one gentle in-out curve, easing slightly down in size and into its tilt);
+ * the bird, the title, the line and the start control arrive in turn as it does.
+ */
+const OPEN = {
+  appear: 0.35, // the cluster fades in
+  hold: 0.5, // it rests
+  expand: { at: 0.5, dur: 1.0, step: 0.03, ease: [0.6, 0, 0.2, 1] as const },
+  cluster: { scale: 1.06, gap: 0.1, lift: 0.01 },
+  bird: 0.85,
+  title: 1.0,
+  support: 1.22,
+  cta: 1.42,
+  /** The ambient float starts once the digits have landed. */
+  ambientAt: 1.6,
+} as const;
 
 /** Per-digit float: vertical / horizontal periods (s), phase delay, direction. All different, so they never move together. */
 const FLOAT = [
@@ -45,19 +64,19 @@ const DIGITS = [
  *
  * Motion: "moving canvas". The four digits are ONE composition (.cf-digits);
  * nothing animates a digit on its own.
- * Entrance (≈1.4 s): the composition is on screen from the first frame, slightly
- *   close (scale 1.08, nudged down) and settles to the approved framing over
- *   900 ms; headline then year rise through a mask, invitation fades up,
- *   the start control arrives last.
+ * Entrance (OPEN, ≈ 1.9 s): the four digits open as one compact, upright 2 × 2
+ *   cluster of ২০২৬ in the centre (clusterYear in assembleYear.ts), hold, then
+ *   open out together to their approved corners — a very small stagger, one
+ *   gentle curve, easing slightly down in size and into their tilt. As they go:
+ *   the bird fades and scales in, the headline and year rise through their
+ *   masks, the invitation fades up, the start control arrives last.
  * Ambient (after the entrance, loops): each corner digit floats on its own slow
  *   ellipse (±4 / ±2 Figma units); the start arrow stretches long and short.
- * Exit to Screen 02 (owned here via usePresence, ≈1.65 s; timing in SKY_HANDOFF):
- *   the centre content fades; each of the four original corner digits travels
- *   from where it is to its slot in one centred horizontal row (tl, tr, bl, br
- *   → 1st–4th) — straightening, one size, one baseline, equal gaps, keeping
- *   their weight and colours — hold 200 ms, then the four scale up slightly
- *   (1.12×) and fade as Screen 02 arrives. Geometry: assembleYear.ts. The background
- *   (story level) never moves.
+ * Exit to Screen 02 (owned here via usePresence, ≈ 0.85 s; SKY_HANDOFF): the
+ *   digits never regroup. The centre content fades and lifts; each corner digit
+ *   moves a short way further out from the centre, past its own edges, and
+ *   fades; the background drifts to Study Time's; Screen 02's clock rises and
+ *   its headline and number reveal over the last part (StudyClock).
  * Reduced motion / repeat view: the settled frame, no entrance, plain nav.
  */
 export function CoverFigma({ actions }: ScreenProps<"cover">) {
@@ -71,16 +90,39 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
   // ── entrance ──
   useEffect(() => {
     if (still) return;
+    const root = scope.current;
+    if (!root) return;
+    const moves = clusterYear(root, TILTS, OPEN.cluster);
+    const floats = [...root.querySelectorAll<HTMLElement>(".cf-float")];
     const steps: Step[] = [
-      [".cf-digits", { scale: [1.08, 1], y: ["2%", "0%"] }, { duration: 0.9, ease: SETTLE, at: 0 }],
-      [".cf-logo", { opacity: [0, 1] }, { duration: 0.45, ease: OUT, at: 0.2 }],
-      [".cf-head > span", { y: ["105%", "0%"] }, { duration: 0.6, ease: SETTLE, at: 0.22 }],
-      [".cf-year > span", { y: ["105%", "0%"] }, { duration: 0.6, ease: SETTLE, at: 0.32 }],
-      [".cf-support", { opacity: [0, 1], y: [10, 0] }, { duration: 0.5, ease: OUT, at: 0.6 }],
-      [".cf-cta", { opacity: [0, 1], y: [12, 0] }, { duration: 0.55, ease: OUT, at: 0.85 }],
+      [".cf-digits", { opacity: [0, 1] }, { duration: OPEN.appear, ease: OUT, at: 0 }],
+      [".cf-logo", { opacity: [0, 1], scale: [0.86, 1] }, { duration: 0.5, ease: SETTLE, at: OPEN.bird }],
+      [".cf-bird-light", { opacity: [0, 1] }, { duration: 0.6, ease: OUT, at: OPEN.bird }],
+      [".cf-head > span", { y: ["105%", "0%"] }, { duration: 0.6, ease: SETTLE, at: OPEN.title }],
+      [".cf-year > span", { y: ["105%", "0%"] }, { duration: 0.6, ease: SETTLE, at: OPEN.title + 0.08 }],
+      [".cf-support", { opacity: [0, 1], y: [10, 0] }, { duration: 0.5, ease: OUT, at: OPEN.support }],
+      [".cf-cta", { opacity: [0, 1], y: [12, 0] }, { duration: 0.55, ease: OUT, at: OPEN.cta }],
     ];
-    entrance.current = sequence(scope.current, animate, steps);
-    return () => entrance.current?.stop();
+    entrance.current = sequence(root, animate, steps);
+    // The cluster: each digit starts in its cluster slot and opens out to its corner.
+    const opens: AnimationPlaybackControls[] = [];
+    if (moves)
+      floats.forEach((el, i) => {
+        const m = moves[i];
+        // Hold the cluster pose from the first frame (not just from the delay).
+        opens.push(animate(el, { x: m.x, y: m.y, scale: m.scale, rotate: m.rotate }, { duration: 0 }));
+        opens.push(
+          animate(
+            el,
+            { x: [m.x, 0], y: [m.y, 0], scale: [m.scale, 1], rotate: [m.rotate, 0] },
+            { duration: OPEN.expand.dur, ease: OPEN.expand.ease, delay: OPEN.expand.at + i * OPEN.expand.step },
+          ),
+        );
+      });
+    return () => {
+      entrance.current?.stop();
+      opens.forEach((c) => c.stop());
+    };
   }, [still, animate, scope]);
 
   // ── ambient: the corner digits float, the start arrow stretches (loops; full motion only) ──
@@ -90,12 +132,16 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
     if (still || !root) return;
     const u = root.clientWidth / 412; // Figma units → px
     const loops: AnimationPlaybackControls[] = [];
+    // Start only once the opening has landed: an animation queued with a delay
+    // still claims the transform at once, which would cancel the cluster pose.
+    const start = window.setTimeout(() => {
     // Each digit drifts on its own slow ellipse: ±4u vertical, ±2u horizontal, never in step.
     FLOAT.forEach((f, i) => {
       const el = root.querySelectorAll<HTMLElement>(".cf-float")[i];
       if (!el) return;
       const a = 4 * u * f.dir;
       const b = 2 * u * f.dir;
+      // Starts after the opening has landed (the opening owns the same transform until then).
       loops.push(animate(el, { y: [0, -a, 0, a, 0] }, { duration: f.py, delay: f.delay, ease: SINE, repeat: Infinity }));
       loops.push(animate(el, { x: [0, b, 0, -b, 0] }, { duration: f.px, delay: f.delay, ease: SINE, repeat: Infinity }));
     });
@@ -104,12 +150,16 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
     const head = root.querySelector<HTMLElement>(".cf-arrow-head");
     if (shaft && head) {
       const g = ARROW.shaftLen * (ARROW.stretch - 1);
-      const t = { duration: 1.1, delay: 1.6, ease: SINE, repeat: Infinity, repeatDelay: 0.7 };
+      const t = { duration: 1.1, delay: 0.3, ease: SINE, repeat: Infinity, repeatDelay: 0.7 };
       loops.push(animate(shaft, { scaleX: [1, ARROW.stretch, 1], x: [0, g / 2, 0] }, t));
       loops.push(animate(head, { x: [0, -g / 2, 0] }, t));
     }
+    }, OPEN.ambientAt * 1000);
     ambient.current = loops;
-    return () => loops.forEach((c) => c.stop());
+    return () => {
+      clearTimeout(start);
+      loops.forEach((c) => c.stop());
+    };
   }, [still, animate, scope]);
 
   // ── exit: hand-over to Screen 02 over the shared sky ──
@@ -123,23 +173,39 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
     ambient.current.forEach((c) => c.stop());
     const root = scope.current;
     const H = SKY_HANDOFF;
-    // The four digits are drawn together into one year; the background (story level) never moves.
-    root.classList.add("is-assembling");
-    const moves = assembleYear(root, TILTS);
+    const D = H.digitsOut;
+    const frame = root.getBoundingClientRect();
+    const fcx = frame.left + frame.width / 2;
+    const fcy = frame.top + frame.height / 2;
     const anims: AnimationPlaybackControls[] = [];
-    const steps: Step[] = [
-      // Ease-out: the content starts clearing on the first frame.
-      [".cf-stack, .cf-cta", { opacity: 0, y: -8 }, { duration: H.contentFade, ease: FADE, at: 0 }],
-      // The row rests, then the four digits scale up slightly and fade together
-      // (about the frame centre = the row's centre).
-      [".cf-digits", { scale: H.exitScale, opacity: 0 }, { duration: H.exitDur, ease: H.ease, at: H.exitAt }],
-    ];
-    const c = sequence(root, animate, steps);
-    if (moves) {
-      root.querySelectorAll<HTMLElement>(".cf-float").forEach((el, i) => {
-        anims.push(animate(el, { ...moves[i] }, { duration: H.converge.dur, delay: H.converge.at, ease: H.ease }));
-      });
-    }
+    // The centre content fades and lifts a little.
+    const c = sequence(root, animate, [
+      [".cf-stack, .cf-cta", { opacity: 0, y: -H.contentLift }, { duration: H.contentFade, ease: FADE, at: 0 }],
+      [".cf-scrim, .cf-bird-light", { opacity: 0 }, { duration: H.contentFade + 0.15, ease: FADE, at: 0 }],
+    ]);
+    // Each corner digit leaves from where it is: straight out from the frame's
+    // centre, just far enough to clear its own edges — never regrouping.
+    root.querySelectorAll<HTMLElement>(".cf-float").forEach((el) => {
+      const g = el.querySelector<HTMLElement>(".cf-glyph");
+      if (!g) return;
+      const range = document.createRange();
+      range.selectNodeContents(g);
+      const r = range.getBoundingClientRect();
+      let dx = r.left + r.width / 2 - fcx;
+      let dy = r.top + r.height / 2 - fcy;
+      const len = Math.hypot(dx, dy) || 1;
+      dx /= len;
+      dy /= len;
+      // Distance along (dx, dy) until the glyph's box is past the nearer edge it faces.
+      const outX = dx < 0 ? (r.right - frame.left) / -dx : (frame.right - r.left) / dx;
+      const outY = dy < 0 ? (r.bottom - frame.top) / -dy : (frame.bottom - r.top) / dy;
+      const dist = Math.min(outX, outY);
+      const m = new DOMMatrix(getComputedStyle(el).transform); // current float offset (ambient drift)
+      anims.push(
+        animate(el, { x: [m.e, m.e + dx * dist], y: [m.f, m.f + dy * dist], scale: [1, 1.04] }, { duration: D.dur, delay: D.at, ease: D.ease }),
+      );
+      anims.push(animate(el, { opacity: [1, 0] }, { duration: D.dur - D.fadeAt, delay: D.at + D.fadeAt, ease: FADE }));
+    });
     const t = window.setTimeout(() => safeToRemove?.(), H.coverOut * 1000);
     return () => {
       c?.stop();
@@ -152,6 +218,8 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
 
   return (
     <div ref={scope} className={`slide cf ${still ? "" : "is-pre"}`}>
+      {/* A soft darkening behind the central stack (contrast for the bird and type). */}
+      <i className="cf-scrim" aria-hidden="true" />
       <div className="cf-digits" aria-hidden="true">
         {DIGITS.map((d) => (
           <div key={d.id} className={`cf-dg cf-dg-${d.id}`}>
@@ -164,6 +232,7 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
 
       <div className="cf-center">
         <div className="cf-stack">
+          <i className="cf-bird-light" aria-hidden="true" />
           <img className="cf-logo" src="/assets/brand/shikho-logo-cover.svg" alt="Shikho" width={62} height={41} />
           <div className="cf-copy">
             <h1 className="cf-title" aria-label={`${COPY.cover.headline} ${COPY.cover.year}`}>
