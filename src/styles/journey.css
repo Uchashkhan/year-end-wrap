@@ -1,0 +1,169 @@
+/*
+ * EXPERIMENT — "Bird Journey" cover and 2027 closing (journey/*). Dev-only
+ * alternative to the approved Cover (CoverFigma) and Closing; those are untouched.
+ *
+ * Final cover = Figma Smart Class (R) 980:1442 (Reference 02, 412 × 852):
+ * Soft Violet ground (the story background, background.ts), its decorations,
+ * the four oversized year digits, the resting bird over "শিখোতে তোমার / ২০২৬",
+ * the support line and the start control. --u is one Figma unit (1/412 width);
+ * the top digits pin to the top edge, the bottom ones to the bottom edge.
+ * Flight = Reference 01 (980:1332): the #cce5fc sky and its clouds.
+ */
+.slide.bj {
+  --u: calc(100cqw / 412);
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ── the flight's world (shown only while flying: .is-flying) ── */
+.bj-sky { position: absolute; inset: 0; background: #cce5fc; }
+.bj-years,
+.bj-clouds { position: absolute; inset: 0; pointer-events: none; }
+.bj-yr {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 800;
+  font-size: calc(112 * var(--u));
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: rgba(59, 47, 158, 0.82);
+  white-space: nowrap;
+  will-change: transform;
+  padding: 0.3em 0.1em 0.1em;
+}
+.bj-yr-d { display: inline-block; }
+.bj-cloud { position: absolute; left: 0; top: 0; display: block; will-change: transform; }
+.bj-cloud img { display: block; width: 100%; height: 100%; }
+.bj-air { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 5; }
+.bj-air path { fill: none; stroke: #ffffff; stroke-linecap: round; opacity: 0; }
+
+/* ── the bird rig (BirdCharacter): flying units, scaled by GSAP ── */
+.bj-rig { position: absolute; left: 0; top: 0; width: 200.173px; height: 167px; transform-origin: 0 0; will-change: transform; z-index: 6; pointer-events: none; }
+.bj-rig-tilt { position: absolute; inset: 0; transform-origin: 53.6% 49%; }
+.bj-fly { position: absolute; left: 0; top: 0; width: 200.173px; height: 167px; display: block; }
+.bj-rest { position: absolute; opacity: 0; }
+.bj-rest svg { display: block; width: 100%; height: 100%; }
+.bird .bl-beats { opacity: 0; }
+
+/* ── Reference 02: the final cover ── */
+.bj-decor { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.bj-dg { position: absolute; display: flex; align-items: center; justify-content: center; transform: translateY(-50%); pointer-events: none; }
+.bj-dgm { display: flex; align-items: center; justify-content: center; will-change: transform; }
+.bj-glyph { display: block; flex: none; font-weight: 700; font-size: calc(300 * var(--u)); line-height: 1.5; white-space: nowrap; color: #fff; }
+.bj-dg-tl { left: calc(-118 * var(--u)); top: calc(73.35 * var(--u)); width: calc(350.953 * var(--u)); height: calc(474.691 * var(--u)); }
+.bj-dg-tr { left: calc(166 * var(--u)); top: calc(63.41 * var(--u)); width: calc(358.954 * var(--u)); height: calc(478.812 * var(--u)); }
+.bj-dg-bl { left: calc(-105 * var(--u)); top: calc(100cqh - (852 - 787.35) * var(--u)); width: calc(350.953 * var(--u)); height: calc(474.691 * var(--u)); }
+.bj-dg-br { left: calc(150 * var(--u)); top: calc(100cqh - (852 - 790.2) * var(--u)); width: calc(400.119 * var(--u)); height: calc(514.398 * var(--u)); }
+.bj-dg-br .bj-glyph { width: calc(207 * var(--u)); height: calc(472 * var(--u)); display: flex; flex-direction: column; justify-content: center; }
+.bj-dg-tl .bj-glyph,
+.bj-dg-br .bj-glyph { transform: rotate(-27.25deg); }
+.bj-dg-tr .bj-glyph,
+.bj-dg-bl .bj-glyph { transform: rotate(27.25deg); }
+.bj-dg-bl .bj-glyph,
+.bj-dg-br .bj-glyph { color: #e2008d; }
+
+/* 980:1452 — the centred stack: the bird, then the title block */
+.bj-center {
+  position: absolute;
+  left: calc(50% - 0.5px);
+  top: calc(50% - 37.12px);
+  width: 263px;
+  max-width: calc(100% - 32px);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+  z-index: 4;
+}
+.bj-slot { width: 88.6821px; height: 100px; flex: none; }
+.bj-slot svg { display: block; width: 100%; height: 100%; }
+.bj-copy { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.bj-title { margin: 0; font: inherit; width: 200px; display: flex; flex-direction: column; align-items: center; }
+.bj-mask { display: block; overflow: hidden; width: calc(100% + 10px); padding: 9px 5px 4px; margin: -9px -5px -4px; }
+.bj-mask > span { display: block; }
+.bj-head { font-size: 32px; line-height: 1.5; font-weight: 600; }
+.bj-year { font-size: 36px; line-height: 1.5; font-weight: 700; color: #f3be28; }
+.bj-support { margin: 0; font-size: 16px; line-height: 1.6; font-weight: 500; white-space: nowrap; }
+
+/* 980:1477 — the start control */
+.bj-cta {
+  position: absolute;
+  left: calc(50% + 0.5px);
+  top: calc(100cqh - (852 - 633) * var(--u));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  z-index: 7;
+  padding: 0;
+}
+.bj-cta-label { font-size: 16px; line-height: 1.6; font-weight: 400; white-space: nowrap; }
+.bj-cta-btn { position: relative; width: 34px; height: 34px; border-radius: 30px; background: rgba(255, 255, 255, 0.3); display: grid; place-items: center; }
+/* the approved cover's arrow construction (Figma ArrowLeft, rotated 180°), under the experiment's own names */
+.bj-cta-btn { overflow: hidden; }
+.bj-arrow { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; transform: rotate(180deg); }
+.bj-arrow > img { position: absolute; inset: 0; display: block; width: 22px; height: 22px; }
+.bj-arrow-shaft { clip-path: inset(0 0 0 10.4px); transform-origin: 19.31px 50%; }
+.bj-arrow-head { clip-path: inset(0 11.4px 0 0); }
+.bj-float { display: flex; align-items: center; justify-content: center; will-change: transform; }
+.bj-slot svg { overflow: visible; }
+.bj-cta:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 8px; }
+
+/* Short frames (≤ 720px tall): Reference 02 is drawn for 852 — the bottom pair crops a
+   little further off the bottom edge so it clears the start control. */
+@container (max-height: 720px) {
+  .bj-dg-bl { top: calc(100cqh - (852 - 787.35 - 96) * var(--u)); }
+  .bj-dg-br { top: calc(100cqh - (852 - 790.2 - 96) * var(--u)); }
+}
+
+/* skip the intro: the whole frame, while flying */
+.bj-skip { position: absolute; inset: 0; z-index: 9; border: 0; padding: 0; background: transparent; cursor: pointer; }
+
+/* ── states ── */
+.bj:not(.bjc):not(.is-flying) :is(.bj-sky, .bj-years, .bj-clouds, .bj-air, .bj-rig) { display: none; }
+.bj.is-flying .bj-slot { visibility: hidden; }
+.bj.is-flying :is(.bj-dg, .bj-decor, .bj-cta, .bj-support) { opacity: 0; }
+.bj.is-flying .bj-mask > span { transform: translateY(150%); }
+
+/* ════════ the 2027 closing — "The Journey Continues" (ExperimentalBirdJourneyClosing) ════════
+   One world the camera moves through: the Cover world (Reference 02's decorations
+   and year digits, at their cover places) and, above and to the right, ২০২৭.
+   Layers move at their own depth; the story chrome is outside and never moves. */
+.bjw-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+.bjw-far,
+.bjw-digits { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
+.bjw-2027 {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: calc(112 * var(--u));
+  font-weight: 700;
+  line-height: 1.3;
+  color: #f3be28;
+  white-space: nowrap;
+  padding: 0.3em 0.12em 0.1em;
+  pointer-events: none;
+  will-change: transform;
+}
+/* the bird's anchor is its head centre; the poses are placed around it (poseBox) */
+.bjw-bird { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; z-index: 5; pointer-events: none; }
+.bjw-pose { position: absolute; }
+.bjw-pose svg { display: block; width: 100%; height: 100%; overflow: visible; }
+/* the closing line and the approved actions */
+.bjw-copy { position: absolute; left: 7cqw; right: 7cqw; bottom: max(24px, 3.4cqh); display: flex; flex-direction: column; gap: 22px; z-index: 7; }
+.bjw-line { margin: -0.35em -0.1em -0.1em; padding: 0.35em 0.1em 0.1em; overflow: hidden; font: inherit; font-size: 24px; line-height: 1.45; font-weight: 700; text-align: center; text-wrap: balance; }
+.bjw-line > span { display: block; }
+@container (max-height: 720px) {
+  .bjw-line { font-size: 21px; }
+  .bjw-copy { gap: 14px; }
+}

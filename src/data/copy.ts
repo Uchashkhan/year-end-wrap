@@ -128,6 +128,8 @@ export const COPY = {
   },
 
   close: {
+    /** PRD Screen 11 closing line (exact) — used by the Bird Journey closing (experiment). */
+    prdLine: "তোমার ২০২৬ শেষ — ২০২৭-এ দেখা হবে নতুন গল্পে!",
     line: ["২০২৬ এখানেই শেষ।", "২০২৭-এ আবার দেখা হবে।"],
     primary: "শেখা চালিয়ে যাও",
     secondary: "আবার শেয়ার করো",

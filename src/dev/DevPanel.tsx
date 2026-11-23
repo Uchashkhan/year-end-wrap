@@ -1,3 +1,4 @@
+import type { JourneyMode } from "../journey/journeyMode";
 import { PROFILES } from "../data/profiles";
 import type { StoryPlan } from "../data/compose";
 import { BADGES, CAPSTONE } from "../data/copy";
@@ -21,6 +22,8 @@ export interface DevSettings {
   device: DeviceId;
   /** Screen 01 exploration under review; "current" keeps the shipped cover. */
   cover: CoverVariant;
+  /** Dev-only comparison: the approved Cover + Closing, or the experimental Bird Journey pair. */
+  journey: JourneyMode;
 }
 
 interface Props {
@@ -120,6 +123,24 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
           <input type="checkbox" checked={settings.autoAdvance} onChange={(e) => set("autoAdvance", e.target.checked)} />
           Auto-advance 6s (hold to pause) — open question
         </label>
+        <div className="dev-field">
+          Opening &amp; closing
+          <div className="dev-seg" role="radiogroup" aria-label="Opening and closing">
+            {(["current", "bird"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={settings.journey === m}
+                className={`dev-seg-btn ${settings.journey === m ? "is-on" : ""}`}
+                onClick={() => set("journey", m)}
+              >
+                {m === "current" ? "Current" : "Bird Journey"}
+              </button>
+            ))}
+          </div>
+          <span className="dev-note">Bird Journey: experimental cover (01) and 2027 closing (11); everything else unchanged.</span>
+        </div>
         <label className="dev-field">
           Cover (01)
           <select value={settings.cover} onChange={(e) => set("cover", e.target.value as CoverVariant)}>

@@ -1,3 +1,5 @@
+import { JourneyCtx, journeyFromUrl } from "./journey/journeyMode";
+import { JourneyLab } from "./journey/JourneyLab";
 import { BentoLab } from "./marksheet/BentoLab";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -23,6 +25,7 @@ const DEFAULTS: DevSettings = {
   autoAdvance: false,
   device: "390x844",
   cover: "current",
+  journey: "current",
 };
 
 function loadSettings(): DevSettings {
@@ -50,6 +53,7 @@ export default function App() {
   if (view === "direction") return <DirectionBoard />;
   if (view === "covers") return <CoverExplore />;
   if (view === "bento") return <BentoLab />;
+  if (view === "bird") return <JourneyLab />;
   return <Prototype />;
 }
 
@@ -58,7 +62,9 @@ function Prototype() {
   const [settings, setSettings] = useState(() => {
     const s = loadSettings();
     const c = new URLSearchParams(location.search).get("cover") as CoverVariant | null;
-    return c && ["current", "m3", "m2", "u", "a", "b", "c"].includes(c) ? { ...s, cover: c } : s;
+    const j = journeyFromUrl();
+    const s2 = j ? { ...s, journey: j } : s;
+    return c && ["current", "m3", "m2", "u", "a", "b", "c"].includes(c) ? { ...s2, cover: c } : s2;
   });
   const [route, setRoute] = useState<"home" | "story">("home");
   const [index, setIndex] = useState(0);
@@ -153,6 +159,7 @@ function Prototype() {
   );
 
   return (
+    <JourneyCtx.Provider value={settings.journey}>
     <CoverVariantCtx.Provider value={settings.cover}>
     <PrefsProvider motion={settings.motion} repeatView={settings.repeatView}>
       <div className={`shell ${narrow ? "shell-narrow" : ""}`}>
@@ -188,5 +195,6 @@ function Prototype() {
       </div>
     </PrefsProvider>
     </CoverVariantCtx.Provider>
+    </JourneyCtx.Provider>
   );
 }

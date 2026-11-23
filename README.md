@@ -209,6 +209,51 @@ pnpm typecheck
     - the identity rises (.53–.79), then the actions (.71–.94).
     - It runs on the same step-capped rAF clock as Screen 08. The resting frame is CSS. It plays once per visit; reduced motion and repeat views show the final frame, and a slide revived mid-exit snaps to it.
   - **Review:** `review/m37/`: final frames at 360, 390, 430 and 360 × 640, side by side with the reference; mid-reveal frames at matching progress; reduced motion; share sheet, primary action and rapid taps. `review/m38/`: the restrained ground. `review/m39/`: the Warm Violet ground next to the Figma frame, at 360, 390, 430 and 360 × 640.
+- [~] **EXPERIMENT — "Bird Journey" opening and closing** (Nov 23; dev-only alternative). The approved Cover (`CoverFigma`) and Closing (`Close`) are untouched.
+  - **Switch:** in the dev panel, "Opening & closing: Current | Bird Journey". It is persisted with the dev settings; `?journey=bird` also works.
+    - **Current:** the approved screens and behaviour, including the cover → 02 hand-over.
+    - **Bird Journey:** swaps only Screens 01 and 11. The story background under them becomes Reference 02's Soft Violet. The cover uses a normal exit, because the approved hand-over belongs to the approved cover.
+    - The student-facing default is always "Current"; the switch lives only in the prototype's dev shell.
+  - **Sources:** Figma Smart Class (R) `ymvbwOoxZvLjuM6S23QJ8l`.
+    - **Reference 01 (980:1332):** the flying bird (980:1341), the #cce5fc sky, three clouds and the cloud bank (`public/assets/journey/`).
+    - **Reference 02 (980:1442):** the resting bird (980:1538) and the cover composition.
+  - **Pass 1, assets (`src/journey/birdParts.ts`):** both bird exports are split into movable layers (body, head, front, wingL, wingR, tail, marks, plus the flying pose's wing-beat strokes). Path data and fills are Figma's own, in the exports' own paint order; nothing is redrawn.
+    - **Verified:** the rebuilt poses render identically to the Figma SVGs (`?view=bird`). The resting pose differs only by antialiasing, the flying pose by a half-pixel offset.
+    - **Rig (`BirdCharacter.tsx`):** both poses in one box, registered on the head. The resting pose is scaled to the flying head's size (73 / 51), so a turn is an aligned swap, never a jump.
+  - **Pass 2, flight (`flight.ts`):** one shared state (speed, amp, pitch, trail, beats, fold, climb), turned into motion each frame by one `gsap.ticker` callback.
+    - **Wings:** rotations about the shoulders. The frequency rises with speed (1.6 → 4.6 Hz), the downstroke is quicker, and the right wing lags slightly.
+    - **Body and tail:** the body rises on each downstroke and leans with acceleration; the tail lags.
+    - **Wing-beat strokes:** Figma's own strokes, flicking as the wings top out.
+    - **Airflow:** three light SVG streams flowing down from under the wings and the tail. Their length, flow and opacity follow speed.
+    - **Clouds:** parallax at different depths, re-entering at the edges to keep the middle clear.
+    - No filters, blur, glow, 3D or particles.
+  - **Pass 3, cover (`ExperimentalBirdJourneyCover.tsx`):** one GSAP timeline, ≈ 3.95 s.
+    - **Flight:** a speed profile (already climbing, a slight mid-way surge, a long smooth slow-down) moves one year track: ২০২০ → ২০২৫ pass downward in order.
+    - **Arrival:** ২০২৬ lands at the bird's own height, and the earlier years fade. The sky turns to violet and the clouds thin out.
+    - **Turn:** ২০২৬'s four digits burst outward to Reference 02's corners (from the marker, never across the bird). The wings fold to the body, and the pose swaps over 0.12 s while the bird settles into the cover's bird slot. The title rises, then the support line and the start control.
+    - **Verified:** the final frame matches Reference 02 (the bird slot at 161.2, 268.6 vs Figma's 161.16, 268.38; the CTA at 176, 633). On short frames the bottom digits crop further to clear the control.
+    - **Skip:** tap during the intro to land on the cover. Reduced motion and repeat views show the static cover.
+    - **Ambient, once settled (full motion only, loops; Nov 23):**
+      - **Digits:** the four corner digits float exactly like the approved cover's (its FLOAT values: ±4 / ±2 Figma units, own periods, never in step). The start arrow stretches like the approved cover's.
+      - **Blinks:** the resting bird blinks every 2.2–4.8 s, about a quarter of them double blinks. Its eyes are sub-groups of the head layer (`EYES`), closing about their own centres.
+      - **Hop:** every 4.2–7.4 s the bird gives a sudden little hop: anticipation squash, a 15 px spring, the landing squash, settle. Its excitement ticks pop as it leaves the ground.
+      - **Measured:** blinks close to 8 % of eye height; hops reach −15 px with a 0.92 squash; the digits float ±1.9 / ±3.8 px at 390.
+  - **Closing v2 — "The Journey Continues" (`ExperimentalBirdJourneyClosing.tsx`, Nov 23; replaces the first experimental closing):** one master GSAP timeline, ≈ 2.2 s.
+    - **Pose 03:** the three-quarter rear bird (Figma 981:1693), split like the others and verified against its export (75 px of antialiasing).
+    - **Head registration:** all three poses share it (`HEAD`, `poseBox`). Each is placed around one head-centre anchor at one head width, so the front → rear turn happens in place at one size.
+    - **A, marksheet exit (0–0.45 s):** Screen 10's card clears in three groups, sinking back: the pairs, then the hero block and stickers, then the identity, with the badge a beat later. Its ink ground opens onto Soft Violet.
+      - Screen 10 is touched only in Bird Journey mode, and only in its exit: it stays mounted 0.5 s for entry kind "onward". If the closing stops early, it restores 10's styles.
+    - **B, the Cover world (0.08–0.75 s):** Reference 02's four year digits slide back in from their corners, with its decorations. The front-facing bird lands in the cover's bird slot. No headline, support line or start control.
+    - **C, the bird notices ২০২৭ (0.68–1.37 s):** the pupils shift up-right and the head tilts about the neck. The body turns with an aligned 0.12 s swap to Pose 03. Its wings open a little from just-folded, and the tail answers.
+    - **D, the camera (0.72–1.6 s):** one camera value moves the world layers at their depths: decorations 0.5, year digits 1.25, ২০২৭ 0.9.
+      - ২০২৬'s digits move out behind as ২০২৭ (in the same world, above-right) comes in from where the bird looks.
+      - The bird stays in frame, settling centre-left and growing to 1.34× during the camera move, not during the turn.
+      - The story chrome never moves.
+    - **F, copy (1.45–2.15 s):** the PRD closing line (exact; "২০২৭-এ" kept on one line), then the approved actions (`COPY.close`).
+    - **Final:** ২০২৭ upper right (clear of the close control), the rear bird centre-left facing it, the line and actions below. It is static.
+    - **Checked:** frames at 0/25/50/75/100 %; 360, 390, 430 and 360 × 640; reduced motion; back/forward and rapid taps. Current mode still shows the approved Close.
+  - **Pass 5:** checked at 360, 390, 430 and 360 × 640 in both modes, with reduced motion, skip and rapid taps; no errors. Review images are in `review/m43/`.
+
 - [~] **Screen 10 — Marksheet: "Chapter Bento"** (Nov 23; no HTML reference, built from Screens 01–09's own visuals).
   - **Files:** `src/marksheet/Bento.tsx` (the card), `src/marksheet/art.tsx` (the memories), `src/screens/MarksheetBento.tsx` (in-app), `src/styles/bento.css`, `src/styles/marksheet-screen.css`, and `src/marksheet/BentoLab.tsx` (dev: `?view=bento&p=<profile>`; add `&v=a` for one card at native size). The M1 sheet remains at `?marksheet=v2`.
   - **Copy (PRD Screen 10):**

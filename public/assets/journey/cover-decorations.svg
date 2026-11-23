@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="412" height="852" viewBox="0 0 412 852" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Decorations">
+<g id="Star" opacity="0.28">
+<path id="Soft four-point star" d="M369 196C369 200 371 202 375 202C371 202 369 204 369 208C369 204 367 202 363 202C367 202 369 200 369 196Z" fill="white"/>
+</g>
+<circle id="Particle 01" opacity="0.18" cx="31" cy="487" r="2" fill="white"/>
+<circle id="Particle 02" opacity="0.14" cx="381" cy="723" r="3" fill="white"/>
+</g>
+</svg>

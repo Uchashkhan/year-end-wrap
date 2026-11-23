@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useAnimate, usePresence } from "motion/react";
 import { COPY, LEARNER_TYPES } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
-import { ASSEMBLE, useEntry } from "../story/entry";
+import { ASSEMBLE, ONWARD, useEntry, useNav } from "../story/entry";
 import { BentoCard, CARD_H, CARD_W } from "../marksheet/Bento";
 import type { ScreenProps } from "./types";
 import "../styles/marksheet-screen.css";
@@ -117,6 +117,7 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
 
   // Leaving: stop; removal is immediate. Revived before removal (rapid taps): the final frame.
   const wasLeaving = useRef(false);
+  const nav = useNav();
   useEffect(() => {
     if (isPresent) {
       if (wasLeaving.current && scope.current) {
@@ -130,6 +131,13 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
     }
     wasLeaving.current = true;
     ctl.current?.stop();
+    // EXPERIMENT (Bird Journey only): to the 2027 closing the card stays a
+    // moment longer — the closing clears it in groups as the Cover world returns.
+    // Every other exit is immediate (unchanged).
+    if (nav.kind === "onward") {
+      const t = window.setTimeout(() => safeToRemove?.(), ONWARD.out * 1000);
+      return () => clearTimeout(t);
+    }
     safeToRemove?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPresent]);

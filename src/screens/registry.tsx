@@ -12,6 +12,9 @@ import { SubjectTakeover } from "./SubjectTakeover";
 import { PeakDayLit } from "./PeakDayLit";
 import { LearnerReveal } from "./LearnerReveal";
 import { MarksheetBento } from "./MarksheetBento";
+import { useJourney } from "../journey/journeyMode";
+import { ExperimentalBirdJourneyCover } from "../journey/ExperimentalBirdJourneyCover";
+import { ExperimentalBirdJourneyClosing } from "../journey/ExperimentalBirdJourneyClosing";
 import { useCoverVariant } from "../explore/variant";
 import { CoverTypographic } from "../explore/CoverTypographic";
 import { CoverGeometry } from "../explore/CoverGeometry";
@@ -59,7 +62,7 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       // Default: the Bento marksheet (Nov 23). The M1 sheet stays at ?marksheet=v2.
       return new URLSearchParams(location.search).get("marksheet") === "v2" ? <Marksheet slide={slide} {...p} /> : <MarksheetBento slide={slide} {...p} />;
     case "close":
-      return <Close slide={slide} {...p} />;
+      return <CloseSwitch slide={slide} {...p} />;
     case "freshCover":
       return <FreshCover slide={slide} {...p} />;
     case "freshClose":
@@ -108,8 +111,15 @@ export const SLIDE_LABEL: Record<Slide["id"], string> = {
 };
 
 /** Screen 01 picks the reviewed exploration (dev panel / ?cover=) — default is the current cover. */
+/** Dev-only comparison: the experimental 2027 closing in Bird Journey mode; otherwise the approved Close. */
+function CloseSwitch(props: ScreenProps<"close">) {
+  return useJourney() === "bird" ? <ExperimentalBirdJourneyClosing {...props} /> : <Close {...props} />;
+}
+
 function CoverSwitch(props: ScreenProps<"cover">) {
   const v = useCoverVariant();
+  // Dev-only comparison: the experimental Bird Journey cover (the approved cover is untouched).
+  if (useJourney() === "bird") return <ExperimentalBirdJourneyCover {...props} />;
   const C = v === "current" ? CoverFigma : v === "m3" ? CoverGeo : v === "m2" ? Cover : v === "u" ? CoverUnfolded : v === "a" ? CoverTypographic : v === "b" ? CoverGeometry : v === "c" ? CoverEditorial : CoverGeo;
   return <C {...props} />;
 }

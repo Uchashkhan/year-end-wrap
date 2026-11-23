@@ -7,7 +7,8 @@ import { usePrefs } from "../lib/prefs";
 import { ProgressBar } from "./ProgressBar";
 import { MOTION } from "../lib/motion";
 import { coverSurface, useCoverVariant } from "../explore/variant";
-import { ANSWER, WATCH, TAKEOVER, DAYLINE, ASSEMBLE, EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
+import { useJourney } from "../journey/journeyMode";
+import { ANSWER, WATCH, TAKEOVER, DAYLINE, ASSEMBLE, ONWARD, EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
 import { StoryBackground } from "./StoryBackground";
 import { SCREEN_BACKGROUND, bgTransition } from "./background";
 
@@ -36,7 +37,7 @@ interface NavCustom extends Entry {
 }
 const SLIDE_VARIANTS = {
   enter: (c: NavCustom) =>
-    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" || c.kind === "answer" || c.kind === "watch" || c.kind === "takeover" || c.kind === "dayline" || c.kind === "assemble" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
+    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" || c.kind === "answer" || c.kind === "watch" || c.kind === "takeover" || c.kind === "dayline" || c.kind === "assemble" || c.kind === "onward" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
   center: { opacity: 1, x: 0 },
   exit: (c: NavCustom) =>
     // A real keyframe (1 → .99) so the exit lasts while the cover runs its own exit.
@@ -56,6 +57,8 @@ const SLIDE_VARIANTS = {
           ? { opacity: [1, 0.99], x: 0, transition: { duration: DAYLINE.out, ease: "linear" as const } }
         : c.kind === "assemble"
           ? { opacity: [1, 0.99], x: 0, transition: { duration: ASSEMBLE.out, ease: "linear" as const } }
+        : c.kind === "onward"
+          ? { opacity: [1, 0.99], x: 0, transition: { duration: ONWARD.out, ease: "linear" as const } }
         : c.kind === "fade"
           ? { opacity: 0, x: 0 }
           : { opacity: 0, x: c.d * -D },
@@ -64,7 +67,7 @@ const SLIDE_VARIANTS = {
 /** Slides joined by the bespoke 01 → 02 → 03 hand-overs and in-place cross-fades. */
 const onSky = (id: string, coverVariant: string) => id === "study" || id === "live" || (id === "cover" && coverVariant === "current");
 /** Slides drawn over the shared background: all of them except archived cover explorations. */
-const onBg = (id: string, coverVariant: string) => id !== "cover" || coverVariant === "current";
+const onBg = (id: string, coverVariant: string) => id !== "cover" || coverVariant === "current" || coverVariant === "bird";
 
 interface Props {
   plan: StoryPlan;
@@ -79,11 +82,14 @@ interface Props {
 
 export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvance, paused }: Props) {
   const { reduced } = usePrefs();
-  const coverVariant = useCoverVariant();
+  const journey = useJourney();
+  const chosenCover = useCoverVariant();
+  // Bird Journey (dev-only): its own cover, so the approved cover's hand-over is not used.
+  const coverVariant = journey === "bird" ? "bird" : chosenCover;
   const slides = plan.slides;
   const slide = slides[index];
   // Chrome tone only: a light-ground cover exploration needs dark progress/close.
-  const surface = slide.id === "cover" ? coverSurface(coverVariant) : SURFACE[slide.id];
+  const surface = slide.id === "cover" ? (journey === "bird" ? "cover" : coverSurface(chosenCover)) : SURFACE[slide.id];
   const last = slides.length - 1;
 
   // Direction + entry kind are derived from the index change itself, so taps,
@@ -116,6 +122,8 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
               ? "dayline"
             : step && from?.id === "learnerType" && slide.id === "marksheet"
               ? "assemble"
+            : step && from?.id === "marksheet" && slide.id === "close" && journey === "bird"
+              ? "onward"
             : bothSky
               ? "fade"
               : "normal";
@@ -128,6 +136,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
     if (kind === "takeover") lockUntil.current = performance.now() + TAKEOVER.lockMs;
     if (kind === "dayline") lockUntil.current = performance.now() + DAYLINE.lockMs;
     if (kind === "assemble") lockUntil.current = performance.now() + ASSEMBLE.lockMs;
+    if (kind === "onward") lockUntil.current = performance.now() + ONWARD.lockMs;
     prevIndex.current = index;
   }
 
@@ -234,7 +243,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
 
       {/* Persistent background: never unmounts while the story is open, so its twinkle never restarts. */}
       <div className="story-bg">
-        <StoryBackground variant={SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
+        <StoryBackground variant={journey === "bird" && (slide.id === "cover" || slide.id === "close") ? "soft-violet" : SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
       </div>
 
       <NavCtx.Provider value={nav.current}>

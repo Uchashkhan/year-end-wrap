@@ -9,7 +9,7 @@ import type { Frame } from "../screens/geometry";
  */
 export interface Entry {
   /** sky: Cover → 02 · flow: 02 → 03 · focus: 03 → 04 · answer: 04 → 05 · fade: any other step between two sky slides · normal: T1 */
-  kind: "sky" | "flow" | "focus" | "answer" | "watch" | "takeover" | "dayline" | "assemble" | "fade" | "normal";
+  kind: "sky" | "flow" | "focus" | "answer" | "watch" | "takeover" | "dayline" | "assemble" | "onward" | "fade" | "normal";
   frame: Frame;
 }
 const EMPTY: Entry = { kind: "normal", frame: { W: 0, H: 0 } };
@@ -333,4 +333,15 @@ export const ASSEMBLE = {
   actions: { at: 0.9, dur: 0.3 },
   end: 1.2,
   lockMs: 900,
+} as const;
+
+/**
+ * EXPERIMENT (Bird Journey only) — 10 → 11 "The Journey Continues". The
+ * marksheet clears in three groups (the badge a beat longer) while the Cover
+ * world returns; the bird turns toward ২০২৭ and the camera follows. ≈ 2.15 s.
+ */
+export const ONWARD = {
+  /** Screen 10 stays mounted while its card clears. */
+  out: 0.5,
+  lockMs: 1300,
 } as const;
