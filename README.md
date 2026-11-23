@@ -254,7 +254,17 @@ pnpm typecheck
       - The bird stays in frame, settling centre-left and growing to 1.34× during the camera move, not during the turn.
       - The story chrome never moves.
     - **F, copy (1.45–2.15 s):** the PRD closing line (exact; "২০২৭-এ" kept on one line), then the approved actions (`COPY.close`).
-    - **Final:** ২০২৭ upper right (clear of the close control), the rear bird centre-left facing it, the line and actions below. It is static.
+    - **Final:** ২০২৭ upper right (clear of the close control), the rear bird centre-left facing it, the line and actions below.
+    - **Idle, once settled (Nov 23; full motion only, stops on leave):** one gsap.ticker drives the wings, so the constant stir and the occasional flaps add up rather than compete.
+      - **Breath:** the bird rises and falls 1.5 px.
+      - **Wings and tail:** the part-open wings flutter ±2.5° and the tail sways ±2.5°.
+      - **Blinks:** every 2.4–5 s, about a quarter of them double.
+      - **Eager moment:** every 4.5–7 s, two quick flaps (up to 14°) and a 7 px lift, with the excitement ticks popping. Ready to go, never leaving.
+      - **Measured:** blinks at 0.45, 3.27 + 3.53 and 6.67 s; eager flaps at 1.5 and 7.4 s.
+    - **Rear-pose wing seam (Nov 23):** the far wing met the back edge-to-edge along (57, 72) → (47, 104), and raising it about (60, 82) opened a wedge at the lower root. Same fix as the flying pose:
+      - **Pivot:** at the bottom of the joint, (48, 103).
+      - **Hidden overlap:** a back-blue underlay (its own path, stroked, clipped to the joint band).
+      - **Verified:** clean at 0°, 8° and 15.5°; at rest it matches Figma minus its hairline. `?view=bird` shows both seam checks.
     - **Checked:** frames at 0/25/50/75/100 %; 360, 390, 430 and 360 × 640; reduced motion; back/forward and rapid taps. Current mode still shows the approved Close.
   - **Pass 5:** checked at 360, 390, 430 and 360 × 640 in both modes, with reduced motion, skip and rapid taps; no errors. Review images are in `review/m43/`.
 

@@ -22,6 +22,32 @@ export function JourneyLab() {
       {cell(REAR.w, REAR.h, <img src="/assets/journey/_ref-rear.svg" style={{ width: "100%", height: "100%", display: "block" }} alt="" />)}
       <style>{".lab-svg{width:100%;height:100%;display:block}"}</style>
       <SeamCheck />
+      <RearSeamCheck />
+    </div>
+  );
+}
+
+/** Rear pose (closing idle): wings at rest, mid-flap and at the eager flap's peak (+15.5° / −17°). */
+function RearSeamCheck() {
+  return (
+    <div style={{ display: "flex", gap: 16, flex: "none" }}>
+      {[0, 8, 15.5].map((a) => (
+        <RearRotated key={a} a={a} />
+      ))}
+    </div>
+  );
+}
+function RearRotated({ a }: { a: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const L = ref.current?.querySelector(".bl-wingL");
+    const R = ref.current?.querySelector(".bl-wingR");
+    L?.setAttribute("transform", `rotate(${a} ${PIVOT.rear.wingL![0]} ${PIVOT.rear.wingL![1]})`);
+    R?.setAttribute("transform", `rotate(${-a * 1.1} ${PIVOT.rear.wingR![0]} ${PIVOT.rear.wingR![1]})`);
+  }, [a]);
+  return (
+    <div ref={ref} className="seam-rear" style={{ width: REAR.w * 4, height: REAR.h * 4, background: "#6051cc", flex: "none" }}>
+      <BirdPose pose={REAR} name="rear" className="lab-svg" />
     </div>
   );
 }

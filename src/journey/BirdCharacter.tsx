@@ -27,7 +27,9 @@ export const PIVOT: Record<PoseName, Partial<Record<LayerId | "neck", [number, n
   // y ≈ 66–122): the root stays on the body through the stroke instead of swinging off it
   flying: { wingL: [80, 70], wingR: [137, 95], tail: [87, 124], body: [107, 82] },
   resting: { wingL: [33, 50], wingR: [67, 50], tail: [30, 82], neck: [48, 47] },
-  rear: { wingL: [60, 82], wingR: [110, 66], tail: [56, 118], neck: [90, 70] },
+  // rear wingL: about the bottom of its joint with the back (the joint runs (57, 72) → (47, 104)),
+  // so raising it tucks the upper root over the body instead of opening the lower one
+  rear: { wingL: [48, 103], wingR: [110, 66], tail: [56, 118], neck: [90, 70] },
 };
 
 export type PoseName = "flying" | "resting" | "rear";
@@ -69,6 +71,8 @@ const SUB: Partial<Record<PoseName, Partial<Record<LayerId, { cls: string; from:
  */
 const UNDERLAY: Partial<Record<PoseName, { layer: LayerId; path: number; width: number; clip: [number, number, number, number] }[]>> = {
   flying: [{ layer: "body", path: 0, width: 9, clip: [60, 72, 30, 52] }],
+  // rear: the far wing meets the back edge-to-edge along (57, 72) → (47, 104)
+  rear: [{ layer: "body", path: 0, width: 9, clip: [38, 72, 30, 34] }],
 };
 
 /** Eye centres (resting-pose units): the eye whites' bounding-box centres. */

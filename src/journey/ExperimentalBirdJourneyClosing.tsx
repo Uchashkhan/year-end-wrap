@@ -68,6 +68,71 @@ function keepTogether(text: string, word: string) {
   );
 }
 
+/**
+ * The settled bird's idle life (full motion only; starts when the closing has
+ * finished, stops on leave). One gsap.ticker drives the wings so the constant
+ * flutter and the occasional eager flaps add up instead of competing:
+ *   breath   the bird rises and falls a hair (1.5 px, 2.8 s)
+ *   flutter  the part-open wings stir (±2.5°, a little out of step)
+ *   tail     a slow sway (±2.5°)
+ *   blink    every 2.4–5 s (sometimes twice)
+ *   eager    every 4.5–7 s: two quick flaps and a small lift, the excitement
+ *            ticks pop — ready to go, never leaving
+ */
+function startIdle(el: HTMLElement) {
+  const rear = el.querySelector<HTMLElement>(".bjw-rear");
+  const wingL = el.querySelector<SVGGElement>(".bjw-rear .bl-wingL");
+  const wingR = el.querySelector<SVGGElement>(".bjw-rear .bl-wingR");
+  const tail = el.querySelector<SVGGElement>(".bjw-rear .bl-tail");
+  const eye = el.querySelector<SVGGElement>(".bjw-rear .bl-eyeR");
+  const marks = el.querySelector<SVGGElement>(".bjw-rear .bl-marks");
+  if (!rear || !wingL || !wingR || !tail) return () => {};
+  const P = PIVOT.rear;
+  const amp = { burst: 0 };
+  let t = 0;
+  const tick = (_: number, dms: number) => {
+    t += Math.min(dms, 50) / 1000;
+    const f = Math.sin(t * 2.4) * 2.5;
+    const g = Math.sin(t * 2.4 - 0.5) * 2.5;
+    // raising: the left wing turns +, the right wing − (about their shoulders)
+    wingL.setAttribute("transform", `rotate(${(f + amp.burst).toFixed(2)} ${P.wingL![0]} ${P.wingL![1]})`);
+    wingR.setAttribute("transform", `rotate(${(-g - amp.burst * 1.1).toFixed(2)} ${P.wingR![0]} ${P.wingR![1]})`);
+    tail.setAttribute("transform", `rotate(${(Math.sin(t * 1.7 - 1) * 2.5).toFixed(2)} ${P.tail![0]} ${P.tail![1]})`);
+  };
+  gsap.ticker.add(tick);
+  const breath = gsap.to(rear, { y: -1.5, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: -1 });
+  const calls: gsap.core.Tween[] = [];
+  const later = (s: number, fn: () => void) => calls.push(gsap.delayedCall(s, fn));
+  const blink = () => {
+    if (eye) {
+      gsap.set(eye, { svgOrigin: "107.5 41" });
+      const tl = gsap.timeline();
+      const once = (at: number) => tl.to(eye, { scaleY: 0.08, duration: 0.07, ease: "power2.in" }, at).to(eye, { scaleY: 1, duration: 0.11, ease: "power2.out" }, at + 0.09);
+      once(0);
+      if (Math.random() < 0.25) once(0.26);
+    }
+    later(2.4 + Math.random() * 2.6, blink);
+  };
+  const eager = () => {
+    const tl = gsap.timeline();
+    tl.to(amp, { keyframes: { burst: [0, 13, 1, 12, 0], easeEach: "sine.inOut" }, duration: 0.62, ease: "none" }, 0);
+    tl.to(el.querySelector(".bjw-pose.bjw-rear svg"), { keyframes: { y: [0, -7, 0], easeEach: "sine.inOut" }, duration: 0.62, ease: "none" }, 0);
+    if (marks) {
+      gsap.set(marks, { svgOrigin: "106 16" });
+      tl.to(marks, { keyframes: { scale: [1, 1.3, 1], easeEach: "sine.out" }, duration: 0.42, ease: "none" }, 0.06);
+    }
+    later(4.5 + Math.random() * 2.5, eager);
+  };
+  later(0.8, blink);
+  later(1.8, eager);
+  return () => {
+    gsap.ticker.remove(tick);
+    breath.kill();
+    calls.forEach((c) => c.kill());
+    gsap.killTweensOf([amp, eye, marks, el.querySelector(".bjw-pose.bjw-rear svg")].filter(Boolean));
+  };
+}
+
 /** Parallax depth of each world layer (1 = moves with the camera). */
 const DEPTH = { far: 0.5, digits: 1.25, next: 0.9 } as const;
 
@@ -218,17 +283,27 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
     tl.set({}, {}, C.end);
 
     let done = false;
+    let idle: (() => void) | null = null;
     function finish() {
       if (done) return;
       done = true;
       tl.progress(1);
       tl.kill();
       final();
+      idle = startIdle(el);
     }
     // Leaving early (e.g. a quick tap back to 10 while it is still mounted): stop, and give Screen 10 back as it was.
-    ctl.current = { stop: () => { tl.kill(); restoreMarksheet(); }, finish };
+    ctl.current = {
+      stop: () => {
+        tl.kill();
+        idle?.();
+        restoreMarksheet();
+      },
+      finish,
+    };
     return () => {
       tl.kill();
+      idle?.();
     };
     // the entry is fixed for this mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
