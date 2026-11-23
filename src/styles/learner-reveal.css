@@ -1,0 +1,103 @@
+/*
+ * 09 Learner type — "The Big Reveal", Option A · Magenta / Violet
+ * (shikho_learner_type_big_reveal.html). Geometry from the reference (390 × 844):
+ * x and sizes in cqw, vertical positions in cqh. The section's Soft Violet
+ * background (background.ts) is the "before" ground; Option A's magenta flood
+ * opens over it during the reveal and is the resting ground. Restrained
+ * (Nov 23): one smooth field, the badge, the type, the actions — no rings,
+ * ticks, accent strokes, sparks, corner outlines or centre glow.
+ * The resting frame is pure CSS; LearnerReveal.tsx sets inline styles per
+ * frame and clears them when the reveal finishes.
+ */
+.slide.lt {
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* ── ground ──
+   One smooth magenta-violet field (four even stops, no hot spots); nothing else
+   behind the badge. */
+.lt-flood {
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(168deg, #5b2398 0%, #8a1fa0 34%, #b51b8f 68%, #d42f8e 100%);
+  transform: translateZ(0);
+}
+
+/* ── header ── */
+/* top: the reference's 13.3% plus its eyebrow line (not used: not PRD), so the question sits where it does there */
+.lt-header { position: absolute; top: calc(13.3cqh + 31px); left: 7.7cqw; right: 7.7cqw; z-index: 4; }
+.lt-question { margin: 0; font-size: 29px; line-height: 1.25; font-weight: 800; }
+.lt-sub { margin: 10px auto 0; max-width: 295px; font-size: 14px; line-height: 1.6; opacity: 0.83; }
+
+/* ── the badge ── */
+.lt-badge-stage {
+  --lt-badge-w: min(52.3cqw, 26.5cqh); /* the reference's 204px at 390 */
+  position: absolute;
+  left: 50%;
+  top: 46.3cqh;
+  width: calc(var(--lt-badge-w) * 1.2);
+  height: calc(var(--lt-badge-w) * 1.363);
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+/* a quiet contact shadow only */
+.lt-badge-shadow { position: absolute; bottom: 6px; left: 24%; right: 24%; height: 16px; background: #2a0c4a66; filter: blur(10px); border-radius: 50%; opacity: 0.45; }
+.lt-badge { position: relative; width: var(--lt-badge-w); aspect-ratio: 204 / 224; will-change: transform, opacity, filter; }
+.lt-badge-art { width: 100%; height: 100%; }
+.lt-badge-art svg, .lt-badge-art img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 14px #2a0c4a40); }
+.lt-shine {
+  position: absolute;
+  inset: 7.4%;
+  border-radius: 30px;
+  background: linear-gradient(115deg, transparent 36%, #fff8 50%, transparent 61%);
+  clip-path: polygon(50% 0, 95% 18%, 93% 73%, 50% 100%, 7% 73%, 5% 18%);
+  opacity: 0;
+}
+
+/* ── the identity ── */
+.lt-type { position: absolute; top: 68.8cqh; left: 5cqw; width: 90cqw; z-index: 6; }
+.lt-pre { font-size: 15px; line-height: 1.5; font-weight: 600; letter-spacing: 0.7px; opacity: 0.86; }
+.lt-name { margin: 3px 0; font-size: clamp(30px, 8.3cqw, 38px); line-height: 1.2; font-weight: 800; letter-spacing: -0.5px; white-space: nowrap; color: #fff2bb; }
+.lt-reason { margin: 7px auto 0; max-width: 305px; font-size: 14px; line-height: 1.5; opacity: 0.89; }
+
+/* ── actions ── */
+.lt-actions { position: absolute; bottom: 7.2cqh; left: 7cqw; right: 7cqw; display: flex; flex-direction: column; gap: 10px; z-index: 7; }
+.lt-primary {
+  height: 48px;
+  border: 0;
+  border-radius: 15px;
+  background: #ffd044;
+  color: #25205e;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 5px 0 #8f5d19;
+  cursor: pointer;
+}
+.lt-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #8f5d19; }
+.lt-secondary { height: 30px; border: 0; background: none; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.lt-primary:focus-visible, .lt-secondary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* Short frames: the badge and type tighten so the actions keep their place. */
+@container (max-height: 720px) {
+  .lt-header { top: 9.5cqh; }
+  .lt-question { font-size: 25px; }
+  .lt-sub { margin-top: 6px; font-size: 13px; line-height: 1.5; }
+  .lt-badge-stage { --lt-badge-w: min(52.3cqw, 24cqh); top: 44cqh; }
+  .lt-type { top: 62.5cqh; }
+  .lt-pre { font-size: 14px; }
+  .lt-reason { margin-top: 3px; font-size: 13px; }
+  .lt-actions { bottom: 4.5cqh; gap: 4px; }
+}
+
+/* pre-reveal state (full motion only) */
+.lt.is-pre .lt-flood { clip-path: circle(0% at 50% 48%); }
+.lt.is-pre :is(.lt-badge, .lt-badge-shadow, .lt-type, .lt-actions) { opacity: 0; }

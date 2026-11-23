@@ -3,7 +3,7 @@ import { useAnimate, usePresence } from "motion/react";
 import gsap from "gsap";
 import { COPY, SUBJECTS } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
-import { TAKEOVER, useEntry } from "../story/entry";
+import { DAYLINE, TAKEOVER, useEntry, useNav } from "../story/entry";
 import { SUBJECT_ICON } from "./subjectArt";
 import type { ScreenProps } from "./types";
 import "../styles/subject.css";
@@ -250,6 +250,7 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
   // back before it is removed (rapid back/forward taps), the stopped entrance
   // would leave it half-drawn — snap to the final frame instead.
   const wasLeaving = useRef(false);
+  const nav = useNav();
   useEffect(() => {
     if (isPresent) {
       if (wasLeaving.current && scope.current) {
@@ -267,7 +268,20 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
     }
     wasLeaving.current = true;
     ctl.current?.stop();
-    safeToRemove?.();
+    // To Screen 08 ("The Day That Lit Up") everything but the yellow underbar
+    // clears — 08 carries the bar on as the months' rail; any other exit is
+    // immediate.
+    if (nav.kind !== "dayline" || !scope.current) {
+      safeToRemove?.();
+      return;
+    }
+    const c = animate(".sb-head, .sb-name, .sb-art, .sb-support, .sb-deck", { opacity: 0, y: -8 }, { duration: DAYLINE.textOut, ease: [0.4, 0, 0.2, 1] });
+    const t = window.setTimeout(() => safeToRemove?.(), DAYLINE.out * 1000);
+    return () => {
+      c.stop();
+      clearTimeout(t);
+    };
+    // nav is read at the moment Screen 07 starts leaving
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPresent]);
 

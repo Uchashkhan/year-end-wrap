@@ -9,7 +9,7 @@ export function bn(n: number | string): string {
   return s.replace(/\d/g, (d) => DIGITS[Number(d)]);
 }
 
-const MONTHS = [
+export const MONTHS = [
   "জানুয়ারি",
   "ফেব্রুয়ারি",
   "মার্চ",

@@ -172,7 +172,7 @@ export function composeStory(r: WrapRecord, opts: ComposeOptions): StoryPlan {
 
   // 08 Most-active day
   if (r.peakDay) {
-    const ph = hoursFromSeconds(r.peakDay.seconds);
+    const ph = r.peakDay.seconds == null ? 0 : hoursFromSeconds(r.peakDay.seconds);
     built.set("peakDay", { id: "peakDay", date: r.peakDay.date, hours: ph >= 1 ? ph : null });
   } else skip("peakDay", "no clear peak day");
 

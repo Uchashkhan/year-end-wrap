@@ -162,6 +162,51 @@ pnpm typecheck
     - **Implementation:** one GSAP tween drives the deck and the title; the reveal is a Motion sequence. The timings are in `TAKEOVER.deck` in `entry.ts`. With one subject there is no deck.
   - **06 → 07:** 06's watchline now fades with 06's text (0–0.2 s) instead of becoming the underbar, so no underline shows mid-scroll. Screen 06 itself is unchanged. Other entries behave the same. Reduced motion shows the final frame. If the slide is revived mid-exit (rapid taps), it snaps to the final frame.
   - **Review:** `review/m29/` (final at 360, 390, 430, 360 × 640; Moderate = গণিত fallback; longName = উচ্চতর গণিত; 06 → 07 reel recordings at three widths; reel cruise/settle strips; settled reel at 360 for three subjects). `review/m30/`: all eight subjects at 360 × 800 (one line, original icon), Physics at 390 and 430, short frames, reel recordings. `review/m31/`: centred reel + shared-title lift. `review/m33/`: the Shuffle Deck → title hand-over at 360/390/430 and 360 × 640, reduced motion, rapid taps, contact sheets.
+- [~] **Screen 08 — Most-active day: "The Day That Lit Up"** (Nov 23, from `shikho_most_active_day.html`). Files: `src/screens/PeakDayLit.tsx`, `src/styles/peak-day.css`. Ocean Blue (central map; the prototype's violet ground is not used). The M1 placeholder remains at `?peak=v2`.
+  - **Copy (PRD Screen 8, exact):** "তোমার বছরের সেরা দিন" · [তারিখ] · "এই দিনেই তুমি সবচেয়ে বেশি সময় কাটিয়েছ শিখোতে।"; optional "সেদিন [X] ঘণ্টা শিখেছ।" only when that day's time is known and ≥ 1 h. Not used from the prototype: its intro line, month hint, "SHIKHO · 2026" label and closing note (not PRD).
+  - **Data:** the single day of most time on Shikho (`peakDay` in the activity record). compose.ts omits the slide when there is no clear peak. `peakDay.seconds` may now be null: the date is still shown and the time pill is omitted.
+  - **Calendar:** built from the real date: month name, year, the month's length and its first weekday (Sunday-first heads, as in the reference). The day is highlighted in Shikho yellow.
+  - **Composition:**
+    - The headline sits top-left.
+    - The hero date: the day in Shikho yellow (min(25.6cqw, 12.6cqh)) over the month in white (min(12cqw, 5.6cqh)), then a yellow underline.
+    - The calendar card at 46 % uses the reference's card in this section's blue, so the dates hold contrast over the light band.
+    - The support line and the time pill sit at the foot.
+  - **Entrance (Nov 23 continuity fix; one step-capped rAF clock, ≈ 1.8 s; timings in `DAYLINE`, `entry.ts`):** the earlier month morph (chip turning yellow, the month name flying into the hero, the calendar rising and tilting, the day flying out of its cell) was removed.
+    - **Months (0–0.75 s):** already moving, they ease down along one smooth speed curve (v₀·(1 − smoothstep)) and stop on the date's month with no brake point. They pass 4 months.
+    - **One month name (0.65–1.0 s):** the other months fade back, and the month's card and number fade. Its name stays and glides into the calendar's header.
+      - The header month takes the chip label's exact place, measured, and the label hides in the same frame. There is a small scale (≈ 0.8×) and no recolour beyond chip ink → white.
+      - The year fades in beside it (0.9–1.1 s).
+    - **Calendar opens (0.85–1.25 s):** the header band appears, then one clip edge sweeps the card and its dates downward. The header is never clipped, and there is no rise, tilt or scale; the dates appear as the edge passes.
+    - **Day (1.1–1.35 s):** it lights up in its own cell and stays there.
+    - **Large date (1.25–1.7 s):** a masked reveal, day then month, starting low enough that Bengali signs never show early. Then the underline (1.52–1.78 s) and the support line (1.45–1.8 s).
+    - **Resting frame:** pure CSS; the entrance clears its inline styles when done. Taps are locked for 1.1 s.
+    - **Smoothness (Nov 23):**
+      - The clock is a rAF loop whose step is capped at 1/40 s, so the long first frame (mounting the slide) or a dropped frame never makes the motion jump ahead. This replaces the GSAP tween, which runs with lagSmoothing(0).
+      - The calendar opens behind a soft 28 px mask edge instead of a hard clip.
+      - The card's shadow is its own layer and only fades in.
+      - Measured under 4× CPU throttling: the longest frame went from 151 ms to 22 ms.
+  - **07 → 08:** 07's subject, icon and support clear (0.2 s), and its yellow underbar stays. The bar stretches to the frame's width and drops under the month chips, becoming their rail (0.04–0.46 s). Only Screen 07's exit was touched (`SubjectTakeover.tsx`); its design and Shuffle Deck are unchanged.
+  - **Other entries:** back navigation and jumps play the same entrance without the hand-over. Reduced motion shows the final frame. If the slide is revived mid-exit (rapid taps), it snaps to the final frame.
+  - **Review:** `review/m34/`: final frames at 360, 390, 430 and 360 × 640, plus Moderate (৯ জুলাই); 07 → 08 contact sheets; rapid taps. `review/m35/`: the continuity fix, with checkpoints at 25/50/75 % and the measured March hand-over. `review/m36/`: the smoothness pass.
+- [~] **Screen 09 — Learner type: "The Big Reveal", Option A · Magenta / Violet** (Nov 23, from `shikho_learner_type_big_reveal.html`; Option B is not used). Files: `src/screens/LearnerReveal.tsx`, `src/components/LearnerBadge.tsx`, `src/styles/learner-reveal.css`. The M1 screen remains at `?learner=v2`.
+  - **Copy (PRD Screen 9):** "তোমার শেখার ধরন কী?" · "সারা বছরের শেখার অভ্যাস দেখে তোমার জন্য আছে একটি বিশেষ পরিচয়।" · [শিক্ষার্থীর ধরন] (server-assigned, compose.ts; "balanced" is the fallback). The line under the type is its data-tied reason (`LEARNER_TYPES`), and the small label over it is the existing `COPY.learnerType.label`.
+    - Not used from the reference (not PRD): the eyebrow "SHIKHO WRAP · ২০২৬", the vertical "WRAP 2026" / "SHIKHO" watermarks, "তোমার শেখার পরিচয়", its demo reason and the DEMO hint. The header is moved down by the eyebrow's height, so the question sits where it does in the reference.
+  - **Actions:** "আমার মার্ক শিট দেখি ↗" → Screen 10 (`actions.next`); "শেয়ার করো" → the existing share sheet (`actions.share("type")`). Nothing is simulated.
+  - **Ground:** the section's Soft Violet is the "before" ground. Option A's magenta flood (160°, #6f279f → #bb188a → #ee3d98) opens over it from the centre, as in the reference, and is this screen's resting ground. - **Restrained (Nov 23 refinement):** one smooth four-stop field (168°, #5b2398 → #8a1fa0 → #b51b8f → #d42f8e). Removed:
+    - the rings, dashed ring and tick marks;
+    - the yellow accent strokes and sparks;
+    - the corner outlines;
+    - the centre glow.
+
+    The badge shadow is cut to a quiet contact shadow. What remains: the badge as the hero, the identity in #fff2bb, and the yellow primary with its pressed edge.
+  - **Badge:** `LearnerBadge` is one component. Every type shows the reference's dummy shield for now. When the Figma badges arrive, add each type's file to `BADGE_ART` and nothing else changes. The art fills a 204 : 224 box, so its aspect ratio holds through every transform.
+  - **Reveal (≈ 1.65 s):** the reference's own progress map, unchanged:
+    - flood circle 0 → 105 % (.05–.57);
+    - the badge falls in from above, blurred, tilted 14° and 1.37× → sharp, upright and at rest (.18–.59);
+    - one shine sweep (.55–.9; eased in and out, where the reference switches it on and off);
+    - the identity rises (.53–.79), then the actions (.71–.94).
+    - It runs on the same step-capped rAF clock as Screen 08. The resting frame is CSS. It plays once per visit; reduced motion and repeat views show the final frame, and a slide revived mid-exit snaps to it.
+  - **Review:** `review/m37/`: final frames at 360, 390, 430 and 360 × 640, side by side with the reference; mid-reveal frames at matching progress; reduced motion; share sheet, primary action and rapid taps. `review/m38/`: the restrained ground.
 - [~] **Gentle Atmosphere background system** (Figma 55:38, Nov 2026). It replaces the night sky: the old orbital lines, glows, stars and particles were removed (`NightSky`, `night-sky.css` and 14 SVG layers deleted).
   - **Files:**
     - `src/story/background.ts`: every Figma value, the screen → background map (`SCREEN_BACKGROUND`), and transition lengths.

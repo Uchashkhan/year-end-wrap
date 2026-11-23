@@ -87,12 +87,20 @@ export const COPY = {
   },
 
   peakDay: {
+    /** PRD Screen 8 (exact). */
+    prdHeadline: "তোমার বছরের সেরা দিন",
+    prdSupport: "এই দিনেই তুমি সবচেয়ে বেশি সময় কাটিয়েছ শিখোতে।",
+    /** Calendar weekday heads (Sunday first, as the reference). */
+    weekHeads: ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"],
     headline: "তোমার সবচেয়ে ব্যস্ত দিনটা কবে ছিল?",
     support: "এই দিনেই তুমি সবচেয়ে বেশি সময় কাটিয়েছ।",
     timeThatDay: (h: number) => `সেদিন ${bn(h)} ঘণ্টা শিখেছ।`,
   },
 
   learnerType: {
+    /** PRD Screen 9 (exact): the setup line and the primary action. */
+    prdSetup: "সারা বছরের শেখার অভ্যাস দেখে তোমার জন্য আছে একটি বিশেষ পরিচয়।",
+    prdPrimary: "আমার মার্ক শিট দেখি",
     headline: "তোমার শেখার ধরন কী?",
     setup: "সারা বছর কীভাবে পড়েছ, সেটা দেখেই এই ধরন।",
     label: "তোমার শেখার ধরন",

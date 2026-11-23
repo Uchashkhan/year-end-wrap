@@ -7,7 +7,7 @@ import { usePrefs } from "../lib/prefs";
 import { ProgressBar } from "./ProgressBar";
 import { MOTION } from "../lib/motion";
 import { coverSurface, useCoverVariant } from "../explore/variant";
-import { ANSWER, WATCH, TAKEOVER, EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
+import { ANSWER, WATCH, TAKEOVER, DAYLINE, EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
 import { StoryBackground } from "./StoryBackground";
 import { SCREEN_BACKGROUND, bgTransition } from "./background";
 
@@ -36,7 +36,7 @@ interface NavCustom extends Entry {
 }
 const SLIDE_VARIANTS = {
   enter: (c: NavCustom) =>
-    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" || c.kind === "answer" || c.kind === "watch" || c.kind === "takeover" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
+    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" || c.kind === "answer" || c.kind === "watch" || c.kind === "takeover" || c.kind === "dayline" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
   center: { opacity: 1, x: 0 },
   exit: (c: NavCustom) =>
     // A real keyframe (1 → .99) so the exit lasts while the cover runs its own exit.
@@ -52,6 +52,8 @@ const SLIDE_VARIANTS = {
           ? { opacity: [1, 0.99], x: 0, transition: { duration: TAKEOVER.out, ease: "linear" as const } }
         : c.kind === "watch"
           ? { opacity: [1, 0.99], x: 0, transition: { duration: WATCH.out, ease: "linear" as const } }
+        : c.kind === "dayline"
+          ? { opacity: [1, 0.99], x: 0, transition: { duration: DAYLINE.out, ease: "linear" as const } }
         : c.kind === "fade"
           ? { opacity: 0, x: 0 }
           : { opacity: 0, x: c.d * -D },
@@ -108,6 +110,8 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
               ? "watch"
             : step && from?.id === "video" && slide.id === "subject"
               ? "takeover"
+            : step && from?.id === "subject" && slide.id === "peakDay"
+              ? "dayline"
             : bothSky
               ? "fade"
               : "normal";
@@ -118,6 +122,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
     if (kind === "answer") lockUntil.current = performance.now() + ANSWER.lockMs;
     if (kind === "watch") lockUntil.current = performance.now() + WATCH.lockMs;
     if (kind === "takeover") lockUntil.current = performance.now() + TAKEOVER.lockMs;
+    if (kind === "dayline") lockUntil.current = performance.now() + DAYLINE.lockMs;
     prevIndex.current = index;
   }
 

@@ -69,7 +69,8 @@ export interface WrapRecord {
   /** Single day of most app time. null = no clear peak → slide omitted. */
   peakDay: {
     date: string; // ISO yyyy-mm-dd
-    seconds: number;
+    /** Time on Shikho that day; null when the date is known but its time is not reliable. */
+    seconds: number | null;
   } | null;
 
   /** Server-assigned (cohort z-score). Absent for Fresh Start students. */

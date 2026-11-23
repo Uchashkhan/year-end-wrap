@@ -1,0 +1,188 @@
+/*
+ * 08 Most-active day — "The Day That Lit Up" (shikho_most_active_day.html).
+ * Over the shared Gentle Atmosphere background (Ocean Blue, background.ts);
+ * this slide is transparent. Geometry from the reference (390 × 844): x and
+ * sizes in cqw, vertical positions in cqh.
+ *   top     the PRD headline; the hero date — the day (Shikho yellow) over the
+ *           month (white) — and its yellow underline
+ *   middle  the month's calendar card (the real month and year), the day lit
+ *   bottom  the PRD support line; the time pill (only with a reliable figure)
+ *   months  entrance only: the year's month chips on a yellow rail
+ * The resting frame is pure CSS; the entrance (PeakDayLit.tsx) sets inline
+ * styles per frame and clears them when it finishes.
+ */
+.slide.pd {
+  --pd-yellow: #f9c531;
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+.pd-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+.pd-head {
+  position: absolute;
+  left: 8.2cqw;
+  right: 8.2cqw;
+  top: 15.5cqh;
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.4;
+  font-weight: 700;
+  z-index: 9;
+}
+
+/* ── the hero date ── */
+.pd-hero { position: absolute; left: 8.2cqw; right: 8.2cqw; top: 21.5cqh; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; }
+/* masks for the reveal (headroom for Bengali signs above and below) */
+.pd-mask { display: block; overflow: hidden; padding: 0.3em 0 0.1em; margin: -0.3em 0 -0.1em; }
+.pd-mask:has(.pd-day) { font-size: min(25.6cqw, 12.6cqh); }
+.pd-mask:has(.pd-month) { font-size: min(12cqw, 5.6cqh); margin-top: -0.42em; }
+.pd-day {
+  display: block;
+  font-size: min(25.6cqw, 12.6cqh);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--pd-yellow);
+  white-space: nowrap;
+}
+.pd-month {
+  display: block;
+  margin: 0 0 0 0.1em;
+  font-size: min(12cqw, 5.6cqh);
+  line-height: 1.1;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.pd-bar {
+  display: block;
+  width: 46cqw;
+  height: 6px;
+  margin: 1.9cqh 0 0 0.45cqw;
+  border-radius: 9px;
+  background: var(--pd-yellow);
+  transform-origin: left center;
+}
+
+/* ── the months (entrance only) ── */
+.pd-months {
+  position: absolute;
+  top: 39cqh;
+  left: 0;
+  right: 0;
+  height: 40cqw;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 84%, transparent 100%);
+  z-index: 5;
+  opacity: 0;
+}
+.pd-track { position: absolute; top: 4.4cqw; left: 0; display: flex; gap: 3.6cqw; align-items: center; will-change: transform; }
+.pd-cal-month, .pd-day-in, .pd-month-in { will-change: transform; }
+.pd-chip {
+  position: relative;
+  flex: 0 0 33.8cqw;
+  width: 33.8cqw;
+  height: 32cqw;
+  border-radius: 21px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3.8cqw 3.1cqw;
+  background: #ffffff14;
+  border: 1px solid #ffffff29;
+  color: #e4ddff;
+  transform: scale(0.93);
+  overflow: hidden;
+}
+.pd-chip-num { position: relative; font-size: 11.5cqw; line-height: 1; font-weight: 800; opacity: 0.32; }
+.pd-chip-label { position: relative; font-size: 24px; line-height: 1.1; font-weight: 700; white-space: nowrap; align-self: flex-start; }
+/* the rail the months ride on: Screen 07's underbar, stretched */
+.pd-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--pd-yellow);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 84%, transparent 100%);
+  opacity: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── the calendar ── */
+/* A deep ocean card (the reference's violet card, in this section's blue) so the
+   dates hold contrast over the gradient's light band. */
+/* Layers: the card (.pd-cal-bg) and the dates (.pd-cal-body) open by a clip
+   during the entrance; the header (.pd-cal-title) is never clipped — its month
+   is the name that arrived from the months. */
+.pd-cal {
+  position: absolute;
+  left: 6cqw;
+  right: 6cqw;
+  top: 46cqh;
+  padding: 2.1cqh 4.4cqw 2.2cqh;
+  z-index: 6;
+}
+.pd-cal-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: linear-gradient(160deg, #2d6fcf, #1b4796);
+  border: 1px solid #ffffff52;
+}
+/* the card's shadow: its own layer, so the entrance only fades it (no repaint per frame) */
+.pd-cal-shadow { position: absolute; inset: 0; border-radius: 28px; box-shadow: 0 22px 44px #0b2a6170; }
+.pd-cal-bg::before { content: ""; position: absolute; inset: 9px; border: 1px solid #ffffff12; border-radius: 22px; pointer-events: none; }
+.pd-cal-title { position: relative; font-size: 18px; line-height: 1.4; font-weight: 700; margin-bottom: 1cqh; }
+.pd-cal-month { display: inline-block; line-height: 1.1; white-space: nowrap; }
+.pd-cal-body { position: relative; }
+.pd-wk,
+.pd-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; }
+.pd-wk { font-size: 11px; line-height: 1.4; color: #d4e6ff; margin-bottom: 1.1cqh; }
+.pd-grid { grid-auto-rows: 3cqh; }
+.pd-cell { position: relative; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #f5edffdb; }
+.pd-n { position: relative; display: inline-block; line-height: 1.1; letter-spacing: -0.03em; /* = the hero day, so the hand-over matches */ }
+/* the day, lit */
+.pd-fill { position: absolute; inset: 0 3px; border-radius: 9px; background: var(--pd-yellow); box-shadow: 0 4px 16px #ffca3374; }
+.pd-cell.is-sel .pd-n { color: #222066; }
+
+/* ── the support ── */
+.pd-support { position: absolute; left: 8.2cqw; right: 8.2cqw; bottom: 6cqh; z-index: 12; }
+.pd-support p { margin: 0; font-size: 17px; line-height: 1.6; font-weight: 600; text-wrap: balance; }
+.pd-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 1.5cqh;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ffffff1c;
+  border: 1px solid #ffffff2e;
+  color: #ffe08a;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+/* Short frames */
+@container (max-height: 720px) {
+  .pd-head { top: 12cqh; font-size: 19px; }
+  .pd-hero { top: 18cqh; }
+  .pd-cal { top: 45cqh; padding: 1.6cqh 4cqw; }
+  .pd-cal-title { font-size: 16px; margin-bottom: 0.6cqh; }
+  .pd-wk { margin-bottom: 0.6cqh; }
+  .pd-grid { grid-auto-rows: 3.1cqh; gap: 3px 5px; }
+  .pd-cell { font-size: 14px; }
+  .pd-support { bottom: 3.5cqh; }
+  .pd-support p { font-size: 15px; line-height: 1.5; }
+  .pd-time { margin-top: 1cqh; font-size: 13px; }
+}
+
+/* pre-sequence state (full motion only) */
+.pd.is-pre :is(.pd-head, .pd-bar, .pd-cal-bg, .pd-cal-shadow, .pd-cal-body, .pd-cal-month, .pd-cal-year, .pd-support) { opacity: 0; }
+.pd.is-pre :is(.pd-day-in, .pd-month-in) { transform: translateY(150%); } /* clear of the mask, signs included */

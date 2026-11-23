@@ -9,7 +9,7 @@ import type { Frame } from "../screens/geometry";
  */
 export interface Entry {
   /** sky: Cover → 02 · flow: 02 → 03 · focus: 03 → 04 · answer: 04 → 05 · fade: any other step between two sky slides · normal: T1 */
-  kind: "sky" | "flow" | "focus" | "answer" | "watch" | "takeover" | "fade" | "normal";
+  kind: "sky" | "flow" | "focus" | "answer" | "watch" | "takeover" | "dayline" | "fade" | "normal";
   frame: Frame;
 }
 const EMPTY: Entry = { kind: "normal", frame: { W: 0, H: 0 } };
@@ -266,4 +266,44 @@ export const TAKEOVER = {
   /** No deck (a single subject): the name alone rises in. */
   name: { at: 0.35, dur: 0.45 },
   lockMs: 1300,
+} as const;
+
+/**
+ * 07 → 08 "The Day That Lit Up" (shikho_most_active_day.html). 07's subject
+ * clears; its yellow underbar stays, stretches to the frame's width and drops
+ * to become the rail the months ride on. One continuous entrance (≈ 1.8 s):
+ * months pass and settle on the peak day's month; its name glides into the
+ * calendar header; the calendar opens beneath it; the day lights up in its
+ * cell; the large date and the support line reveal.
+ */
+export const DAYLINE = {
+  /** Screen 07's text clears; 07 is removed once its bar has become the rail. */
+  textOut: 0.2,
+  out: 0.5,
+  bar: { at: 0.04, dur: 0.4 },
+  /** Months scroll and decelerate (0–0.75 s): already moving, the speed eases to zero on one smooth curve. */
+  months: {
+    pass: 4,
+    dur: 0.75,
+    fadeIn: { at: 0.06, dur: 0.25 },
+    /** The other months (and the rail) fade back… */
+    othersOut: { at: 0.6, dur: 0.28 },
+    /** …and the month's own card and number, as its name moves on. */
+    chipOut: { at: 0.68, dur: 0.22 },
+  },
+  head: { at: 0.1, dur: 0.35 },
+  /** The month's name glides into the calendar header (0.68–1.06 s), once the carousel has all but stopped. */
+  month: { at: 0.68, dur: 0.38 },
+  year: { at: 0.94, dur: 0.22 },
+  /** The calendar opens beneath its header (0.86–1.3 s): the header band appears, then a soft edge sweeps down. */
+  cal: { at: 0.86, band: 0.18, dur: 0.36 },
+  /** The day lights up in its cell (1.1–1.35 s). */
+  pick: { at: 1.1, dur: 0.25 },
+  /** The large date rises in its masks: the day, then the month. */
+  day: { at: 1.25, dur: 0.35 },
+  heroMonth: { at: 1.36, dur: 0.35 },
+  underline: { at: 1.52, dur: 0.26 },
+  support: { at: 1.45, dur: 0.35 },
+  end: 1.8,
+  lockMs: 1100,
 } as const;

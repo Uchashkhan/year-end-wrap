@@ -9,6 +9,8 @@ import { TeacherSpotlight } from "./TeacherSpotlight";
 import { QuizRecap } from "./QuizRecap";
 import { VideoWatchline } from "./VideoWatchline";
 import { SubjectTakeover } from "./SubjectTakeover";
+import { PeakDayLit } from "./PeakDayLit";
+import { LearnerReveal } from "./LearnerReveal";
 import { useCoverVariant } from "../explore/variant";
 import { CoverTypographic } from "../explore/CoverTypographic";
 import { CoverGeometry } from "../explore/CoverGeometry";
@@ -47,9 +49,11 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       // Default: "Subject Takes Over" (Nov 22 prototype). The M1 placeholder stays at ?subject=v2.
       return new URLSearchParams(location.search).get("subject") === "v2" ? <Subject slide={slide} {...p} /> : <SubjectTakeover slide={slide} {...p} />;
     case "peakDay":
-      return <PeakDay slide={slide} {...p} />;
+      // Default: "The Day That Lit Up" (Nov 23 prototype). The M1 placeholder stays at ?peak=v2.
+      return new URLSearchParams(location.search).get("peak") === "v2" ? <PeakDay slide={slide} {...p} /> : <PeakDayLit slide={slide} {...p} />;
     case "learnerType":
-      return <LearnerType slide={slide} {...p} />;
+      // Default: "The Big Reveal", Option A (Nov 23 prototype). The M1 screen stays at ?learner=v2.
+      return new URLSearchParams(location.search).get("learner") === "v2" ? <LearnerType slide={slide} {...p} /> : <LearnerReveal slide={slide} {...p} />;
     case "marksheet":
       return <Marksheet slide={slide} {...p} />;
     case "close":
