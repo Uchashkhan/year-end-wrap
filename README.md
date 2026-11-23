@@ -220,6 +220,10 @@ pnpm typecheck
   - **Pass 1, assets (`src/journey/birdParts.ts`):** both bird exports are split into movable layers (body, head, front, wingL, wingR, tail, marks, plus the flying pose's wing-beat strokes). Path data and fills are Figma's own, in the exports' own paint order; nothing is redrawn.
     - **Verified:** the rebuilt poses render identically to the Figma SVGs (`?view=bird`). The resting pose differs only by antialiasing, the flying pose by a half-pixel offset.
     - **Rig (`BirdCharacter.tsx`):** both poses in one box, registered on the head. The resting pose is scaled to the flying head's size (73 / 51), so a turn is an aligned swap, never a jump.
+    - **Wing seam fix (Nov 23):** on the flying pose the left wing met the torso edge-to-edge, 0.5 units apart along x ≈ 79–85, y ≈ 66–122. That left an antialiased hairline at rest, and a gap of background in the downstroke, because the wing turned about (83, 97), low in the joint, so its upper root swung off the body.
+      - **Pivot:** the wing now turns about the top of the joint, (80, 70), so its root stays on the body.
+      - **Hidden overlap (`UNDERLAY`):** the torso's own path, stroked 9 units wide in its own blue, clipped to the joint band (x 60–90, y 72–124) and painted behind the torso. It is hidden under the wing at rest and fills any opening in motion. No new artwork.
+      - **Verified:** at rest the joint matches Figma (minus its hairline); at −12° and −24° and in live flight there is no gap and no edge. The right wing joint was already clean and is unchanged. `?view=bird` shows the seam check.
   - **Pass 2, flight (`flight.ts`):** one shared state (speed, amp, pitch, trail, beats, fold, climb), turned into motion each frame by one `gsap.ticker` callback.
     - **Wings:** rotations about the shoulders. The frequency rises with speed (1.6 → 4.6 Hz), the downstroke is quicker, and the right wing lags slightly.
     - **Body and tail:** the body rises on each downstroke and leans with acceleration; the tail lags.

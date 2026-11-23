@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { FLYING, REAR, RESTING, type LayerId, type Pose } from "./birdParts";
 
 /**
@@ -22,7 +23,9 @@ export const REST_BOX = (() => {
  * shoulder, the tail where it meets the body, the body at its centre.
  */
 export const PIVOT: Record<PoseName, Partial<Record<LayerId | "neck", [number, number]>>> = {
-  flying: { wingL: [83, 97], wingR: [137, 95], tail: [87, 124], body: [107, 82] },
+  // wingL turns about the upper part of its joint with the torso (the joint runs x ≈ 79–85,
+  // y ≈ 66–122): the root stays on the body through the stroke instead of swinging off it
+  flying: { wingL: [80, 70], wingR: [137, 95], tail: [87, 124], body: [107, 82] },
   resting: { wingL: [33, 50], wingR: [67, 50], tail: [30, 82], neck: [48, 47] },
   rear: { wingL: [60, 82], wingR: [110, 66], tail: [56, 118], neck: [90, 70] },
 };
@@ -55,13 +58,42 @@ const SUB: Partial<Record<PoseName, Partial<Record<LayerId, { cls: string; from:
   resting: { head: [{ cls: "eyeL", from: 2, to: 5 }, { cls: "eyeR", from: 14, to: 18 }] },
   rear: { head: [{ cls: "eyeR", from: 4, to: 7 }] },
 };
+/**
+ * Hidden overlaps (no new artwork): a pose's own path, stroked in its own fill
+ * colour so it reaches a few units past its edge, clipped to one joint and
+ * painted behind everything in its layer. The flying pose's wing meets the
+ * torso edge-to-edge (0.5 units apart) along x ≈ 79–85, y ≈ 66–122; this
+ * extends the torso under the wing root there, so neither the antialiased edge
+ * nor a flap (≤ 24° about PIVOT.flying.wingL) can show the background.
+ * The band starts at y 67: above it the sky borders the torso by design.
+ */
+const UNDERLAY: Partial<Record<PoseName, { layer: LayerId; path: number; width: number; clip: [number, number, number, number] }[]>> = {
+  flying: [{ layer: "body", path: 0, width: 9, clip: [60, 72, 30, 52] }],
+};
+
 /** Eye centres (resting-pose units): the eye whites' bounding-box centres. */
 export const EYES = { eyeL: [39.5, 31.5], eyeR: [62.5, 28.5] } as const;
 /** The excitement ticks' base (resting-pose units): where they spring from. */
 export const MARKS_AT = [68, 16] as const;
 
 export function BirdPose({ pose, name, className = "" }: { pose: Pose; name: PoseName; className?: string }) {
+  const uid = useId().replace(/:/g, "");
   const path = (p: Pose["layers"][number][1][number], i: number) => <path key={i} d={p.d} fill={p.fill} fillOpacity={p.o} />;
+  const under = (id: LayerId) =>
+    (UNDERLAY[name] ?? [])
+      .filter((u) => u.layer === id)
+      .map((u, k) => {
+        const src = pose.layers.find(([l]) => l === id)![1][u.path];
+        const cid = `${uid}-u${k}`;
+        return (
+          <g key={`u${k}`} className="bl-underlay">
+            <clipPath id={cid}>
+              <rect x={u.clip[0]} y={u.clip[1]} width={u.clip[2]} height={u.clip[3]} />
+            </clipPath>
+            <path d={src.d} fill={src.fill} stroke={src.fill} strokeWidth={u.width} strokeLinejoin="round" clipPath={`url(#${cid})`} />
+          </g>
+        );
+      });
   return (
     <svg className={`bird bird-${name} ${className}`} viewBox={`0 0 ${pose.w} ${pose.h}`} overflow="visible" aria-hidden="true">
       {pose.layers.map(([id, parts]) => {
@@ -69,6 +101,7 @@ export function BirdPose({ pose, name, className = "" }: { pose: Pose; name: Pos
         if (!subs) {
           return (
             <g key={id} className={`bl bl-${id}`} data-layer={id}>
+              {under(id)}
               {parts.map(path)}
             </g>
           );
@@ -88,6 +121,7 @@ export function BirdPose({ pose, name, className = "" }: { pose: Pose; name: Pos
         }
         return (
           <g key={id} className={`bl bl-${id}`} data-layer={id}>
+            {under(id)}
             {out}
           </g>
         );
