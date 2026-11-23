@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { useAnimate, usePresence } from "motion/react";
+import gsap from "gsap";
 import { COPY, SUBJECTS } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { TAKEOVER, useEntry } from "../story/entry";
@@ -12,11 +13,23 @@ type Seg = [Element, Record<string, unknown>, { at: number; duration: number; ea
 /** The prototype's curves: smoothstep in, a long settle out. */
 const SMOOTH = [0.45, 0, 0.55, 1] as const;
 const OUT = [0.22, 1, 0.36, 1] as const;
-/** Reel name tints (from the prototype's field), cycled. */
-const TINTS = ["#b6c6ff", "#76deea", "#ffd8f7", "#d5deff", "#c6d2ff"];
-/** Reel layout: names before the student's subject, after it. */
-const LEAD = 7;
-const TRAIL = 2;
+/** Deck lanes (reference: five). Names per lane, so each lane overfills the screen at every moment. */
+const LANES = 5;
+const LANE_NAMES = 12;
+/** The selected lane: names before the student's subject (enough to cover the left edge at the stop). */
+const SEL_BEFORE = 2;
+const smooth = (x: number) => {
+  x = Math.max(0, Math.min(1, x));
+  return x * x * (3 - 2 * x);
+};
+const easeOut = (x: number) => 1 - (1 - Math.max(0, Math.min(1, x))) ** 3;
+const easeInOut = (x: number) => {
+  x = Math.max(0, Math.min(1, x));
+  return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
+};
+/** Lane text colour (reference) → Shikho yellow. */
+const LANE_INK = [244, 237, 255];
+const YELLOW = [249, 197, 49];
 
 /**
  * 07 Subject of the year — "Subject Takes Over" (prototype, Nov 22).
@@ -25,17 +38,23 @@ const TRAIL = 2;
  * most-ACTIVE one (time), from compose.ts — which omits the slide when there is
  * no subject data or the top two are effectively tied. No ranking language.
  *
- * Many subjects → one takes focus → its visual world takes over:
- *   scroll  0–0.95 s: the student's OWN other subjects (cycled, never padded)
- *           move up through a focus zone at the frame's vertical centre, with
- *           a shallow arc and swivel; scale and opacity fall off with distance
- *   lock    0.95–1.35 s: the reel decelerates onto their subject; the others fade
- *   lift    1.25–1.65 s: that same element (.sb-title — no swap, no copy) rises
- *           into the headline, turning Shikho yellow; its underbar draws left →
- *           right at the lock and travels with it
- *   world   1.45–1.9 s: the headline, the subject's Shikho icon, the support line
- * From Screen 06, 06's watchline leaves with 06's text (no underline mid-scroll).
- * One Motion sequence. Reduced motion / repeat view: the final frame.
+ * Many subjects shuffle → the lanes slow → the student's subject stops in
+ * view → the other lanes clear → that subject moves into the title → its world:
+ *   deck    the "Subject Shuffle Deck" (shikho_subject_shuffle_comparison.html):
+ *           five wide, tilted, alternating lanes of the student's OWN subjects
+ *           (never invented) drifting left/right on a cubic ease-out; each lane
+ *           stops at a slightly offset time while they straighten and contract.
+ *           The middle lane's stop is computed so the student's subject comes
+ *           to rest exactly at the title's left edge — not a random stop.
+ *   select the other lanes (and the rest of the middle lane) clear; the word
+ *           stays. The real title (.sb-title) is placed over it at the same
+ *           position and size and the word hides in the same frame (same text,
+ *           weight, spacing and colour — no visible swap), then the title moves
+ *           into its headline position, turning Shikho yellow only now; its
+ *           underbar draws left → right once it has arrived
+ *   world   the headline, the subject's Shikho icon, the support line
+ * From Screen 06, 06's watchline leaves with 06's text.
+ * Timings: TAKEOVER in entry.ts. Reduced motion / repeat view: the final frame.
  */
 export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
   const { reduced, repeatView } = usePrefs();
@@ -49,20 +68,25 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
 
   const subject = SUBJECTS[slide.subject];
   const icon = SUBJECT_ICON[slide.subject];
-  // The reel: the student's OWN other subjects, cycled, then their subject.
-  const others = slide.others;
-  const hasReel = others.length > 0;
-  const reel = hasReel
-    ? [
-        ...Array.from({ length: LEAD }, (_, k) => others[(LEAD - 1 - k) % others.length]),
-        null, // the student's subject
-        ...Array.from({ length: TRAIL }, (_, k) => others[k % others.length]),
-      ]
+  // The deck: the student's OWN subjects — their subject first, then the
+  // others — cycled per lane (each lane starts at a different subject). The
+  // middle lane holds the slot for the student's subject (.sb-slot).
+  const list = [slide.subject, ...slide.others.filter((id) => id !== slide.subject)];
+  const hasReel = list.length > 1;
+  const lanes = hasReel
+    ? Array.from({ length: LANES }, (_, i) => {
+        if (i === TAKEOVER.deck.sel) {
+          const others = list.slice(1);
+          const before = Array.from({ length: SEL_BEFORE }, (_, k) => others[(k + 1) % others.length]);
+          const after = Array.from({ length: LANE_NAMES - SEL_BEFORE - 1 }, (_, k) => list[(k + 1) % list.length]);
+          return [...before, null, ...after];
+        }
+        return Array.from({ length: LANE_NAMES }, (_, k) => list[(k + i * 2 + 1) % list.length]);
+      })
     : [];
-  const sel = LEAD;
 
   // One line, always: the name's size is fitted to the available width (never
-  // larger than the design size). The reel's subject uses the same size, so it
+  // larger than the design size). The deck's word is scaled up to it, so it
   // settles as the final name without reflowing.
   const [fit, setFit] = useState<number | null>(null);
   useLayoutEffect(() => {
@@ -104,89 +128,104 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
     const bar = q(".sb-bar") as HTMLElement | null;
     const stops: { stop: () => void }[] = [];
 
-    // ── the Subject Reel ──
-    // One persistent element: the final title (.sb-title — the name with its
-    // underbar) IS the reel's selected slot. It scrolls with the other names
-    // through a focus zone at the frame's vertical centre, decelerates, locks,
-    // and lifts into its headline position. Nothing is swapped or duplicated.
-    const reelEl = q(".sb-reel") as HTMLElement | null;
-    const items = [...root.querySelectorAll<HTMLElement>(".sb-ri")];
-    const R = T.reel;
-    if (reelEl && title && nameEl && items.length) {
+    // ── the Subject Shuffle Deck ──
+    const deck = q(".sb-deck") as HTMLElement | null;
+    const laneEls = [...root.querySelectorAll<HTMLElement>(".sb-lane")];
+    const slot = q(".sb-slot") as HTMLElement | null;
+    const span = nameEl?.firstElementChild as HTMLElement | null;
+    const D = T.deck;
+    if (deck && laneEls.length === LANES && slot && title && nameEl && span) {
+      const W = root.clientWidth;
+      const inners = laneEls.map((l) => l.querySelector<HTMLElement>(".sb-lane-in")!);
+      const bgs = laneEls.map((l) => l.querySelector<HTMLElement>(".sb-lane-bg")!);
+      const selIn = inners[D.sel];
+      const SC = 0.88; // the lanes' contracted scale (reference)
+      // Reference lane drift (px at 390 wide): start, direction, travel.
+      const dir = (i: number) => (i % 2 ? -1 : 1);
+      const travel = (i: number) => (140 + (i + 2) * 18) * u;
+      const base = (i: number) => (i % 2 ? -180 : -110) * u;
+      // The middle lane's end is computed from the student's subject: its word
+      // stops at the title's left edge. Lane box: 160% wide from -30%, centred.
       const copy = title.offsetParent as HTMLElement;
-      const left = copy.offsetLeft + title.offsetLeft;
-      const titleTop = copy.offsetTop + title.offsetTop;
-      const lineH = nameEl.offsetHeight;
-      // Focus zone: the line's centre at the frame's vertical centre.
-      const focusTop = Math.round(root.clientHeight * 0.48 - lineH / 2);
-      reelEl.style.left = `${left}px`;
-      reelEl.style.top = `${focusTop}px`;
-      const liftY = focusTop - titleTop; // focus zone → final place
-      const P = lineH * 1.02; // pitch
-      // Distance from the focus zone → pose. Controlled: a shallow arc (≤ 10px
-      // at two lines out), a gentle swivel, scale and opacity falling off so
-      // about three or four names read at once.
-      const pose = (d: number) => {
-        const ad = Math.abs(d);
-        const c = Math.min(ad, 2.5);
-        return {
-          x: 2.5 * u * c * c,
-          y: d * P,
-          rx: -13 * Math.max(-2.5, Math.min(2.5, d)),
-          s: 1 - 0.13 * Math.min(ad, 2.5),
-          o: Math.max(0, 1 - 0.42 * ad - 0.04 * ad * ad),
-        };
+      const target = copy.offsetLeft + title.offsetLeft;
+      const slotOff = slot.offsetLeft; // within the lane's text row
+      const selEnd = 0.8 * W + (target - 0.5 * W) / SC - slotOff;
+      const laneX = (i: number, t: number) => {
+        const k = easeOut(t / D.stopAt[i]);
+        if (i === D.sel) return selEnd - dir(i) * travel(i) * (1 - k);
+        return base(i) + dir(i) * travel(i) * k;
       };
-      const tf = (x: number, y: number, rx: number, s: number) =>
-        `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) perspective(700px) rotateX(${rx.toFixed(2)}deg) scale(${s.toFixed(4)})`;
-
-      const p0 = sel - R.travel;
-      // Cruise at constant speed, then decelerate (velocity-continuous) and lock.
-      const v = R.travel / (R.cruise + R.settle / 2);
-      const pos = (tc: number) => {
-        if (tc <= 0) return p0;
-        if (tc <= R.cruise) return p0 + v * tc;
-        const k = Math.min(1, (tc - R.cruise) / R.settle);
-        return p0 + v * R.cruise + ((v * R.settle) / 2) * (1 - (1 - k) * (1 - k));
-      };
-      // The lift (focus zone → headline): smooth in-out, overlapping the lock.
-      const L = T.lift;
-      const liftK = (tc: number) => {
-        const k = Math.min(1, Math.max(0, (tc - L.at) / L.dur));
-        return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-      };
-      const frame = (tc: number) => {
-        const p = pos(tc);
-        items.forEach((el) => {
-          const f = pose(Number(el.dataset.i) - p);
-          el.style.transform = tf(f.x, f.y, f.rx, f.s);
-          el.style.opacity = f.o.toFixed(3);
+      title.style.transformOrigin = "0 0";
+      let flip: { dx: number; dy: number; s: number } | null = null;
+      const frame = (t: number) => {
+        const fade = Math.min(1, t / D.fadeIn);
+        const align = smooth((t - D.align.at) / D.align.dur);
+        const out = smooth((t - D.out.at) / D.out.dur);
+        const swapped = t >= T.swap;
+        laneEls.forEach((lane, i) => {
+          const tilt = (i % 2 ? 1 : -1) * (-2.5 + i * 0.8);
+          const spread = (1 - align) * ((i - 2) * 1.1);
+          lane.style.transform = `translateY(${spread.toFixed(3)}%) rotate(${(tilt * (1 - align)).toFixed(3)}deg) scale(${(1 - 0.12 * align).toFixed(4)})`;
+          const o = 0.68 + i * 0.08;
+          inners[i].style.transform = `translateX(${laneX(i, t).toFixed(2)}px)`;
+          const blurIn = t < 0.38 ? (1 - smooth(t / 0.38)) * 1.3 : 0;
+          if (i === D.sel) {
+            // The lane clears around the word; the word itself stays.
+            lane.style.opacity = fade.toFixed(3);
+            bgs[i].style.opacity = (o * (1 - out)).toFixed(3);
+            selIn.style.setProperty("--sb-rest", (o * (1 - out)).toFixed(3));
+            slot.style.opacity = swapped ? "0" : String(o);
+            inners[i].style.filter = blurIn > 0.01 ? `blur(${blurIn.toFixed(2)}px)` : "none";
+          } else {
+            lane.style.opacity = (fade * (1 - out) * o).toFixed(3);
+            const blur = blurIn + smooth((t - 1.27) / 0.33) * 1.8;
+            inners[i].style.filter = blur > 0.01 ? `blur(${blur.toFixed(2)}px)` : "none";
+          }
         });
-        const f = pose(sel - p);
-        const m = liftK(tc);
-        title.style.transform = tf(f.x, liftY * (1 - m) + f.y, f.rx, f.s);
-        title.style.opacity = f.o.toFixed(3);
-        nameEl.style.opacity = "1";
+        if (!swapped) {
+          title.style.opacity = "0";
+          return;
+        }
+        // Selection: the title takes the word's exact place (measured once,
+        // after the lane has stopped and straightened), then moves home.
+        if (!flip) {
+          title.style.transform = "none";
+          const sr = slot.getBoundingClientRect();
+          const nr = span.getBoundingClientRect();
+          const tr = title.getBoundingClientRect();
+          const sc = sr.width / nr.width;
+          flip = {
+            s: sc,
+            dx: sr.left - tr.left - (nr.left - tr.left) * sc,
+            dy: sr.top + sr.height / 2 - tr.top - (nr.top + nr.height / 2 - tr.top) * sc,
+          };
+          nameEl.style.opacity = "1";
+        }
+        const m = easeInOut((t - T.lift.at) / T.lift.dur);
+        const sc = flip.s + (1 - flip.s) * m;
+        title.style.transform = `translate3d(${(flip.dx * (1 - m)).toFixed(2)}px, ${(flip.dy * (1 - m)).toFixed(2)}px, 0) scale(${sc.toFixed(4)})`;
+        const lo = 0.68 + D.sel * 0.08; // the word's lane opacity → full
+        title.style.opacity = (lo + (1 - lo) * m).toFixed(3);
+        const c = Math.max(0, Math.min(1, (t - T.accent.at) / T.accent.dur));
+        nameEl.style.color = `rgb(${LANE_INK.map((v, k) => Math.round(v + (YELLOW[k] - v) * c)).join(",")})`;
       };
       frame(0);
-      const end = Math.max(R.cruise + R.settle, L.at + L.dur);
-      const startAt = at(R.at);
-      stops.push(
-        (animate as unknown as (a: number, b: number, o: object) => { stop: () => void })(0, end, {
-          duration: end,
-          delay: startAt,
-          ease: "linear",
-          onUpdate: (tc: number) => frame(tc),
-          onComplete: () => {
-            title.style.transform = "none";
-            title.style.opacity = "1";
-          },
-        }),
-      );
-      reelEl.style.opacity = "1";
-      // The others fade away as the subject locks; it turns Shikho yellow as it lifts.
-      add(reelEl, { opacity: [1, 0] }, at(T.othersOut.at), T.othersOut.dur, "linear");
-      add(nameEl, { color: ["#ffffff", "#f9c531"] }, at(T.accent.at), T.accent.dur, "linear");
+      const end = T.lift.at + T.lift.dur;
+      const clock = { t: 0 };
+      const tw = gsap.to(clock, {
+        t: end,
+        duration: end,
+        delay: at(0),
+        ease: "none",
+        onUpdate: () => frame(clock.t),
+        onComplete: () => {
+          Object.assign(title.style, { transform: "none", opacity: "1" });
+          nameEl.style.color = "";
+          deck.style.display = "none";
+        },
+      });
+      stops.push({ stop: () => tw.kill() });
+      // The underbar draws left → right once the title has arrived.
       add(bar, { opacity: [0, 1], scaleX: [0, 1] }, at(T.bar.at), T.bar.dur, OUT);
     } else {
       add(nameEl, { opacity: [0, 1], y: [30, 0], scale: [0.92, 1] }, at(T.name.at), T.name.dur, OUT);
@@ -218,9 +257,11 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
         const done = { duration: 0 };
         animate(".sb-head, .sb-name, .sb-bar, .sb-art, .sb-support", { opacity: 1, x: 0, y: 0, scale: 1, scaleX: 1, rotate: 0 }, done);
         animate(".sb-name", { color: "#f9c531" }, done);
-        animate(".sb-reel", { opacity: 0 }, done);
+        animate(".sb-deck", { opacity: 0 }, done);
         const title = scope.current.querySelector<HTMLElement>(".sb-title");
         if (title) Object.assign(title.style, { transform: "none", opacity: "1" });
+        const nm = scope.current.querySelector<HTMLElement>(".sb-name");
+        if (nm) nm.style.color = "";
       }
       return;
     }
@@ -240,17 +281,23 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
         {COPY.subject.prdHeadline}: {subject.name}। {COPY.subject.prdSupport}
       </p>
 
-      {/* The Subject Reel (entrance only): the student's other subjects scroll
-          through the focus slot and settle on their own subject. */}
+      {/* The Subject Shuffle Deck (entrance only): five lanes of the
+          student's subjects; the middle lane's slot is their subject. */}
       {!still && hasReel && (
-        <div className="sb-reel" aria-hidden="true">
-          {reel.map((id, i) =>
-            id ? (
-              <div key={i} className="sb-ri" data-i={i} style={{ color: TINTS[i % TINTS.length] }}>
-                {SUBJECTS[id].name}
+        <div className="sb-deck" aria-hidden="true">
+          {lanes.map((names, i) => (
+            <div key={i} className={`sb-lane sb-lane-${i}`} style={{ top: `${16 + i * 14.7}%` }}>
+              <div className="sb-lane-bg" />
+              <div className="sb-lane-in">
+                {names.map((id, k) => (
+                  <Fragment key={k}>
+                    {k > 0 && <span className="sb-sep">✧</span>}
+                    {id ? <span className="sb-word">{SUBJECTS[id].name}</span> : <span className="sb-word sb-slot">{subject.name}</span>}
+                  </Fragment>
+                ))}
               </div>
-            ) : null,
-          )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -261,7 +308,7 @@ export function SubjectTakeover({ slide }: ScreenProps<"subject">) {
 
       <div className="sb-copy" aria-hidden="true">
         <p className="sb-head">{COPY.subject.prdHeadline}</p>
-        {/* The title: the reel's selected subject itself, with its underbar. */}
+        {/* The title: it takes the deck word's place, then moves here; with its underbar. */}
         <div className="sb-title">
           <h1 className="sb-name">
             <span>{subject.name}</span>

@@ -6,7 +6,7 @@
  *   top     headline (PRD), the subject name (hero; one line, Shikho yellow), its yellow underbar
  *   lower   the subject's original Shikho icon (subjectArt.tsx), centred
  *   bottom  the supporting line (PRD)
- *   reel    entrance only: the other subjects scroll through a centred focus zone
+ *   deck    entrance only: the Subject Shuffle Deck (five lanes of the student's subjects)
  */
 .slide.sb {
   --sb-base: min(13.1cqw, 51px); /* the name's design size; fitted down per name (--sb-fs) */
@@ -17,24 +17,34 @@
 }
 .sb-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 
-/* ── the Subject Reel (entrance only) ──
-   Placed at runtime on the focus zone (the frame's vertical centre, the name's
-   left edge); each name's transform and opacity are set per frame from its
-   distance to that zone. The student's subject is not in here: it is .sb-title
-   itself, driven by the same function, which then lifts into the headline. */
-.sb-reel { position: absolute; left: 8.2cqw; top: 48cqh; z-index: 7; pointer-events: none; opacity: 0; }
-.sb-ri {
-  position: absolute;
-  left: 0;
-  top: 0;
+/* ── the Subject Shuffle Deck (entrance only) ──
+   From shikho_subject_shuffle_comparison.html ("Shuffle Deck"): five lanes,
+   160% wide, 13% tall, from 16% down every 14.7%; alternating tints, hairline
+   edges, ✧ separators. Transforms and opacity are set per frame. In the middle
+   lane, everything but the student's subject (.sb-slot) clears via --sb-rest. */
+.sb-deck { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.sb-lane { position: absolute; left: -30%; width: 160%; height: 13%; display: flex; align-items: center; overflow: hidden; transform-origin: center; will-change: transform, opacity; }
+.sb-lane-bg { position: absolute; inset: 0; background: #21187922; border-top: 1px solid #ffffff15; border-bottom: 1px solid #ffffff12; }
+.sb-lane-0 .sb-lane-bg, .sb-lane-2 .sb-lane-bg, .sb-lane-4 .sb-lane-bg { background: #9f93f91c; }
+.sb-lane-in {
+  position: relative;
+  display: flex;
+  align-items: center;
   white-space: nowrap;
+  gap: 32px;
   font-weight: 800;
-  font-size: var(--sb-base);
-  line-height: 1.3;
-  letter-spacing: -0.03em;
-  transform-origin: 0% 50%;
-  will-change: transform, opacity;
+  font-size: clamp(28px, 5.5cqw, 47px);
+  line-height: 1.4;
+  color: #f4edff;
+  letter-spacing: -0.02em;
+  will-change: transform;
 }
+.sb-sep { opacity: 0.35; color: #f5c92b; font-size: 28px; }
+/* The middle lane (TAKEOVER.deck.sel = 2): its other names and separators clear; the slot stays. */
+.sb-lane-2 .sb-lane-in > :not(.sb-slot) { opacity: var(--sb-rest, 0.84); }
+.sb-lane-2 .sb-sep { opacity: calc(var(--sb-rest, 0.84) * 0.35); }
+/* The student's subject: the title's letter-spacing, so it matches it exactly. */
+.sb-slot { letter-spacing: -0.03em; }
 
 /* ── the subject's world: its original Shikho icon (Figma "Subject Icon") ──
    Centred in the space between the underbar and the supporting line; the SVG
@@ -55,7 +65,7 @@
 
 /* ── the copy ── */
 .sb-copy { position: absolute; left: 8.2cqw; right: 8.2cqw; top: 18cqh; z-index: 6; }
-.sb-title { position: relative; z-index: 8; transform-origin: 0% 35%; will-change: transform, opacity; }
+.sb-title { position: relative; z-index: 8; will-change: transform, opacity; backface-visibility: hidden; }
 .sb-head { margin: 0; font-size: 19px; line-height: 1.4; font-weight: 700; }
 .sb-name {
   margin: 3.2cqh 0 0;

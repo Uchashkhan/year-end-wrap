@@ -234,22 +234,36 @@ export const WATCH = {
  */
 export const TAKEOVER = {
   textOut: 0.2,
-  /** Screen 06's watchline leaves with 06's text; the underbar only arrives at the lock. */
+  /** Screen 06's watchline leaves with 06's text; the underbar only arrives after selection. */
   lineOut: { at: 0, dur: 0.2 },
   /** Screen 06 is removed after its exit. */
   out: 0.5,
-  /** Scroll 0–0.95 s at a constant speed, then decelerate and lock 0.95–1.35 s. */
-  reel: { at: 0, cruise: 0.95, settle: 0.4, travel: 4 },
-  othersOut: { at: 1.1, dur: 0.3 },
-  /** The selected name lifts from the focus zone into the headline, 1.25–1.65 s. */
-  lift: { at: 1.25, dur: 0.4 },
-  accent: { at: 1.25, dur: 0.35 },
-  /** Drawn left → right as the subject locks; it travels with the name. */
-  bar: { at: 1.3, dur: 0.35 },
-  head: { at: 1.45, dur: 0.4 },
-  art: { at: 1.45, dur: 0.45 },
-  support: { at: 1.6, dur: 0.3 },
-  /** No reel (a single subject): the name alone rises in. */
+  /**
+   * The Subject Shuffle Deck (shikho_subject_shuffle_comparison.html, "Shuffle
+   * Deck"): five wide, tilted lanes drift across the screen on a cubic ease-out
+   * (reference: ease(t / 1.5 s)); here each lane stops at a slightly offset time
+   * (stopAt, lane 0 → 4). Between align.at and +dur they straighten (tilt → 0)
+   * and contract (scale 0.88). The other lanes clear over out.
+   */
+  deck: {
+    fadeIn: 0.25,
+    stopAt: [1.42, 1.48, 1.55, 1.5, 1.6],
+    align: { at: 0.95, dur: 0.65 },
+    out: { at: 1.28, dur: 0.42 },
+    /** The lane that carries the student's subject (the middle one). */
+    sel: 2,
+  },
+  /** The title takes the selected word's exact place (after its lane has stopped and straightened). */
+  swap: 1.62,
+  /** The same title then moves into its headline position. */
+  lift: { at: 1.7, dur: 0.5 },
+  /** Shikho yellow only once selected. */
+  accent: { at: 1.75, dur: 0.35 },
+  bar: { at: 2.1, dur: 0.32 },
+  head: { at: 1.95, dur: 0.35 },
+  art: { at: 2.05, dur: 0.45 },
+  support: { at: 2.2, dur: 0.3 },
+  /** No deck (a single subject): the name alone rises in. */
   name: { at: 0.35, dur: 0.45 },
   lockMs: 1300,
 } as const;

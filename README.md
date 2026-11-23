@@ -144,15 +144,24 @@ pnpm typecheck
   - **Copy (PRD Screen 7, exact):** "তোমার বছরের বিষয়" · [বিষয়ের নাম] · "এই বিষয়েই তুমি সবচেয়ে বেশি সময় দিয়েছ এই বছর।" (`COPY.subject.prdHeadline/prdSupport`). The prototype's "SHIKHO · WRAP 2026" and "PHYSICS / 2026" labels are not used. Subject = most time (compose.ts), omitted when missing or tied.
   - **Composition (Nov 22 update):** headline top-left; the subject name as the hero on ONE line in Shikho yellow (design size min(13.1cqw, 51px), fitted down per name only if it would overflow — measured at the design size); a yellow underbar; the subject's original Shikho icon centred below as the main visual; the supporting line at the foot.
   - **Subject icons (`SUBJECT_ICON` in `subjectArt.tsx`):** the original Shikho subject icons from Figma "Report Card Revamp (W)" → "Subject Icon" (EkzF4RDp1YaveGsvKJKCde, 2619:20376), one per project subject (physics → "Physics", the Saturn icon; math → "General Math"; chemistry, biology, higherMath → "Higher math", bangla, english, ict). Files in `public/assets/subjects/` are each component's own vector layer exported unchanged (40 × 40, original colours and gradients); only the page/frame backgrounds the export wrapped around them were removed. The hand-drawn atom and fallback art were removed. `longName` test profile has উচ্চতর গণিত as its top subject.
-  - **The Subject Reel (Nov 22, second refinement):**
-    - **Scroll:** the student's own other subjects (cycled, never padded) move up through a focus zone at the frame's vertical centre (48 %), on the name's left edge. The arc is controlled: at most 2.5·u·d², about 10 px two lines out. There is a gentle swivel (rotateX −13°·d), and scale and opacity fall off with distance, so 3–4 names read at once. Names stay on one line.
-    - **Timing:** a constant speed from 0 to 0.95 s, then a velocity-continuous deceleration that locks at 1.35 s. The other names fade over 1.1–1.4 s.
-    - **One persistent element:** the student's subject is not a reel copy. It is the final title (`.sb-title`: the name and its underbar), driven by the same pose function as the reel. Once it locks, it lifts from the focus zone into its headline position over 1.25–1.65 s, with an in-out curve that overlaps the lock, so there is no swap, duplicate or jump. It turns white → Shikho yellow over 1.25–1.6 s.
-    - **Underbar:** hidden while the reel scrolls. It draws left → right as the subject locks (1.3–1.65 s) and travels with the name.
-    - **Reveal:** the headline and the Shikho icon arrive from 1.45 s, and the support line over 1.6–1.9 s. The icon moved slightly up, to 55cqh (53cqh on short frames).
-    - The timings are in `TAKEOVER` in `entry.ts`. With no other subjects there is no reel: the name rises in and the bar draws.
+  - **The Subject Shuffle Deck (Nov 23; replaces the Subject Spin drum):** from `shikho_subject_shuffle_comparison.html`, mode "01 · Shuffle Deck" only; the Full-Screen Drum mode is not used.
+    - **Kept from the reference:**
+      - Five lanes, 160 % wide and 13 % tall, from 16 % down every 14.7 %, with alternating tints, hairline edges, ✧ separators and the lane type (800, 28–47 px, #f4edff).
+      - Each lane's tilt, spread, alternate left/right drift on a cubic ease-out, and start blur.
+      - The straighten-and-contract to 0.88 (0.95–1.6 s), and the other lanes clearing with blur (1.28–1.7 s).
+    - **Changed:**
+      - Lanes hold the student's own subjects only.
+      - Each lane stops at a slightly offset time (1.42–1.6 s) instead of all at 1.5 s.
+      - Lanes fade in over 0.25 s, so they don't sit over 06's text.
+    - **Selection (exact, not random):** the middle lane holds the student's subject. Its end position is computed from that word's offset in the lane, so the word stops exactly at the title's left edge.
+      - The rest of that lane clears with the other lanes; the word stays.
+      - At 1.62 s, once the lane has stopped and straightened, the real title (`.sb-title`) is placed over the word at the same position and size. Scale and offset are measured from both boxes; the word uses the title's letter-spacing and the title starts in the lane's colour and opacity. The word hides in the same frame.
+      - The same title then moves and scales into its headline position (1.7–2.2 s). It turns Shikho yellow only then (1.75–2.1 s).
+      - The underbar draws left → right once the title has arrived (2.1–2.42 s).
+      - The headline (1.95 s), the Shikho icon (2.05–2.5 s) and the support line (2.2–2.5 s) follow.
+    - **Implementation:** one GSAP tween drives the deck and the title; the reveal is a Motion sequence. The timings are in `TAKEOVER.deck` in `entry.ts`. With one subject there is no deck.
   - **06 → 07:** 06's watchline now fades with 06's text (0–0.2 s) instead of becoming the underbar, so no underline shows mid-scroll. Screen 06 itself is unchanged. Other entries behave the same. Reduced motion shows the final frame. If the slide is revived mid-exit (rapid taps), it snaps to the final frame.
-  - **Review:** `review/m29/` (final at 360, 390, 430, 360 × 640; Moderate = গণিত fallback; longName = উচ্চতর গণিত; 06 → 07 reel recordings at three widths; reel cruise/settle strips; settled reel at 360 for three subjects). `review/m30/`: all eight subjects at 360 × 800 (one line, original icon), Physics at 390 and 430, short frames, reel recordings. `review/m31/`: centred reel + shared-title lift at 360/390/430, 360 × 640, reduced motion, rapid taps.
+  - **Review:** `review/m29/` (final at 360, 390, 430, 360 × 640; Moderate = গণিত fallback; longName = উচ্চতর গণিত; 06 → 07 reel recordings at three widths; reel cruise/settle strips; settled reel at 360 for three subjects). `review/m30/`: all eight subjects at 360 × 800 (one line, original icon), Physics at 390 and 430, short frames, reel recordings. `review/m31/`: centred reel + shared-title lift. `review/m33/`: the Shuffle Deck → title hand-over at 360/390/430 and 360 × 640, reduced motion, rapid taps, contact sheets.
 - [~] **Gentle Atmosphere background system** (Figma 55:38, Nov 2026). It replaces the night sky: the old orbital lines, glows, stars and particles were removed (`NightSky`, `night-sky.css` and 14 SVG layers deleted).
   - **Files:**
     - `src/story/background.ts`: every Figma value, the screen → background map (`SCREEN_BACKGROUND`), and transition lengths.
