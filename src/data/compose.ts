@@ -30,10 +30,30 @@ export type Slide =
       activeDays: number;
       streak: number | null;
     }
-  | { id: "marksheet"; rows: MarksheetRow[]; type: LearnerTypeId; badges: BadgeId[]; capstone: boolean; name: string | null }
+  | { id: "marksheet"; rows: MarksheetRow[]; type: LearnerTypeId; badges: BadgeId[]; capstone: boolean; name: string | null; facts: MarksheetFacts }
   | { id: "close" }
   | { id: "freshCover"; name: string | null }
   | { id: "freshClose" };
+
+/**
+ * Screen 10's typed facts: exactly the chapters that made it into this
+ * student's story (each null when its slide was omitted), so the marksheet
+ * never shows a metric the story didn't. No name, photo, school or rank here —
+ * the export card is built from this object alone.
+ */
+export interface MarksheetFacts {
+  study: { hours: number } | null;
+  live: { attended: number; held: number } | null;
+  quiz: { count: number } | null;
+  video: { minutes: number } | null;
+  subject: { id: SubjectId } | null;
+  peak: { date: string; hours: number | null } | null;
+  teacher: { name: string; portraitUrl: string | null } | null;
+  /** The learner type; `assigned` is false when the server gave none (the "balanced" fallback). */
+  type: { id: LearnerTypeId; assigned: boolean };
+  badges: BadgeId[];
+  capstone: boolean;
+}
 
 export interface MarksheetRow {
   key: keyof typeof COPY.marksheet.rows;
@@ -198,7 +218,21 @@ export function composeStory(r: WrapRecord, opts: ComposeOptions): StoryPlan {
   if (v?.id === "video") rows.push({ key: "video", value: `${bnNum(v.minutes)} মিনিট` });
   const sub = built.get("subject");
   if (sub?.id === "subject") rows.push({ key: "subject", value: SUBJECTS[sub.subject].name });
-  built.set("marksheet", { id: "marksheet", rows, type, badges, capstone, name });
+  const t = built.get("teacher");
+  const pk = built.get("peakDay");
+  const facts: MarksheetFacts = {
+    study: s?.id === "study" ? { hours: s.hours } : null,
+    live: l?.id === "live" ? { attended: l.attended, held: l.held } : null,
+    quiz: q?.id === "quiz" ? { count: q.count } : null,
+    video: v?.id === "video" ? { minutes: v.minutes } : null,
+    subject: sub?.id === "subject" ? { id: sub.subject } : null,
+    peak: pk?.id === "peakDay" ? { date: pk.date, hours: pk.hours } : null,
+    teacher: t?.id === "teacher" ? { name: t.name, portraitUrl: t.portraitUrl } : null,
+    type: { id: type, assigned: r.learnerType != null },
+    badges,
+    capstone,
+  };
+  built.set("marksheet", { id: "marksheet", rows, type, badges, capstone, name, facts });
 
   // 11 Close
   built.set("close", { id: "close" });

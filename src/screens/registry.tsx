@@ -11,6 +11,7 @@ import { VideoWatchline } from "./VideoWatchline";
 import { SubjectTakeover } from "./SubjectTakeover";
 import { PeakDayLit } from "./PeakDayLit";
 import { LearnerReveal } from "./LearnerReveal";
+import { MarksheetBento } from "./MarksheetBento";
 import { useCoverVariant } from "../explore/variant";
 import { CoverTypographic } from "../explore/CoverTypographic";
 import { CoverGeometry } from "../explore/CoverGeometry";
@@ -55,7 +56,8 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       // Default: "The Big Reveal", Option A (Nov 23 prototype). The M1 screen stays at ?learner=v2.
       return new URLSearchParams(location.search).get("learner") === "v2" ? <LearnerType slide={slide} {...p} /> : <LearnerReveal slide={slide} {...p} />;
     case "marksheet":
-      return <Marksheet slide={slide} {...p} />;
+      // Default: the Bento marksheet (Nov 23). The M1 sheet stays at ?marksheet=v2.
+      return new URLSearchParams(location.search).get("marksheet") === "v2" ? <Marksheet slide={slide} {...p} /> : <MarksheetBento slide={slide} {...p} />;
     case "close":
       return <Close slide={slide} {...p} />;
     case "freshCover":

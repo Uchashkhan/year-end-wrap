@@ -1,0 +1,53 @@
+/*
+ * 10 Marksheet — the in-app screen around the card (MarksheetBento.tsx). The
+ * card itself is marksheet/Bento.tsx (bento.css), scaled; this file only lays
+ * out the stage, the privacy note and the actions. Periwinkle ground
+ * (background.ts); the slide is transparent.
+ */
+.slide.ms {
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.ms-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+/* the card's space: under the progress bar and close button, above the actions */
+.ms-stage { flex: 1; min-height: 0; margin: max(58px, 7.4cqh) 0 0; padding: 0 5cqw; display: grid; place-items: center; }
+.ms-card { position: relative; overflow: hidden; border-radius: calc(40px * 0.36); box-shadow: 0 18px 40px rgba(10, 12, 60, 0.35); }
+.ms-card .bento { position: absolute; left: 0; top: 0; }
+.ms-id-ground { position: absolute; inset: 0; border-radius: inherit; background: var(--g-id); transform-origin: 72% 34%; }
+
+/* a quiet ink scrim under the actions: the periwinkle's light band would leave white text at ~3:1 */
+.ms-foot { flex: none; padding: 12px 7cqw max(18px, 2.6cqh); display: flex; flex-direction: column; align-items: stretch; gap: 6px; background: linear-gradient(180deg, rgba(11, 15, 74, 0.38) 0%, rgba(11, 15, 74, 0.56) 30%, rgba(11, 15, 74, 0.64) 100%); }
+.ms-privacy { margin: 0 0 4px; text-align: center; font-size: 13px; line-height: 1.5; color: #fff; }
+.ms-primary {
+  height: 48px;
+  border: 0;
+  border-radius: 15px;
+  background: #ffd044;
+  color: #25205e;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 5px 0 #8f5d19;
+  cursor: pointer;
+}
+.ms-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #8f5d19; }
+.ms-secondary { height: 34px; border: 0; background: none; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.ms-primary:focus-visible,
+.ms-secondary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+@container (max-height: 720px) {
+  .ms-stage { margin-top: 50px; }
+  .ms-foot { gap: 2px; padding-bottom: 12px; }
+  .ms-privacy { font-size: 12px; margin-bottom: 2px; }
+}
+
+/* pre-assembly (full motion only) */
+.ms.is-pre .bento { background-color: transparent; }
+.ms.is-pre .ms-card { box-shadow: none; }
+.ms.is-pre .bt-id { background: none; }
+.ms.is-pre :is(.bt:not(.bt-id), .bn-strip, .bn-foot, .ms-foot) { opacity: 0; }
+.ms.is-pre .bt-id > :is(.bn-head, .bn-type) { opacity: 0; }

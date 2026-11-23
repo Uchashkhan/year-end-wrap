@@ -209,6 +209,47 @@ pnpm typecheck
     - the identity rises (.53–.79), then the actions (.71–.94).
     - It runs on the same step-capped rAF clock as Screen 08. The resting frame is CSS. It plays once per visit; reduced motion and repeat views show the final frame, and a slide revived mid-exit snaps to it.
   - **Review:** `review/m37/`: final frames at 360, 390, 430 and 360 × 640, side by side with the reference; mid-reveal frames at matching progress; reduced motion; share sheet, primary action and rapid taps. `review/m38/`: the restrained ground. `review/m39/`: the Warm Violet ground next to the Figma frame, at 360, 390, 430 and 360 × 640.
+- [~] **Screen 10 — Marksheet: "Chapter Bento"** (Nov 23; no HTML reference, built from Screens 01–09's own visuals).
+  - **Files:** `src/marksheet/Bento.tsx` (the card), `src/marksheet/art.tsx` (the memories), `src/screens/MarksheetBento.tsx` (in-app), `src/styles/bento.css`, `src/styles/marksheet-screen.css`, and `src/marksheet/BentoLab.tsx` (dev: `?view=bento&p=<profile>`; add `&v=a` for one card at native size). The M1 sheet remains at `?marksheet=v2`.
+  - **Copy (PRD Screen 10):**
+    - Headline "তোমার ২০২৬, এক খাতায়", set as the year statement: তোমার / ২০২৬, / এক খাতায়.
+    - Closing line "দারুণ একটা বছর কাটিয়েছ — ২০২৭ হোক আরও বড়।".
+    - Actions "শেয়ার করো" and "এগিয়ে যাও"; the privacy note "কার্ডে তোমার নাম, স্কুল বা র‍্যাংক থাকে না।".
+    - Tile words reuse existing copy: the marksheet row labels, and the PRD headlines of 07, 08 and 04.
+  - **Data:** `MarksheetFacts` (compose.ts) holds a typed fact for each chapter the story actually had (null when omitted), the learner type with `assigned` (false for the "balanced" fallback, so no badge), the earned badges and the capstone. It has no name, photo, school or rank fields.
+  - **Asset audit → memories (no new illustration):**
+    - 02: the AnalogClock face and hands (static, 10:09:36).
+    - 03: the Roll Call hall from LiveClass's exported geometry, with the yellow front-row seat.
+    - 04: the teacher's portrait in the spotlight, only when a portrait exists.
+    - 05: the A/B/C/D final rails.
+    - 06: the player (orbit art, play disc with the yellow halo, watched line).
+    - 07: the original subject icon.
+    - 08: the real month, the day lit.
+    - 09: `LearnerBadge` (replaceable).
+  - **Explorations** (`review/m42/explorations/`):
+    - **A, Chapter Bento:** ink ground; each tile in its own chapter's Gentle Atmosphere colours; identity across the top. **Selected** for shareability, legibility at 360 px wide, the clearest "every chapter returns" read, and the cleanest adaptation.
+    - **B, Medal & Ledger:** Warm Violet field with the badge as the medal; its chapters become a low-contrast, even ledger.
+    - **C, খাতা Page:** a ruled notebook page with the chapters pasted in at angles; charming, but busier at small sizes, and the light ground breaks from the story.
+    - From B: a tall identity tile becomes a centred medal layout.
+  - **Layout (A):** six columns.
+    - **Identity:** the top row. It takes the height the chapters leave and scales its contents with it (cqh). When tall (few chapters) it switches to the centred medal layout.
+    - **Stickers:** an earned-badge strip, only when earned; the capstone leads it, inverted navy/gold.
+    - **Hero block:** the clock tall on the left beside two major chapters.
+    - **Pairs:** the rest, with the subject 2 + 4 and the others 3 + 3; a lone tile spans the row. No empty tiles and no fillers (`layoutA()`).
+    - **Fitting:** one-line words (subject, teacher, date, type) are fitted to their box by measurement.
+    - **Verified:** the High, Moderate, Limited, Capstone, longName and noLive cards.
+  - **Export:** `ExportCard` kind "marksheet" renders the same `BentoCard` at 1080 × 1920; no story chrome or buttons. The share sheet (the Android stand-in) previews exactly that.
+    - **Privacy:** verified in the DOM. The export has no student name, class or group; its only images are the teacher portrait, the subject icon and the logo.
+    - **Native:** native rasterises the same component.
+  - **In-app:** the card is the export, scaled to the space between the progress bar and the actions. The privacy note and actions sit on a quiet ink scrim (white text above ~4.5 : 1). Checked at 360, 390, 430 and 360 × 640.
+  - **09 → 10, assembling the year (`ASSEMBLE`, ≈ 1.2 s):**
+    - 09's text and actions clear; its badge is the shared element. It flies from 09's place into the identity tile, which establishes around it.
+    - The chapters follow in three groups: stickers and the hero block, then the pairs, then the foot. The actions come last.
+    - Only 09's exit changed.
+    - Other entries: the same assembly with the badge settling in place.
+    - Reduced motion and repeat views show the final frame; rapid taps revive to it.
+  - **Review:** `review/m42/`: the three explorations; the exports at 1080 × 1920 for six profiles, plus at 360 px wide; in-app at four sizes plus Limited; the share sheet; the 09 → 10 assembly.
+
 - [x] **Glyph clipping fix (Nov 23).** Text in reveal masks (`overflow: hidden`) was cut: the tops of ি / ী / reph, and the right edge of wide numerals (03's count, e.g. "৬০", "১১").
   - **Cause:** the masks' headroom was in `em` of the mask itself, which inherits a small size (≈16 px), not the large text inside.
   - **Fix:** each mask now gets room in units of its own text size (`--m`) above and to the sides, cancelled by equal negative margins, so nothing moves. Masks covered:

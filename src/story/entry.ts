@@ -9,7 +9,7 @@ import type { Frame } from "../screens/geometry";
  */
 export interface Entry {
   /** sky: Cover → 02 · flow: 02 → 03 · focus: 03 → 04 · answer: 04 → 05 · fade: any other step between two sky slides · normal: T1 */
-  kind: "sky" | "flow" | "focus" | "answer" | "watch" | "takeover" | "dayline" | "fade" | "normal";
+  kind: "sky" | "flow" | "focus" | "answer" | "watch" | "takeover" | "dayline" | "assemble" | "fade" | "normal";
   frame: Frame;
 }
 const EMPTY: Entry = { kind: "normal", frame: { W: 0, H: 0 } };
@@ -306,4 +306,31 @@ export const DAYLINE = {
   support: { at: 1.45, dur: 0.35 },
   end: 1.8,
   lockMs: 1100,
+} as const;
+
+/**
+ * 09 → 10 "Assembling the year". 09's badge stays as the shared element: its
+ * text and actions clear, and the badge flies into the marksheet's identity
+ * tile, which establishes around it; the chapters assemble in three groups;
+ * the actions last. ≈ 1.15 s.
+ */
+export const ASSEMBLE = {
+  /** Screen 09's text and actions clear; 09 is removed once the badge has left it. */
+  textOut: 0.2,
+  out: 0.45,
+  /** The card's ink ground. */
+  ground: { at: 0.02, dur: 0.3 },
+  badge: { at: 0, dur: 0.55 },
+  /** The identity tile establishes around the badge; its words settle. */
+  identity: { at: 0.14, dur: 0.42 },
+  words: { at: 0.36, dur: 0.36 },
+  /** The chapters: three coordinated groups (stickers + hero block, the pairs, the foot). */
+  groups: [
+    { at: 0.46, dur: 0.42 },
+    { at: 0.6, dur: 0.42 },
+    { at: 0.74, dur: 0.36 },
+  ],
+  actions: { at: 0.9, dur: 0.3 },
+  end: 1.2,
+  lockMs: 900,
 } as const;

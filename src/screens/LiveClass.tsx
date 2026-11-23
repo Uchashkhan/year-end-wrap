@@ -19,23 +19,23 @@ const OUT = [0.22, 1, 0.36, 1] as const;
 // student's seat is its third chair (just right of centre).
 export const HALL_W = 390;
 export const HALL_H = 300;
-const ROWS = [
+export const ROWS = [
   { n: 7, y: 8, w: 26, fill: "#6175d5", opacity: 0.32 },
   { n: 6, y: 65, w: 34, fill: "#5d77e7", opacity: 0.47 },
   { n: 5, y: 133, w: 43, fill: "#526cf0", opacity: 0.62 },
   { n: 4, y: 216, w: 56, fill: "#4059d7", opacity: 0.84 },
 ];
-const YOU = { row: 3, seat: 2 };
+export const YOU = { row: 3, seat: 2 };
 /** The chair's box: 100 × 132 (backrest, seat, two legs — one consistent geometry). */
-const CHAIR_H = 132;
+export const CHAIR_H = 132;
 
-type Place = { x: number; y: number; s: number };
-const placeOf = (r: (typeof ROWS)[number], j: number): Place => {
+export type Place = { x: number; y: number; s: number };
+export const placeOf = (r: (typeof ROWS)[number], j: number): Place => {
   const s = r.w / 100;
   return { x: (j + 0.5) * (HALL_W / r.n) - r.w / 2, y: r.y, s };
 };
-const YOU_AT = placeOf(ROWS[YOU.row], YOU.seat);
-const tf = (p: Place) => `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) scale(${p.s.toFixed(4)})`;
+export const YOU_AT = placeOf(ROWS[YOU.row], YOU.seat);
+export const tf = (p: Place) => `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) scale(${p.s.toFixed(4)})`;
 
 /** One chair, front view: a rounded backrest with a soft top edge, the seat, two legs. */
 function ChairDef() {

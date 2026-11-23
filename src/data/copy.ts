@@ -112,6 +112,8 @@ export const COPY = {
 
   marksheet: {
     headline: "তোমার ২০২৬, এক খাতায়",
+    /** PRD Screen 10 proposed closing line (exact). */
+    closing: "দারুণ একটা বছর কাটিয়েছ — ২০২৭ হোক আরও বড়।",
     privacy: "কার্ডে তোমার নাম, স্কুল বা র‍্যাংক থাকে না।",
     primary: "শেয়ার করো",
     secondary: "এগিয়ে যাও",

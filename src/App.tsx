@@ -1,3 +1,4 @@
+import { BentoLab } from "./marksheet/BentoLab";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { composeStory } from "./data/compose";
@@ -48,6 +49,7 @@ export default function App() {
   const view = new URLSearchParams(location.search).get("view");
   if (view === "direction") return <DirectionBoard />;
   if (view === "covers") return <CoverExplore />;
+  if (view === "bento") return <BentoLab />;
   return <Prototype />;
 }
 
@@ -104,7 +106,7 @@ function Prototype() {
     const lt = plan.slides.find((s) => s.id === "learnerType");
     if (sheet === "type" && lt?.id === "learnerType") return { kind: "type", type: lt.type, reason: lt.reason };
     if (ms?.id === "marksheet")
-      return { kind: "marksheet", type: ms.type, rows: ms.rows, badges: ms.badges, capstone: ms.capstone };
+      return { kind: "marksheet", facts: ms.facts };
     return null;
   }, [sheet, plan]);
 

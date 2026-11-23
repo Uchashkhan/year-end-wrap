@@ -1,0 +1,295 @@
+/*
+ * Screen 10 — the marksheet card (BentoCard). Designed at the export's native
+ * 1080 × 1920; every size here is in card pixels. The in-app view scales the
+ * same element, so the share image and the screen are one design.
+ * Chapter colours are each chapter's own Gentle Atmosphere ground
+ * (background.ts), so every tile reads as a slice of its screen.
+ */
+.bento {
+  --yellow: #f9c531;
+  --cream: #fff2bb;
+  --ink: #0b0f4a;
+  --g-study: linear-gradient(160deg, #15458e 0%, #2777cf 100%);
+  --g-live: linear-gradient(160deg, #191b80 0%, #3047b8 100%);
+  --g-teacher: linear-gradient(200deg, #6051cc 0%, #36258d 100%);
+  --g-quiz: linear-gradient(200deg, #2777cf 0%, #15458e 100%);
+  --g-video: linear-gradient(200deg, #3047b8 0%, #191b80 100%);
+  --g-subject: linear-gradient(160deg, #36258d 0%, #6051cc 100%);
+  --g-peak: linear-gradient(160deg, #2464ad 0%, #2777cf 100%);
+  --g-id: linear-gradient(168deg, #432684 0%, #7652bc 62%, #9a7bcc 100%);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family: var(--f-bn);
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+.bento *,
+.bento *::before,
+.bento *::after { box-sizing: border-box; }
+.bento h1 { margin: 0; font: inherit; }
+
+/* ── tiles ── */
+.bt-slot { display: contents; }
+.bt { position: relative; overflow: hidden; border-radius: 40px; min-width: 0; }
+.bt-art { position: absolute; pointer-events: none; }
+.bt-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.bt-copy { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; }
+.bt-num { font-weight: 800; line-height: 1.08; letter-spacing: -0.02em; color: var(--yellow); white-space: nowrap; padding-top: 0.06em; }
+.bt-word { font-weight: 800; line-height: 1.2; white-space: nowrap; padding-top: 0.12em; }
+.bt-unit { font-weight: 600; line-height: 1.35; color: rgba(255, 255, 255, 0.86); }
+
+/* ── memories (art.tsx) ── */
+.art-hall,
+.art-rails,
+.art-player { display: block; width: 100%; height: auto; overflow: visible; }
+.art-rail-letter { font: 800 30px var(--f-bn); fill: #fff; }
+/* The calendar is sized in em (1em = one date's size) so a tile scales it whole. */
+.art-cal { font-size: 21px; width: 16.2em; border-radius: 1.33em; padding: 1.24em 1.24em 1.14em; background: linear-gradient(160deg, #2d6fcf, #1b4796); box-shadow: 0 0.85em 1.9em rgba(11, 42, 97, 0.35); }
+.art-cal-title { font-size: 1.33em; font-weight: 700; line-height: 1.4; margin-bottom: 0.3em; }
+.art-cal-wk,
+.art-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 0.19em; }
+.art-cal-wk { font-size: 0.81em; color: #d4e6ff; margin-bottom: 0.35em; }
+.art-cal-grid span { height: 1.72em; display: grid; place-items: center; font-weight: 700; color: rgba(245, 237, 255, 0.86); border-radius: 0.48em; padding-top: 0.1em; }
+.art-cal-grid span.is-lit { background: var(--yellow); color: #222066; box-shadow: 0 0.2em 0.76em rgba(255, 202, 51, 0.45); }
+
+/* ── stickers (earned only) ── */
+.bn-stickers { display: flex; flex-wrap: wrap; gap: 14px; }
+.bn-sticker {
+  display: inline-flex;
+  align-items: center;
+  height: 58px;
+  padding: 4px 24px 0;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: #25205e;
+  font-size: 28px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 #b9860f;
+}
+.bn-sticker-cap { background: #101a5c; color: var(--yellow); box-shadow: inset 0 0 0 3px var(--yellow); }
+/* many earned badges (the capstone's set): a size down, so two lines at most */
+.bn-stickers:has(.bn-sticker:nth-child(4)) { gap: 12px; }
+.bn-stickers:has(.bn-sticker:nth-child(4)) .bn-sticker { height: 52px; font-size: 25px; padding: 4px 20px 0; }
+
+.bn-logo { display: block; height: 52px; width: auto; }
+.bn-close { font-size: 30px; font-weight: 600; line-height: 1.4; }
+
+/* ════════════ A · Chapter Bento (selected) ════════════
+   Ink ground; the identity across the top; the chapters below, each in its own
+   screen's colours. Rows and areas come from layoutA() (inline), so the grid
+   follows the chapters this student actually has. */
+.bento-a {
+  background: var(--ink);
+  padding: 56px 56px 40px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+}
+.bento-a .bt-id { grid-area: id; background: var(--g-id); container-type: size; }
+.bento-a .bt-study { background: var(--g-study); }
+.bento-a .bt-live { background: var(--g-live); }
+.bento-a .bt-quiz { background: var(--g-quiz); }
+.bento-a .bt-subject { background: var(--g-subject); }
+.bento-a .bt-video { background: var(--g-video); }
+.bento-a .bt-peak { background: var(--g-peak); }
+.bento-a .bt-teacher { background: radial-gradient(ellipse 55% 85% at 74% 0%, rgba(255, 255, 255, 0.2), transparent 72%), var(--g-teacher); }
+.bento-a .bn-strip { grid-area: bd; display: flex; align-items: center; padding: 2px 0 4px; }
+.bento-a .bn-foot { grid-area: ft; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
+.bento-a .bn-foot .bn-close { color: rgba(255, 255, 255, 0.8); font-size: 28px; }
+
+/* identity — wide: the year statement on the left, the badge and type on the right */
+/* sizes follow the tile's height (cqh): 488px tall at full data; less when stickers take two lines */
+.bento-a .bn-head { position: absolute; left: 52px; top: 6cqh; display: flex; flex-direction: column; align-items: flex-start; }
+.bento-a .bn-head-a { font-size: min(52px, 10.6cqh); }
+.bento-a .bn-head-year { font-size: min(196px, 40cqh); }
+.bento-a .bn-head-b { font-size: min(62px, 12.6cqh); }
+.bn-head-a { font-size: 52px; font-weight: 700; line-height: 1.3; }
+.bn-head-year { font-size: 196px; font-weight: 800; line-height: 1.04; letter-spacing: -0.03em; color: var(--yellow); margin-left: -8px; padding-top: 0.04em; }
+.bn-head-b { font-size: 62px; font-weight: 800; line-height: 1.3; }
+.bento-a .bn-badge { position: absolute; right: calc(226px - min(140px, 28cqh)); top: 6cqh; width: min(280px, 56cqh); filter: drop-shadow(0 18px 22px rgba(42, 12, 74, 0.35)); }
+.bento-a .bn-type { position: absolute; right: 16px; bottom: 4.6cqh; width: 420px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.bento-a .bn-type-name { font-size: min(64px, 13cqh); }
+.bento-a .bn-type-label { font-size: min(30px, 6.2cqh); }
+.bn-type-name { font-size: 64px; font-weight: 800; line-height: 1.25; color: var(--cream); white-space: nowrap; padding-top: 0.08em; }
+.bn-type-label { font-size: 30px; font-weight: 600; line-height: 1.4; color: rgba(255, 255, 255, 0.84); }
+/* no assigned type (the honest fallback): no badge; the type name sits in its place */
+.bento-a .bt-id.is-plain .bn-type { top: auto; bottom: 48px; right: 52px; width: 420px; }
+/* identity — tall (fewer chapters): the medal layout, centred */
+@container (min-height: 700px) {
+  .bento-a .bn-head { left: 0; right: 0; top: 7cqh; flex-direction: row; justify-content: center; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+  .bento-a .bn-head-a,
+  .bento-a .bn-head-b { font-size: 60px; }
+  .bento-a .bn-head-year { font-size: 60px; margin: 0; letter-spacing: 0; padding: 0; }
+  .bento-a .bn-badge { right: auto; left: 50%; top: 20cqh; width: min(46cqh, 400px); transform: translateX(-50%); }
+  .bento-a .bn-type,
+  .bento-a .bt-id.is-plain .bn-type { left: 0; right: 0; top: auto; bottom: 8cqh; width: auto; }
+  .bento-a .bn-type-name { font-size: 100px; }
+  .bento-a .bt-id.is-plain .bn-type { bottom: auto; top: 40cqh; }
+}
+
+/* chapter tiles: the figure, then what it counts; each memory cropped off an edge */
+.bento-a .bt-copy { padding: 32px 38px; }
+.bento-a .bt-num { font-size: 116px; }
+.bento-a .bt-unit { font-size: 34px; }
+.bento-a .bt-word { font-size: 50px; }
+.bento-a [data-row="pair"] .bt-copy { position: absolute; left: 0; bottom: 0; padding: 28px 36px; }
+.bento-a [data-row="pair"] .bt-num { font-size: 96px; }
+.bento-a [data-row="pair"] .bt-unit { font-size: 30px; }
+/* 02 — the clock, oversized and cropped off the corner */
+.bento-a .bt-study .bt-art { width: 620px; right: -230px; bottom: -290px; }
+.bento-a .bt-study .bt-num { font-size: 196px; }
+.bento-a .bt-study .bt-unit { font-size: 40px; }
+/* 03 — the hall rises from the bottom edge; the yellow seat in the front row */
+/* the front row, large: three chairs and the yellow seat; the rows behind fade out under the copy */
+.bento-a .bt-live .bt-art { width: 700px; right: -140px; bottom: -44px; -webkit-mask-image: linear-gradient(180deg, transparent 64%, #000 73%); mask-image: linear-gradient(180deg, transparent 64%, #000 73%); }
+/* 05 — the rails leave the tile on the right */
+.bento-a .bt-quiz .bt-art { width: 360px; right: -176px; top: 70px; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%); mask-image: linear-gradient(90deg, transparent 0%, #000 30%); }
+.bento-a .bt-quiz .bt-copy { max-width: 64%; }
+/* 06 — the player */
+.bento-a .bt-video .bt-art { width: 214px; right: 26px; top: 28px; }
+/* 07 — the subject's own icon above its name */
+.bento-a .bt-subject .bt-art { width: 96px; height: 96px; left: 34px; top: 26px; }
+.bento-a .bt-subject .bt-word { font-size: 42px; }
+/* 08 — the month, cropped to the week of the lit day */
+.bento-a .bt-peak .bt-art { right: 24px; top: calc(50% - 4.2em - var(--lit-row, 2) * 1.91em); font-size: 18px; -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%); }
+.bento-a .bt-peak .art-cal { font-size: inherit; box-shadow: none; }
+.bento-a .bt-peak .bt-art:has(.art-cal) { font-size: 17px; }
+.bento-a .bt-peak .bt-copy { max-width: 50%; }
+.bento-a .bt-unit { text-wrap: balance; }
+.bento-a .bt-peak .bt-word { font-size: 54px; }
+.bento-a .bt-peak .bt-unit,
+.bento-a .bt-subject .bt-unit,
+.bento-a .bt-teacher .bt-unit { font-size: 27px; white-space: normal; }
+/* 04 — the teacher in the spotlight */
+.bento-a .bt-teacher .bt-art { width: 236px; height: 236px; right: -6px; bottom: -22px; }
+.bento-a .bt-teacher .bt-copy { max-width: 56%; }
+.bento-a .bt-teacher .bt-word { font-size: 42px; }
+/* the copy keeps to its side of a tile with art beside it */
+.bento-a .bt-video .bt-copy { max-width: 54%; }
+.bento-a .bt-teacher:not(:has(.bt-art)) .bt-copy { max-width: 100%; }
+
+/* ════════════ B · Medal & Ledger ════════════
+   One Warm Violet field; the badge as a medal at the centre of attention; the
+   chapters as a calm ledger of white-ink tiles below it. */
+.bento-b {
+  background: linear-gradient(180deg, #432684 0%, #7652bc 30%, #b69bd8 52%, #53318c 86%);
+  padding: 60px 56px 44px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: 150px 620px 300px 300px 1fr;
+  gap: 20px;
+  grid-template-areas:
+    "tp tp tp tp tp tp"
+    "id id id id id id"
+    "st st lv lv qz qz"
+    "vd vd vd pk pk pk"
+    "sb sb sb tc tc tc";
+}
+.bento-b .bn-top { grid-area: tp; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.bento-b .bn-head { flex-direction: row; display: flex; align-items: baseline; gap: 16px; }
+.bento-b .bn-head-a,
+.bento-b .bn-head-b { font-size: 56px; }
+.bento-b .bn-head-year { font-size: 56px; letter-spacing: 0; margin: 0; padding: 0; }
+.bento-b .bt-id { grid-area: id; border-radius: 0; overflow: visible; display: flex; flex-direction: column; align-items: center; }
+.bento-b .bn-badge { width: 380px; filter: drop-shadow(0 26px 30px rgba(42, 12, 74, 0.35)); }
+.bento-b .bn-type { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+.bento-b .bn-type-name { font-size: 104px; }
+.bento-b .bt-id .bn-stickers { justify-content: center; margin-top: 18px; }
+.bento-b .bt-study { grid-area: st; }
+.bento-b .bt-live { grid-area: lv; }
+.bento-b .bt-quiz { grid-area: qz; }
+.bento-b .bt-video { grid-area: vd; }
+.bento-b .bt-peak { grid-area: pk; }
+.bento-b .bt-subject { grid-area: sb; }
+.bento-b .bt-teacher { grid-area: tc; }
+.bento-b .bt:not(.bt-id) { background: rgba(24, 10, 64, 0.34); border-radius: 36px; }
+.bento-b .bn-foot { display: none; }
+.bento-b .bt-copy { position: absolute; left: 0; bottom: 0; padding: 28px 32px; }
+.bento-b .bt-num { font-size: 92px; }
+.bento-b .bt-unit { font-size: 30px; }
+.bento-b .bt-word { font-size: 46px; }
+.bento-b .bt-study .bt-art { width: 260px; right: -60px; top: -60px; }
+.bento-b .bt-live .bt-art { width: 300px; right: -20px; top: 8px; }
+.bento-b .bt-quiz .bt-art { width: 260px; right: -90px; top: 10px; }
+.bento-b .bt-video .bt-art { width: 300px; right: 24px; top: 24px; }
+.bento-b .bt-peak .bt-art { width: 280px; right: 24px; top: 20px; }
+.bento-b .bt-peak .bt-copy,
+.bento-b .bt-teacher .bt-copy { max-width: 210px; }
+.bento-b .bt-peak .bt-unit,
+.bento-b .bt-teacher .bt-unit,
+.bento-b .bt-subject .bt-unit { font-size: 26px; white-space: normal; }
+.bento-b .bt-subject .bt-art { width: 130px; height: 130px; right: 30px; top: 30px; }
+.bento-b .bt-teacher .bt-art { width: 260px; height: 260px; right: -30px; bottom: -40px; }
+.bento-b .bt-teacher .bt-word,
+.bento-b .bt-subject .bt-word { font-size: 40px; }
+
+/* ════════════ C · খাতা Page ════════════
+   A ruled notebook page in navy ink; the chapters pasted in as coloured cards,
+   each at its own slight angle; the learner type written onto the page. */
+.bento-c {
+  background: #f6f8ff;
+  color: #111973;
+  padding: 70px 64px 48px 150px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 560px 300px 300px 260px 1fr;
+  gap: 26px 24px;
+  grid-template-areas:
+    "id id id id"
+    "st st lv lv"
+    "st st qz qz"
+    "vd vd pk pk"
+    "sb tc tc ft";
+}
+.bento-c .bn-rules {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 112px, #ef6b6b 112px, #ef6b6b 115px, transparent 115px),
+    repeating-linear-gradient(180deg, transparent 0 63px, #c9d6f5 63px 65px);
+  pointer-events: none;
+}
+.bento-c .bt-id { grid-area: id; overflow: visible; border-radius: 0; }
+.bento-c .bn-head { display: flex; flex-direction: column; }
+.bento-c .bn-head-a { font-size: 60px; color: #111973; }
+.bento-c .bn-head-year { font-size: 210px; color: #111973; }
+.bento-c .bn-head-b { font-size: 64px; color: #111973; }
+.bento-c .bn-badge { position: absolute; right: -10px; top: -14px; width: 300px; transform: rotate(7deg); filter: drop-shadow(0 16px 18px rgba(17, 25, 115, 0.25)); }
+.bento-c .bn-type { position: absolute; left: 0; bottom: 18px; display: flex; flex-direction: column-reverse; align-items: flex-start; }
+.bento-c .bn-type-label { color: #303ebf; font-size: 32px; }
+.bento-c .bn-type-name { font-size: 96px; color: #111973; background: linear-gradient(180deg, transparent 52%, rgba(249, 197, 49, 0.85) 52%, rgba(249, 197, 49, 0.85) 88%, transparent 88%); padding: 0.08em 0.12em 0; margin-left: -0.12em; }
+.bento-c .bt:not(.bt-id) { border-radius: 30px; box-shadow: 0 14px 26px rgba(17, 25, 115, 0.18); }
+.bento-c .bt-study { grid-area: st; background: var(--g-study); transform: rotate(-1.6deg); }
+.bento-c .bt-live { grid-area: lv; background: var(--g-live); transform: rotate(1.4deg); }
+.bento-c .bt-quiz { grid-area: qz; background: var(--g-quiz); transform: rotate(-0.8deg); }
+.bento-c .bt-video { grid-area: vd; background: var(--g-video); transform: rotate(1deg); }
+.bento-c .bt-peak { grid-area: pk; background: var(--g-peak); transform: rotate(-1.2deg); }
+.bento-c .bt-subject { grid-area: sb; background: var(--g-subject); transform: rotate(1.8deg); }
+.bento-c .bt-teacher { grid-area: tc; background: var(--g-teacher); transform: rotate(-1deg); }
+.bento-c .bt-stickers { position: absolute; left: 150px; right: 64px; top: 600px; overflow: visible; border-radius: 0; }
+.bento-c .bt-stickers .bn-stickers { justify-content: flex-start; }
+.bento-c .bn-foot { grid-area: ft; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; gap: 10px; text-align: right; }
+.bento-c .bn-foot .bn-close { font-size: 26px; color: #303ebf; }
+.bento-c .bn-logo { height: 70px; }
+.bento-c .bt-copy { position: absolute; left: 0; bottom: 0; padding: 28px 32px; }
+.bento-c .bt-num { font-size: 96px; }
+.bento-c .bt-unit { font-size: 30px; }
+.bento-c .bt-word { font-size: 40px; }
+.bento-c .bt-study .bt-copy { top: 0; bottom: auto; }
+.bento-c .bt-study .bt-num { font-size: 170px; }
+.bento-c .bt-study .bt-art { width: 520px; right: -190px; bottom: -170px; }
+.bento-c .bt-live .bt-art { width: 340px; right: -20px; top: 4px; }
+.bento-c .bt-quiz .bt-art { width: 300px; right: -110px; top: 12px; }
+.bento-c .bt-video .bt-art { width: 280px; right: 22px; top: 22px; }
+.bento-c .bt-peak .bt-art { width: 270px; right: 22px; top: 22px; }
+.bento-c .bt-peak .bt-copy { max-width: 220px; }
+.bento-c .bt-peak .bt-unit,
+.bento-c .bt-teacher .bt-unit,
+.bento-c .bt-subject .bt-unit { font-size: 24px; white-space: normal; }
+.bento-c .bt-subject .bt-art { width: 110px; height: 110px; right: 18px; top: 18px; }
+.bento-c .bt-subject .bt-word { font-size: 34px; }
+.bento-c .bt-teacher .bt-art { width: 220px; height: 220px; right: -24px; bottom: -30px; }
+.bento-c .bt-teacher .bt-copy { max-width: 260px; }
+.bento-c .bt-teacher .bt-word { font-size: 36px; }

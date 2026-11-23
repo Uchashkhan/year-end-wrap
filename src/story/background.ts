@@ -112,5 +112,6 @@ export function bgTransition(kind: Entry["kind"], reduced: boolean) {
   if (kind === "watch") return WATCH.out;
   if (kind === "takeover") return 0.8; // under the field's pass // blue → signature blue while the underline hands over // violet → blue while the spotlight hands over
   if (kind === "dayline") return 0.8; // violet → ocean blue while the underbar becomes the months' rail
+  if (kind === "assemble") return 0.6; // warm violet → periwinkle while the card assembles
   return 0.6; // ordinary steps: a little longer than the page turn, so it reads as atmosphere
 }

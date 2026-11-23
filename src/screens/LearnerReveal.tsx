@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
-import { usePresence } from "motion/react";
+import { animate, usePresence } from "motion/react";
 import { COPY, LEARNER_TYPES } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
+import { ASSEMBLE, useNav } from "../story/entry";
 import { LearnerBadge } from "../components/LearnerBadge";
 import type { ScreenProps } from "./types";
 import "../styles/learner-reveal.css";
@@ -111,6 +112,7 @@ export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
   // Leaving: stop; removal is immediate. Revived before removal (rapid
   // back/forward taps): snap to the final frame — the reveal plays once.
   const wasLeaving = useRef(false);
+  const nav = useNav();
   useEffect(() => {
     if (isPresent) {
       if (wasLeaving.current) {
@@ -121,7 +123,23 @@ export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
     }
     wasLeaving.current = true;
     ctl.current?.stop();
-    safeToRemove?.();
+    // To Screen 10 the badge is the shared element: everything else clears and
+    // 10 flies its own copy of the badge out of this one's place (hiding this
+    // one as it does). Any other exit is immediate.
+    const root = scope.current;
+    if (nav.kind !== "assemble" || !root) {
+      safeToRemove?.();
+      return;
+    }
+    ctl.current?.finish();
+    const parts = [...root.querySelectorAll<HTMLElement>(".lt-header, .lt-type, .lt-actions, .lt-badge-shadow")];
+    const c = animate(parts, { opacity: 0, y: -8 }, { duration: ASSEMBLE.textOut, ease: [0.4, 0, 0.2, 1] });
+    const t = window.setTimeout(() => safeToRemove?.(), ASSEMBLE.out * 1000);
+    return () => {
+      c.stop();
+      clearTimeout(t);
+    };
+    // nav is read at the moment Screen 09 starts leaving
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPresent]);
 
