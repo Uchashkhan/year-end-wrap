@@ -103,7 +103,6 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
     const steps: Step[] = [
       [".fr-line-0 > span", { y: ["130%", "0%"] }, { duration: 0.42, ease: OUT, at: at(FLOW.head.at) }],
       [".fr-line-1 > span", { y: ["130%", "0%"] }, { duration: 0.42, ease: OUT, at: at(FLOW.head.at + 0.06) }],
-      [".fr-focus", { opacity: [0, 1], scaleY: [0.3, 1] }, { duration: 0.4, ease: OUT, at: at(st.at) }],
       [".fr-num-mask > span", { y: ["120%", "0%"] }, { duration: 0.55, ease: OUT, at: at(st.at) }],
       [".fr-unit-mask > span", { y: ["130%", "0%"] }, { duration: 0.5, ease: OUT, at: at(st.at + 0.07) }],
       [".fr-tail-mask > span", { y: ["130%", "0%"] }, { duration: 0.5, ease: OUT, at: at(st.at + 0.13) }],
@@ -132,7 +131,7 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
         settleHall(scope.current);
         animate(".fr-copy", { opacity: 1, y: 0 }, { duration: 0 });
         animate(".fr-line > span, .fr-num-mask > span, .fr-unit-mask > span, .fr-tail-mask > span", { y: "0%" }, { duration: 0 });
-        animate(".fr-focus, .fr-meta", { opacity: 1, y: 0, scaleY: 1 }, { duration: 0 });
+        animate(".fr-meta", { opacity: 1, y: 0 }, { duration: 0 });
         setCounting(true);
       }
       return;
@@ -197,7 +196,6 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
         </h1>
 
         <div className="fr-stat" aria-hidden="true">
-          <i className="fr-focus" />
           <div className="fr-figure">
             <span className="fr-num-mask">
               <span className="fr-num">

@@ -44,7 +44,6 @@
 
 /* ── the count ── */
 .fr-stat { position: absolute; left: var(--fr-g); right: var(--fr-g); top: 34.5cqh; }
-.fr-focus { position: absolute; left: -1.3cqw; top: 1.4cqh; width: 3px; height: calc(var(--fr-num) * 0.62); border-radius: 5px; background: var(--ds-warning-500); transform-origin: 50% 100%; }
 .fr-figure { display: flex; align-items: flex-end; gap: 2.6cqw; padding-left: 2.2cqw; }
 .fr-num-mask,
 .fr-unit-mask,
@@ -81,4 +80,30 @@
 
 /* pre-sequence state (full motion only): text waits below its masks; GSAP-owned layers by opacity */
 .fr.is-pre :is(.fr-line, .fr-num-mask, .fr-unit-mask, .fr-tail-mask) > span { transform: translateY(130%); }
-.fr.is-pre :is(.fr-focus, .fr-meta, .fr-you, .fr-row) { opacity: 0; }
+.fr.is-pre :is(.fr-meta, .fr-you, .fr-row) { opacity: 0; }
+
+/* Ink room for the reveal masks. Bengali signs (ি, ী, reph) rise above the line
+   box and wide numerals overhang their advance, so a tight mask clips them.
+   Each mask gets room in units of its own text size (--m) — above and to the
+   sides — cancelled by equal negative margins, so nothing moves. */
+.fr-line { --m: 28px; }
+.fr-num-mask { --m: var(--fr-num); }
+.fr-unit-mask { --m: 22px; }
+.fr-tail-mask { --m: 20px; }
+.fr-line,
+.fr-num-mask,
+.fr-unit-mask {
+  padding: calc(0.3em + 0.22 * var(--m)) calc(0.16 * var(--m)) 0.08em;
+  margin-top: calc(-0.3em - 0.22 * var(--m));
+  margin-inline: calc(-0.16 * var(--m));
+}
+.fr-line + .fr-line { margin-top: calc(-0.36em - 0.22 * var(--m)); }
+.fr-tail-mask {
+  padding: calc(0.3em + 0.22 * var(--m)) calc(0.16 * var(--m)) 0.08em;
+  margin-top: calc(0.6cqh - 0.3em - 0.22 * var(--m));
+  margin-left: calc(2.2cqw - 0.16 * var(--m));
+  margin-right: calc(-0.16 * var(--m));
+}
+@container (max-height: 720px) {
+  .fr-line { --m: 24px; }
+}

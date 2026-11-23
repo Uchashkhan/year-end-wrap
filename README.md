@@ -188,25 +188,40 @@ pnpm typecheck
   - **07 → 08:** 07's subject, icon and support clear (0.2 s), and its yellow underbar stays. The bar stretches to the frame's width and drops under the month chips, becoming their rail (0.04–0.46 s). Only Screen 07's exit was touched (`SubjectTakeover.tsx`); its design and Shuffle Deck are unchanged.
   - **Other entries:** back navigation and jumps play the same entrance without the hand-over. Reduced motion shows the final frame. If the slide is revived mid-exit (rapid taps), it snaps to the final frame.
   - **Review:** `review/m34/`: final frames at 360, 390, 430 and 360 × 640, plus Moderate (৯ জুলাই); 07 → 08 contact sheets; rapid taps. `review/m35/`: the continuity fix, with checkpoints at 25/50/75 % and the measured March hand-over. `review/m36/`: the smoothness pass.
-- [~] **Screen 09 — Learner type: "The Big Reveal", Option A · Magenta / Violet** (Nov 23, from `shikho_learner_type_big_reveal.html`; Option B is not used). Files: `src/screens/LearnerReveal.tsx`, `src/components/LearnerBadge.tsx`, `src/styles/learner-reveal.css`. The M1 screen remains at `?learner=v2`.
+- [~] **Screen 09 — Learner type: "The Big Reveal"** (Option A layout and motion; Warm Violet ground) (Nov 23, from `shikho_learner_type_big_reveal.html`; Option B is not used). Files: `src/screens/LearnerReveal.tsx`, `src/components/LearnerBadge.tsx`, `src/styles/learner-reveal.css`. The M1 screen remains at `?learner=v2`.
   - **Copy (PRD Screen 9):** "তোমার শেখার ধরন কী?" · "সারা বছরের শেখার অভ্যাস দেখে তোমার জন্য আছে একটি বিশেষ পরিচয়।" · [শিক্ষার্থীর ধরন] (server-assigned, compose.ts; "balanced" is the fallback). The line under the type is its data-tied reason (`LEARNER_TYPES`), and the small label over it is the existing `COPY.learnerType.label`.
     - Not used from the reference (not PRD): the eyebrow "SHIKHO WRAP · ২০২৬", the vertical "WRAP 2026" / "SHIKHO" watermarks, "তোমার শেখার পরিচয়", its demo reason and the DEMO hint. The header is moved down by the eyebrow's height, so the question sits where it does in the reference.
   - **Actions:** "আমার মার্ক শিট দেখি ↗" → Screen 10 (`actions.next`); "শেয়ার করো" → the existing share sheet (`actions.share("type")`). Nothing is simulated.
-  - **Ground:** the section's Soft Violet is the "before" ground. Option A's magenta flood (160°, #6f279f → #bb188a → #ee3d98) opens over it from the centre, as in the reference, and is this screen's resting ground. - **Restrained (Nov 23 refinement):** one smooth four-stop field (168°, #5b2398 → #8a1fa0 → #b51b8f → #d42f8e). Removed:
-    - the rings, dashed ring and tick marks;
-    - the yellow accent strokes and sparks;
-    - the corner outlines;
-    - the centre glow.
-
-    The badge shadow is cut to a quiet contact shadow. What remains: the badge as the hero, the identity in #fff2bb, and the yellow primary with its pressed edge.
+  - **Ground (Nov 23): Warm Violet**, from Figma "B — Warm Violet" (th2CA9ugtc2BZixN4UBH3Z, 103:731), via the shared background (`SCREEN_BACKGROUND.learnerType = "warm-violet"`). The reference's magenta flood is no longer used; the slide is transparent.
+    - Colours: 180°, #432684 0 % · #7652bc 28 % · #b69bd8 49 % · #53318c 86 %. Sampled renders match Figma exactly at every stop.
+    - The background system now takes per-variant stop positions (registered `--ga-p1…p3`, which glide with the colours) and a per-variant decoration layer.
+    - Warm Violet uses its frame's own exported decorations (`public/assets/backgrounds/warm-violet-decorations.svg`: a 10 px star at 375,248 and a 4 px particle at 26,470) in place of the shared star and particles. The two layers cross-fade with the colours.
+    - No other screen's background changed.
+  - **Restrained:** no rings, tick marks, accent strokes, sparks, corner outlines or centre glow; the badge has a quiet contact shadow only.
+  - **Layout (Nov 23):**
+    - The name tag (label, type, reason) sits directly below the badge: it is anchored to the badge's bottom edge (`--lt-badge-bottom`), 2.4cqh under it (1.6cqh on short frames), at every size.
+    - The badge's contact shadow sits at its foot.
+    - The two actions are pinned to the bottom of the frame (`max(20px, 3.6cqh)`; short frames `max(14px, 2.6cqh)`).
   - **Badge:** `LearnerBadge` is one component. Every type shows the reference's dummy shield for now. When the Figma badges arrive, add each type's file to `BADGE_ART` and nothing else changes. The art fills a 204 : 224 box, so its aspect ratio holds through every transform.
   - **Reveal (≈ 1.65 s):** the reference's own progress map, unchanged:
-    - flood circle 0 → 105 % (.05–.57);
     - the badge falls in from above, blurred, tilted 14° and 1.37× → sharp, upright and at rest (.18–.59);
     - one shine sweep (.55–.9; eased in and out, where the reference switches it on and off);
     - the identity rises (.53–.79), then the actions (.71–.94).
     - It runs on the same step-capped rAF clock as Screen 08. The resting frame is CSS. It plays once per visit; reduced motion and repeat views show the final frame, and a slide revived mid-exit snaps to it.
-  - **Review:** `review/m37/`: final frames at 360, 390, 430 and 360 × 640, side by side with the reference; mid-reveal frames at matching progress; reduced motion; share sheet, primary action and rapid taps. `review/m38/`: the restrained ground.
+  - **Review:** `review/m37/`: final frames at 360, 390, 430 and 360 × 640, side by side with the reference; mid-reveal frames at matching progress; reduced motion; share sheet, primary action and rapid taps. `review/m38/`: the restrained ground. `review/m39/`: the Warm Violet ground next to the Figma frame, at 360, 390, 430 and 360 × 640.
+- [x] **Glyph clipping fix (Nov 23).** Text in reveal masks (`overflow: hidden`) was cut: the tops of ি / ী / reph, and the right edge of wide numerals (03's count, e.g. "৬০", "১১").
+  - **Cause:** the masks' headroom was in `em` of the mask itself, which inherits a small size (≈16 px), not the large text inside.
+  - **Fix:** each mask now gets room in units of its own text size (`--m`) above and to the sides, cancelled by equal negative margins, so nothing moves. Masks covered:
+    - 01: `.cf-mask`; its waiting text now starts at 150 %.
+    - 03: `.fr-line`, `.fr-num-mask`, `.fr-unit-mask`, `.fr-tail-mask`.
+    - 05: `.qa-head`, `.qa-line`.
+    - 06: `.vw-head`, `.vw-mask`.
+    - 08: `.pd-mask`.
+  - **Verified:** every screen's final frame was rendered normally and with all clipping disabled, then diffed. All are clean at 360, 390, 430 and 360 × 640 and for the High, Moderate and longName profiles. The before/after renders differ only by the recovered ink.
+  - **Exceptions:**
+    - 04's beam is clipped on purpose.
+    - 10's (pre-redesign) card meets its scroll area at 360 × 800; no text is cut.
+  - **03:** the yellow vertical bar beside the count (`.fr-focus`) is removed.
 - [~] **Gentle Atmosphere background system** (Figma 55:38, Nov 2026). It replaces the night sky: the old orbital lines, glows, stars and particles were removed (`NightSky`, `night-sky.css` and 14 SVG layers deleted).
   - **Files:**
     - `src/story/background.ts`: every Figma value, the screen → background map (`SCREEN_BACKGROUND`), and transition lengths.
@@ -219,7 +234,7 @@ pnpm typecheck
     - Cover → 02: about 1.45 s.
     - 02 → 03: 0.65 s, with the clock drop.
     - Any other step, back or jump: 0.6 s.
-  - **Screen map:** banner and Screens 01, 03, 06 and 11 Signature Blue; 02, 05 and 08 Ocean Blue; 04, 07 and 09 Soft Violet; 10 and Fresh Start Periwinkle. To change one, edit `SCREEN_BACKGROUND` only.
+  - **Screen map:** banner and Screens 01, 03, 06 and 11 Signature Blue; 02, 05 and 08 Ocean Blue; 04 and 07 Soft Violet; 09 Warm Violet (Figma 103:731); 10 and Fresh Start Periwinkle. To change one, edit `SCREEN_BACKGROUND` only.
   - **Screens 04–11 and Fresh Start:** they now use light-on-dark text roles (`SURFACE` all "cover"; marksheet "certificate"). Placeholder foregrounds are otherwise unchanged. The home banner has the background fitted to its card.
   - **Archived explorations:** the old `?cover=` explorations keep their own grounds.
   - **Validation (`review/m12/`):**

@@ -98,8 +98,8 @@ export function CoverFigma({ actions }: ScreenProps<"cover">) {
       [".cf-digits", { opacity: [0, 1] }, { duration: OPEN.appear, ease: OUT, at: 0 }],
       [".cf-logo", { opacity: [0, 1], scale: [0.86, 1] }, { duration: 0.5, ease: SETTLE, at: OPEN.bird }],
       [".cf-bird-light", { opacity: [0, 1] }, { duration: 0.6, ease: OUT, at: OPEN.bird }],
-      [".cf-head > span", { y: ["105%", "0%"] }, { duration: 0.6, ease: SETTLE, at: OPEN.title }],
-      [".cf-year > span", { y: ["105%", "0%"] }, { duration: 0.6, ease: SETTLE, at: OPEN.title + 0.08 }],
+      [".cf-head > span", { y: ["150%", "0%"] }, { duration: 0.6, ease: SETTLE, at: OPEN.title }],
+      [".cf-year > span", { y: ["150%", "0%"] }, { duration: 0.6, ease: SETTLE, at: OPEN.title + 0.08 }],
       [".cf-support", { opacity: [0, 1], y: [10, 0] }, { duration: 0.5, ease: OUT, at: OPEN.support }],
       [".cf-cta", { opacity: [0, 1], y: [12, 0] }, { duration: 0.55, ease: OUT, at: OPEN.cta }],
     ];

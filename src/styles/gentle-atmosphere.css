@@ -8,6 +8,10 @@
 @property --ga-1 { syntax: "<color>"; inherits: false; initial-value: #3047b8; }
 @property --ga-2 { syntax: "<color>"; inherits: false; initial-value: #729df2; }
 @property --ga-3 { syntax: "<color>"; inherits: false; initial-value: #354cb9; }
+/* Stop positions, registered too, so a variant with its own (Warm Violet: 0/28/49/86) glides there. */
+@property --ga-p1 { syntax: "<percentage>"; inherits: false; initial-value: 35%; }
+@property --ga-p2 { syntax: "<percentage>"; inherits: false; initial-value: 75%; }
+@property --ga-p3 { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
 
 .ga {
   position: absolute;
@@ -15,11 +19,15 @@
   overflow: hidden;
   pointer-events: none;
   container-type: inline-size; /* decoration sizes follow this layer's width */
-  /* Figma 55:40 etc.: linear-gradient(180deg, c0 0%, c1 35%, c2 75%, c3 100%) */
-  background: linear-gradient(180deg, var(--ga-0) 0%, var(--ga-1) 35%, var(--ga-2) 75%, var(--ga-3) 100%);
+  /* Figma 55:40 etc.: linear-gradient(180deg, c0 0%, c1 35%, c2 75%, c3 100%); positions per variant */
+  background: linear-gradient(180deg, var(--ga-0) 0%, var(--ga-1) var(--ga-p1), var(--ga-2) var(--ga-p2), var(--ga-3) var(--ga-p3));
   transition: --ga-0 var(--ga-dur, 0.6s) ease-in-out, --ga-1 var(--ga-dur, 0.6s) ease-in-out,
-    --ga-2 var(--ga-dur, 0.6s) ease-in-out, --ga-3 var(--ga-dur, 0.6s) ease-in-out;
+    --ga-2 var(--ga-dur, 0.6s) ease-in-out, --ga-3 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-p1 var(--ga-dur, 0.6s) ease-in-out, --ga-p2 var(--ga-dur, 0.6s) ease-in-out, --ga-p3 var(--ga-dur, 0.6s) ease-in-out;
 }
+/* A variant's own decoration layer (its Figma export, stretched with the frame like the Figma layer). */
+.ga-decor-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity var(--ga-dur, 0.6s) ease-in-out; }
+.ga-shared { position: absolute; inset: 0; transition: opacity var(--ga-dur, 0.6s) ease-in-out; }
 
 /* Decorations: white, positioned as a share of the frame, sized from its width (412-unit frame). */
 .ga-decor {

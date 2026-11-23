@@ -115,10 +115,21 @@
 
 /* ── pre-sequence state (full motion only): first paint = first keyframe ── */
 .cf.is-pre .cf-digits { opacity: 0; } /* the opening shows them as a cluster first */
-.cf.is-pre :is(.cf-head, .cf-year) > span { transform: translateY(105%); }
+.cf.is-pre :is(.cf-head, .cf-year) > span { transform: translateY(150%); }
 .cf.is-pre :is(.cf-logo, .cf-bird-light, .cf-support, .cf-cta) { opacity: 0; }
 
 /* App-layer chrome stays legible where it crosses the white ২ / ০ (this cover only):
    a thin navy halo, no change to the chrome's own colours or layout. */
 .story:has(.story-slide .slide.cf) :is(.progress, .story-close) { filter: drop-shadow(0 0 1.5px rgba(17, 25, 115, 0.9)); }
 
+/* Ink room for the reveal masks. Bengali signs (ি, ী, reph) rise above the line
+   box and wide numerals overhang their advance, so a tight mask clips them.
+   Each mask gets room in units of its own text size (--m) — above and to the
+   sides — cancelled by equal negative margins, so nothing moves. */
+.cf-mask.cf-head { --m: 32px; }
+.cf-mask.cf-year { --m: 36px; }
+.cf-mask {
+  width: calc(100% + 0.32 * var(--m));
+  padding: calc(0.2 * var(--m)) calc(0.16 * var(--m)) calc(0.14 * var(--m));
+  margin: calc(-0.2 * var(--m)) calc(-0.16 * var(--m)) calc(-0.14 * var(--m));
+}

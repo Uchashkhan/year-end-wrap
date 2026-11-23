@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { BG_DECOR, BG_FRAME, BG_VARIANTS, STAR_PATH, type BgVariant, type DecorId } from "./background";
+import { BG_DECOR, BG_FRAME, BG_STOPS, BG_VARIANTS, STAR_PATH, type BgVariant, type DecorId } from "./background";
 import "../styles/gentle-atmosphere.css";
 
 const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(4)}%`;
@@ -36,10 +36,29 @@ export function StoryBackground({
   decorations?: DecorId[];
   className?: string;
 }) {
-  const [c0, c1, c2, c3] = BG_VARIANTS[variant].stops;
-  const style = { "--ga-0": c0, "--ga-1": c1, "--ga-2": c2, "--ga-3": c3, "--ga-dur": `${transition}s` } as CSSProperties;
+  const v = BG_VARIANTS[variant];
+  const [c0, c1, c2, c3] = v.stops;
+  const [, p1, p2, p3] = v.at ?? BG_STOPS;
+  const style = {
+    "--ga-0": c0,
+    "--ga-1": c1,
+    "--ga-2": c2,
+    "--ga-3": c3,
+    "--ga-p1": `${p1}%`,
+    "--ga-p2": `${p2}%`,
+    "--ga-p3": `${p3}%`,
+    "--ga-dur": `${transition}s`,
+  } as CSSProperties;
+  // A variant with its own decoration layer shows it in place of the shared
+  // star + particles; the two cross-fade with the colours (both stay mounted).
+  const own = v.decorSrc;
+  const ownSrcs = [...new Set(Object.values(BG_VARIANTS).flatMap((x) => (x.decorSrc ? [x.decorSrc] : [])))];
   return (
     <div className={`ga ${still ? "ga-still" : ""} ${className}`} data-bg={variant} style={style} aria-hidden="true">
+      {ownSrcs.map((src) => (
+        <img key={src} className="ga-decor-layer" src={src} alt="" draggable={false} style={{ opacity: own === src ? 1 : 0 }} />
+      ))}
+      <div className="ga-shared" style={{ opacity: own ? 0 : 1 }}>
       {decorations.map((id) => {
         const d = BG_DECOR[id];
         const s = {
@@ -59,6 +78,7 @@ export function StoryBackground({
           <span key={id} className="ga-decor ga-particle" style={s} />
         );
       })}
+      </div>
     </div>
   );
 }

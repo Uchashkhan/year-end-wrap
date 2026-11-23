@@ -149,3 +149,22 @@
 /* pre-sequence state (full motion only) */
 .vw.is-pre :is(.vw-head > span, .vw-mask > span) { transform: translateY(140%); }
 .vw.is-pre :is(.vw-line > i, .vw-tile, .vw-cmp, .vw-badge) { opacity: 0; }
+
+/* Ink room for the reveal masks. Bengali signs (ি, ী, reph) rise above the line
+   box and wide numerals overhang their advance, so a tight mask clips them.
+   Each mask gets room in units of its own text size (--m) — above and to the
+   sides — cancelled by equal negative margins, so nothing moves. */
+.vw-mask:has(.vw-num) { --m: var(--vw-num); }
+.vw-mask:has(.vw-unit-word) { --m: 29px; }
+.vw-mask {
+  padding: calc(0.3em + 0.22 * var(--m)) calc(0.16 * var(--m)) 0.08em;
+  margin-top: calc(-0.3em - 0.22 * var(--m));
+  margin-inline: calc(-0.16 * var(--m));
+}
+/* in the stat row the masks keep margin-top 0 (as before); cancel only the added room */
+.vw-stat .vw-mask { margin-top: calc(-0.22 * var(--m)); }
+/* the headline: its own 0.3em top room (its font size) grows to 0.5em, plus sides */
+.vw-head { top: calc(19cqh - 0.5em); padding: 0.5em 0.16em 0.06em; left: calc(var(--g) - 0.16em); right: calc(var(--g) - 0.16em); }
+@container (max-height: 720px) {
+  .vw-head { top: calc(13cqh - 0.5em); }
+}

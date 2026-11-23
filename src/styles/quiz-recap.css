@@ -213,3 +213,31 @@
    rail — it never blends to grey in place. */
 .qa[data-qa="final"] .qa-opt-b,
 .qa[data-qa="final"] .qa-opt-b :is(.qa-chip, .qa-lines i) { transition-duration: 0.3s; transition-delay: 0.5s; }
+
+/* Ink room for the reveal masks. Bengali signs (ি, ী, reph) rise above the line
+   box and wide numerals overhang their advance, so a tight mask clips them.
+   Each mask gets room in units of its own text size (--m) — above and to the
+   sides — cancelled by equal negative margins, so nothing moves. */
+.qa-l0 { --m: 19px; }
+.qa-l1 { --m: var(--qa-num); }
+.qa-l2,
+.qa-l3 { --m: min(6cqw, 25px); }
+.qa-line {
+  padding-top: calc(0.32 * var(--m));
+  margin-top: calc(-0.32 * var(--m));
+  padding-inline: calc(0.16 * var(--m));
+  margin-inline: calc(-0.16 * var(--m));
+}
+@container (max-height: 720px) {
+  .qa-l0 { --m: 17px; }
+}
+/* the headline: room above and to the sides (its own font size), position unchanged */
+.qa-head {
+  top: calc(clamp(84px, 11cqh, 108px) - 0.3em);
+  left: calc(var(--gutter) - 0.16em);
+  right: calc(var(--gutter) - 0.16em);
+  padding: 0.3em 0.16em 0.06em;
+}
+@container (max-height: 720px) {
+  .qa-head { top: calc(64px - 0.3em); }
+}

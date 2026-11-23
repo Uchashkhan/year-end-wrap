@@ -35,9 +35,9 @@
 /* ── the hero date ── */
 .pd-hero { position: absolute; left: 8.2cqw; right: 8.2cqw; top: 21.5cqh; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; }
 /* masks for the reveal (headroom for Bengali signs above and below) */
-.pd-mask { display: block; overflow: hidden; padding: 0.3em 0 0.1em; margin: -0.3em 0 -0.1em; }
+.pd-mask { display: block; overflow: hidden; padding: 0.45em 0.16em 0.12em; margin: -0.45em -0.16em -0.12em; }
 .pd-mask:has(.pd-day) { font-size: min(25.6cqw, 12.6cqh); }
-.pd-mask:has(.pd-month) { font-size: min(12cqw, 5.6cqh); margin-top: -0.42em; }
+.pd-mask:has(.pd-month) { font-size: min(12cqw, 5.6cqh); margin-top: -0.57em; }
 .pd-day {
   display: block;
   font-size: min(25.6cqw, 12.6cqh);

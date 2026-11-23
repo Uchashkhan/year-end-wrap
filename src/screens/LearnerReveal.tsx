@@ -17,8 +17,8 @@ const ease = (x: number) => 1 - (1 - clamp(x)) ** 3;
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /**
- * 09 Learner type — "The Big Reveal", Option A · Magenta / Violet
- * (shikho_learner_type_big_reveal.html; Option B is not used).
+ * 09 Learner type — "The Big Reveal" (shikho_learner_type_big_reveal.html,
+ * Option A layout and motion; Option B is not used).
  *
  * Copy (PRD Screen 9): headline "তোমার শেখার ধরন কী?"; setup "সারা বছরের শেখার
  * অভ্যাস দেখে তোমার জন্য আছে একটি বিশেষ পরিচয়।"; reveal [শিক্ষার্থীর ধরন] —
@@ -29,12 +29,12 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
  * "SHIKHO" watermarks, the "তোমার শেখার পরিচয়" label and its demo reason line.
  *
  * Anticipation → badge reveal → identity → settle, one continuous reveal with
- * the reference's progress map (p = 0 → 1 over 1.65 s): the magenta flood opens
- * from the centre (circle clip, .05–.57), the badge falls in from above —
+ * the reference's progress map (p = 0 → 1 over 1.65 s): the badge falls in from above —
  * blurred, tilted, large → sharp, upright, at rest (.18–.59) — the shine sweeps
  * the badge once (.55–.9), the identity rises (.53–.79), the actions last
- * (.71–.94). Restrained ground (Nov 23 refinement): no rings, ticks, accent
- * strokes, sparks, corner outlines or centre glow — the badge is the hero.
+ * (.71–.94). Ground: the section's Warm Violet (Figma 103:731, via the shared
+ * background — background.ts); the reference's magenta flood is not used.
+ * No rings, ticks, accent strokes, sparks, corner outlines or centre glow.
  * The badge is LearnerBadge (replaceable per type). Reduced motion / repeat
  * view: the final frame.
  */
@@ -51,22 +51,19 @@ export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
     if (!root || still) return;
     const q = (s: string) => root.querySelector<HTMLElement>(s)!;
     const u = root.clientWidth / 390; // reference px → frame px
-    const flood = q(".lt-flood");
     const badge = q(".lt-badge");
     const shadow = q(".lt-badge-shadow");
     const shine = q(".lt-shine");
     const header = q(".lt-header");
     const type = q(".lt-type");
     const acts = q(".lt-actions");
-    const all = [flood, badge, shadow, shine, header, type, acts];
+    const all = [badge, shadow, shine, header, type, acts];
 
     // The reference's render(p), unchanged in its mapping.
     const render = (p: number) => {
-      const blast = ease(range(p, 0.05, 0.57));
       const land = ease(range(p, 0.18, 0.59));
       const show = ease(range(p, 0.53, 0.79));
       const cta = ease(range(p, 0.71, 0.94));
-      flood.style.clipPath = `circle(${lerp(0, 105, blast).toFixed(2)}% at 50% 48%)`;
       badge.style.opacity = range(p, 0.18, 0.34).toFixed(3);
       badge.style.transform = `translateY(${(lerp(-165, 0, land) * u).toFixed(2)}px) rotate(${lerp(-14, 0, land).toFixed(3)}deg) scale(${lerp(1.37, 1, land).toFixed(4)})`;
       const blur = lerp(7, 0, range(p, 0.2, 0.43));
@@ -130,8 +127,6 @@ export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
 
   return (
     <div ref={scope} className={`slide lt ${still ? "" : "is-pre"}`}>
-      {/* Option A's ground: the magenta flood over the section's violet. */}
-      <div className="lt-flood" aria-hidden="true" />
 
       <div className="lt-header">
         <h2 className="lt-question">{COPY.learnerType.headline}</h2>

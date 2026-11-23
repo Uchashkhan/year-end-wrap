@@ -11,18 +11,40 @@ import { ANSWER, WATCH, FLOW, FOCUS, SKY_HANDOFF, type Entry } from "./entry";
  * 0 / 35 / 75 / 100 %. All four frames carry the identical decoration layer
  * (55:41 / 55:45 / 55:49 / 55:53): one soft four-point star and two particles.
  */
-export type BgVariant = "signature-blue" | "ocean-blue" | "soft-violet" | "periwinkle" | CoverBg;
+export type BgVariant = "signature-blue" | "ocean-blue" | "soft-violet" | "periwinkle" | "warm-violet" | CoverBg;
 /** Cover-only test variants (Nov 2026): darker grounds for bird + type contrast. */
 export type CoverBg = "cover-indigo" | "cover-soft";
 
-/** Stop positions (%), shared by every variant. */
+/** Stop positions (%), shared by every variant unless it gives its own (`at`). */
 export const BG_STOPS = [0, 35, 75, 100] as const;
 
-export const BG_VARIANTS: Record<BgVariant, { name: string; figma: string; stops: [string, string, string, string] }> = {
+export const BG_VARIANTS: Record<
+  BgVariant,
+  {
+    name: string;
+    figma: string;
+    stops: [string, string, string, string];
+    /** Own stop positions (%), when the frame differs from 0 / 35 / 75 / 100. */
+    at?: [number, number, number, number];
+    /** Own decoration layer (the frame's exported SVG), in place of the shared star + particles. */
+    decorSrc?: string;
+  }
+> = {
   "signature-blue": { name: "Signature Blue", figma: "55:40", stops: ["#191b80", "#3047b8", "#729df2", "#354cb9"] },
   "ocean-blue": { name: "Ocean Blue", figma: "55:44", stops: ["#15458e", "#2777cf", "#83cfef", "#2464ad"] },
   "soft-violet": { name: "Soft Violet", figma: "55:48", stops: ["#36258d", "#6051cc", "#ac9bee", "#5d4db7"] },
   periwinkle: { name: "Periwinkle", figma: "55:52", stops: ["#292d99", "#4c58ca", "#95abf4", "#485dc2"] },
+  // "B — Warm Violet" (Figma 103:731, 412 × 852): 180°, #432684 0 %, #7652bc 28 %,
+  // #b69bd8 49 %, #53318c 86 % (held to the foot). Its decorations (103:733: a
+  // 10 px peripheral star at 375,248 and one 4 px tonal particle at 26,470) are
+  // that frame's own, exported unchanged.
+  "warm-violet": {
+    name: "Warm Violet",
+    figma: "103:731",
+    stops: ["#432684", "#7652bc", "#b69bd8", "#53318c"],
+    at: [0, 28, 49, 86],
+    decorSrc: "/assets/backgrounds/warm-violet-decorations.svg",
+  },
   // Cover tests (brief, not Figma): three colours given (top → bottom); the
   // third holds from the 75 % stop to the foot.
   "cover-indigo": { name: "Cover · Deep Indigo", figma: "brief", stops: ["#101553", "#202a91", "#364cbe", "#364cbe"] },
@@ -69,7 +91,7 @@ export const SCREEN_BACKGROUND: Record<Slide["id"] | "banner", BgVariant> = {
   video: "signature-blue", // 06
   subject: "soft-violet", // 07
   peakDay: "ocean-blue", // 08
-  learnerType: "soft-violet", // 09
+  learnerType: "warm-violet", // 09 (Figma 103:731)
   marksheet: "periwinkle", // 10
   close: "signature-blue", // 11
   freshCover: "periwinkle", // Fresh Start
