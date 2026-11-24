@@ -64,7 +64,8 @@ export default function App() {
 function Prototype() {
   const [profileId, setProfileId] = useState(() => new URLSearchParams(location.search).get("p") ?? "high");
   const [settings, setSettings] = useState(() => {
-    const s = loadSettings();
+    // the marksheet design has no panel switch any more: always the shipped card (V2 only via ?marksheet=)
+    const s: DevSettings = { ...loadSettings(), marksheet: "current" };
     const c = new URLSearchParams(location.search).get("cover") as CoverVariant | null;
     const j = journeyFromUrl();
     const m = marksheetDesignFromUrl();

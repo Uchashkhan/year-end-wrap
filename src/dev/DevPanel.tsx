@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { JourneyMode } from "../journey/journeyMode";
-import { MARKSHEET_DESIGNS, type MarksheetDesign } from "../marksheet/design";
+import type { MarksheetDesign } from "../marksheet/design";
 import { PROFILES } from "../data/profiles";
 import { DEFAULT_ORDER } from "../data/config";
 import type { StoryPlan } from "../data/compose";
@@ -230,9 +230,6 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
             ]}
             onChange={(v) => set("journey", v)}
           />
-        </Field>
-        <Field label="Marksheet (10)" hint="V2 looks are static explorations.">
-          <Seg label="Marksheet design" value={settings.marksheet} options={MARKSHEET_DESIGNS} onChange={(v) => set("marksheet", v)} />
         </Field>
         <Field label="Cover (01)">
           <select className="dp-select" value={settings.cover} onChange={(e) => set("cover", e.target.value as CoverVariant)}>
