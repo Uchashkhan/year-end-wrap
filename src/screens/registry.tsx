@@ -13,6 +13,7 @@ import { PeakDayLit } from "./PeakDayLit";
 import { LearnerReveal } from "./LearnerReveal";
 import { MarksheetBento } from "./MarksheetBento";
 import { MarksheetV2 } from "./MarksheetV2";
+import { YearTurnsClosing } from "./YearTurnsClosing";
 import { useMarksheetDesign } from "../marksheet/design";
 import { isBirdJourney, useJourney } from "../journey/journeyMode";
 import { ExperimentalBirdJourneyClosingSky } from "../journey/ExperimentalBirdJourneyClosingSky";
@@ -25,7 +26,7 @@ import { CoverUnfolded } from "../explore/CoverUnfolded";
 import { Attendance, Quiz, Video } from "./StatScreens";
 import { PeakDay, Subject, Teacher } from "./RevealScreens";
 import { LearnerType } from "./LearnerType";
-import { Close, FreshClose, FreshCover, Marksheet } from "./EndScreens";
+import { FreshClose, FreshCover, Marksheet } from "./EndScreens";
 import type { ScreenActions, ScreenProps } from "./types";
 
 /** Screens whose V2 action hierarchy includes on-slide buttons. 01–08 must not. */
@@ -121,8 +122,9 @@ function MarksheetSwitch(props: ScreenProps<"marksheet">) {
 }
 
 function CloseSwitch(props: ScreenProps<"close">) {
-  // Dev-only comparison: Bird Journey's closing is the sky flight (the approved Closing is untouched).
-  return isBirdJourney(useJourney()) ? <ExperimentalBirdJourneyClosingSky {...props} /> : <Close {...props} />;
+  // Bird Journey's closing is the sky flight; the original Wrap's is "The Year Turns" (Nov 24).
+  // (The previous Closing, EndScreens Close, is kept in the code, unwired.)
+  return isBirdJourney(useJourney()) ? <ExperimentalBirdJourneyClosingSky {...props} /> : <YearTurnsClosing {...props} />;
 }
 
 function CoverSwitch(props: ScreenProps<"cover">) {

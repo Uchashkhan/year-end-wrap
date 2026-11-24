@@ -126,7 +126,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
               ? "dayline"
             : step && from?.id === "learnerType" && slide.id === "marksheet" && marksheetDesign === "current"
               ? "assemble"
-            : step && from?.id === "marksheet" && slide.id === "close" && isBirdJourney(journey)
+            : step && from?.id === "marksheet" && slide.id === "close"
               ? "onward"
             : bothSky
               ? "fade"

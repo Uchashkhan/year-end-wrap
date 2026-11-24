@@ -33,6 +33,21 @@ pnpm typecheck
 ## Milestones
 - [x] **M1 Functional foundation.** Story engine, conditional composition, Fresh Start, home banner states, share stub, dev controls, reduced motion, repeat view, small-device layout.
 - [x] **M2 Visual direction (proposed, awaiting sign-off).** “তোমার খাতা”: the deck is one notebook. Navy cover board (01, 11, Fresh) → ruled paper pages (02–09) → certificate (10). Magenta typographic stamp for the learner type, reused on 09/10. Die-cut gold stickers for badges; the capstone is inverted navy+gold. Type scale with Bangla line heights. Motion tiers T0–T3. Screen *compositions* are unchanged from M1.
+- [x] **Closing "The Year Turns" (Nov 24): the original Wrap's Screen 11.** `screens/YearTurnsClosing.tsx`, `styles/year-turns.css`. No dev switch; the previous Closing (EndScreens `Close`) stays in the code, unwired. Bird Journey is untouched.
+  - **Reference:** `shikho_2027_year_turns.html`, proportions in cqw / %: hero at 10 % / 53 %, year at 28 cqw, two thin circle outlines, the "শিখোতে তোমার" label with its hairline (COPY.cover.headline), and the bottom stack. Ground: the closing's own designated background (SCREEN_BACKGROUND.close, as the approved Closing). Type: the project's Baloo Da 2.
+  - **Timeline** (one master GSAP timeline, entered as `onward`, so the marksheet stays mounted while it recedes):
+    - **0–0.55:** the marksheet recedes as one artifact.
+    - **0.2–0.96:** the outlines, the label, then ২০২৬ settle in.
+    - **0.85–2.0:** ২০২ holds, and the last digit rolls ৬ → ৭ in a yellow masked window while the outlines drift.
+    - **1.7–2.35:** the line (and, without a program, the yellow primary and outlined share).
+    - **3.45–4.2:** with a program, the Bird Journey's next-step panel, reused as is (banner, "প্রোগ্রামে ভর্তি হও", share icon); the hero scales 0.87 and rises, or further if the panel needs it.
+  - **Roll mask:** the window is clipped to the numerals' measured ink band (17–73 % of the 1.36 em line), and ৭ follows ৬ at a 0.6 em overlap, so the digit leaves and enters at the other digits' edges and the window is never empty.
+  - **Deliberate departures from the reference:**
+    - The CTA label switch is replaced by the existing next-step panel (per the Nov 24 decision: no label switch).
+    - The year is the hero: 36 cqw (the reference's 28), centred with its label in the band between the story controls and the closing line (placed in JS from the line's position); the two circles are concentric frames around it.
+    - The reference's magenta ribbon is removed (its "নতুন গল্পের শুরু" isn't PRD copy), and the reference's own background is not used.
+  - **Checked:** reduced motion / repeat view (the final frame, still); 0.25× review via `window.__gsap` (dev only, `main.tsx`); both CTA destinations in both states.
+  - **Review:** `review/m49/`.
 - [x] **Bird Journey closing, "Sky flight" (Nov 24).** This is now **Bird Journey's** closing, merged; there is no separate option, and `?journey=sky` maps to `bird`. The closing is `ExperimentalBirdJourneyClosingSky.tsx`; Current is untouched.
   - **Next-step reveal (Nov 24, revised):** automatic, no tap, and the actions never change under the finger.
     - **The ending:** with a recommended program, the ending shows the line alone (no actions) and holds about 1.5 s.

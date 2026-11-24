@@ -1,0 +1,52 @@
+/*
+ * 11 Closing — "The Year Turns" (YearTurnsClosing). Proportions from the
+ * reference (shikho_2027_year_turns.html, a 390 × 844 phone), in cqw / %;
+ * the year enlarged to 36 cqw (Nov 24) and centred, with its label, in the band
+ * above the closing line; the closing stack sits 7 % in from each side, 3.6 % from the bottom.
+ * The ground is the closing's own Gentle Atmosphere background (SCREEN_BACKGROUND.close).
+ * (The reference's magenta ribbon is left out: its wording isn't PRD copy.)
+ * Type: the project's Bengali face (Baloo Da 2).
+ */
+.slide.yt { padding: 0; color: #fff; background: transparent; overflow: hidden; }
+.yt-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* the hero fills the band between the story controls and the closing line (set in JS from the
+   line's place); the label and the year are centred in it as one group — the year is the hero */
+.yt-hero { position: absolute; left: 0; right: 0; top: 10%; height: 53%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5cqw; transform-origin: 50% 50%; will-change: transform; }
+/* the two thin circle outlines (cropped by the frame's edges) */
+.yt-ring { position: absolute; aspect-ratio: 1; border-radius: 50%; pointer-events: none; will-change: transform; }
+/* two concentric frames around the year (centred on the hero; the outer one is cropped by the frame) */
+.yt-ring-a { width: 128cqw; left: calc(50% - 64cqw); top: calc(50% - 64cqw + 3cqw); border: 1px solid rgba(255, 255, 255, 0.086); }
+.yt-ring-b { width: 96cqw; left: calc(50% - 48cqw); top: calc(50% - 48cqw + 3cqw); border: 1px solid rgba(255, 255, 255, 0.094); }
+/* the label and its hairline */
+.yt-rule { position: relative; width: 82%; display: flex; align-items: center; color: #d8d5ff; font-size: 3.4cqw; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+.yt-rule::after { content: ""; height: 1px; background: rgba(255, 255, 255, 0.27); flex: 1; margin-left: 14px; }
+/* the year: ২০২ holds; the last digit rolls in a masked window, in Shikho yellow */
+.yt-year {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-size: 36cqw;
+  font-weight: 800;
+  line-height: 1.36;
+  letter-spacing: -0.03em;
+  color: #fff;
+  will-change: transform, opacity;
+}
+.yt-digits { display: inline-block; }
+/* the mask is the numerals' own band, not the line box: their ink runs 17–73 % of the
+   1.36 em line (measured, Baloo Da 2), so the rolling digit leaves and enters at the
+   other digits' top and bottom edges */
+.yt-window { display: inline-block; position: relative; height: 1.36em; clip-path: inset(15% -0.12em 25% -0.12em); color: #ffd044; letter-spacing: 0; }
+.yt-wheel { display: flex; flex-direction: column; will-change: transform; }
+.yt-wheel > span { display: block; height: 1.36em; line-height: 1.36; text-align: center; white-space: nowrap; }
+/* ৭ follows ৬ closely (one digit's ink + a hair), so the window is never empty mid-roll */
+.yt-wheel > span + span { margin-top: -0.6em; }
+/* the closing stack */
+.yt-bottom { position: absolute; left: 7%; right: 7%; bottom: 3.6%; display: flex; flex-direction: column; gap: 10px; align-items: stretch; z-index: 4; }
+.yt-line { margin: 0 0 6px; font-size: 5.5cqw; line-height: 1.55; font-weight: 700; text-align: center; text-wrap: balance; will-change: transform, opacity; }
+.yt-actions { display: flex; flex-direction: column; gap: 10px; }
+.yt .yt-primary { background: #ffd044; color: #20196e; font-weight: 700; }
+.yt .yt-secondary { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.69); }
