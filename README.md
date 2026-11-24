@@ -34,12 +34,11 @@ pnpm typecheck
 - [x] **M1 Functional foundation.** Story engine, conditional composition, Fresh Start, home banner states, share stub, dev controls, reduced motion, repeat view, small-device layout.
 - [x] **M2 Visual direction (proposed, awaiting sign-off).** “তোমার খাতা”: the deck is one notebook. Navy cover board (01, 11, Fresh) → ruled paper pages (02–09) → certificate (10). Magenta typographic stamp for the learner type, reused on 09/10. Die-cut gold stickers for badges; the capstone is inverted navy+gold. Type scale with Bangla line heights. Motion tiers T0–T3. Screen *compositions* are unchanged from M1.
 - [x] **Bird Journey closing, "Sky flight" (Nov 24).** This is now **Bird Journey's** closing, merged; there is no separate option, and `?journey=sky` maps to `bird`. The closing is `ExperimentalBirdJourneyClosingSky.tsx`; Current is untouched.
-  - **Course recommendation reveal (Nov 24):** automatic, no tap. On the same master timeline, the settled ending holds about 1.5 s; then over 6.45–7.35 the recommended program's banner (its own artwork, whole, 1280 : 598) slides up directly above the primary action.
-    - **Making room:** the line and the bird rise together and the checkpoint eases a little smaller. The bird keeps flying and the clouds keep drifting.
-    - **Primary action:** it turns into "প্রোগ্রামে ভর্তি হও" (`COPY.close.enroll`), and its destination switches with the label (`actions.openProgram(url)`). "আবার শেয়ার করো" stays.
-    - **Data:** `WrapRecord.nextProgram` → the close slide's `program`. With none, the original ending and CTA stay. The mock profiles derived from "high" have the SSC 28 · Class 9 · Science banner; moderate / limited have none.
-    - **Taps and motion:** a tap during the flight skips to the ending, and the reveal still follows on its own. Reduced motion shows the revealed frame, still.
-    - **Smoothness:** the banner is decoded at mount, and the CTA switch avoids a re-render, so there are no mid-reveal stalls (max frame gap 17 ms in the recording).
+  - **Next-step reveal (Nov 24, revised):** automatic, no tap, and the actions never change under the finger.
+    - **The ending:** with a recommended program, the ending shows the line alone (no actions) and holds about 1.5 s.
+    - **The panel:** then (6.45–7.35, same master timeline) one panel slides up from the bottom: the program's own banner (whole, 1280 : 598), "প্রোগ্রামে ভর্তি হও" as the single main action (`actions.openProgram(url)`), and share as an icon button beside it ("আবার শেয়ার করো" as its accessible label). The panel is a flat white tint of the sky, so it sits in the scene.
+    - **Making room:** the line and the bird rise and the checkpoint eases a little smaller; the bird keeps flying.
+    - **Fallbacks:** with no program, the original ending and its two actions stay. Reduced motion shows the revealed frame, still.
   - **Previous closing:** the Next Checkpoint closing (`ExperimentalBirdJourneyClosing.tsx`, `Gateway.tsx`) is no longer wired in; its files remain for reference.
   - **Flow:** marksheet → straight into the opening's sky with the flying bird already climbing → the ২০২৭ checkpoint comes into view → the line and actions. No Cover callback and no ২০২৬ composition. About 4.95 s on one master GSAP timeline:
     - **0–0.6:** the marksheet recedes as one artifact.

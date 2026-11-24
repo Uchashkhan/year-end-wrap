@@ -37,7 +37,8 @@ const CHECK_DEPTH = 0.3;
  *   3.2–4.3    the bird eases from the middle of the frame into its place below the
  *              checkpoint, a little smaller (farther in), still flying
  *   4.3–4.95   the closing line (masked rise), then the actions
- *   6.45–7.35  (with a recommended program) the course card reveal — see `reveal`
+ *   6.45–7.35  (with a recommended program) the next-step panel — see `reveal`;
+ *              then the line stands alone until it arrives (no actions before it)
  * Settled: it keeps flying — wings beating, clouds drifting by — on its way.
  */
 export const SKY_CLOSING = {
@@ -50,14 +51,14 @@ export const SKY_CLOSING = {
   actions: { at: 4.45, dur: 0.5 },
   end: 4.95,
   /**
-   * The course reveal (only when the student has a recommended program): the
-   * settled ending holds ~1.5 s, then — on the same timeline, no tap — the
-   * program card slides up into place above the primary action while the line
-   * and the bird make room (the checkpoint eases a little smaller to keep its
-   * place), and the primary action turns into "প্রোগ্রামে ভর্তি হও".
+   * The next step (only when the student has a recommended program). The
+   * ending holds the line alone (~1.5 s), then — on the same timeline, no tap —
+   * one panel slides up from the bottom: the program's banner with its action,
+   * "প্রোগ্রামে ভর্তি হও", and sharing as an icon beside it. The line and the
+   * bird make room; the checkpoint eases a little smaller to keep its place.
+   * One action set, shown once — never a label that changes under the finger.
    */
   reveal: { at: 6.45, dur: 0.85 },
-  cta: { at: 6.8, dur: 0.4 },
   revealEnd: 7.35,
 } as const;
 
@@ -80,6 +81,17 @@ function speedProfile() {
       return cum[i] + (cum[Math.min(N, i + 1)] - cum[i]) * (x - i);
     },
   };
+}
+
+/** Share: a box with an arrow leaving it (2 px stroke, round caps). */
+function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3.5v11" />
+      <path d="M7.5 8 12 3.5 16.5 8" />
+      <path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v6A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-6a1.5 1.5 0 0 0-1.5-1.5H16" />
+    </svg>
+  );
 }
 
 /** The line, exactly as given, with one word kept whole (no break inside "২০২৭-এ"). */
@@ -113,9 +125,6 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
   const [isPresent, safeToRemove] = usePresence();
   const [playing, setPlaying] = useState(!still);
   const ctl = useRef<{ stop: () => void; finish: () => void; skip: () => void } | null>(null);
-  // the primary action's destination switches with its label — set on the timeline through a ref
-  // (no re-render in the middle of the reveal)
-  const enroll = useRef(false);
 
   useLayoutEffect(() => {
     const node = root.current;
@@ -134,11 +143,11 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     const BH = 152.315;
 
     // ── the settled composition: checkpoint above, bird in the middle, words below ──
-    // (measured with the course card's slot collapsed — the ending before the reveal — in every mode)
-    const GAP = 10; // the actions' own gap (global .actions)
-    const slot = program ? q(".bjs-card-slot") : null;
-    if (slot) gsap.set(slot, { height: 0, marginBottom: -GAP });
+    // (measured with the next-step panel's slot collapsed — the ending before it — in every mode)
     const copy = q(".bjs-copy");
+    const GAP = parseFloat(getComputedStyle(copy).rowGap) || 22; // the line ↔ panel gap
+    const slot = program ? q(".bjs-next") : null;
+    if (slot) gsap.set(slot, { height: 0, marginTop: -GAP });
     const copyTop = H - copy.offsetHeight - parseFloat(getComputedStyle(copy).bottom);
     const top0 = Math.max(70, 0.08 * H);
     const compose = (top: number) => {
@@ -155,9 +164,10 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     check.style.width = `${gw}px`;
     const checkEnd = { x: (W - gw) / 2, y: top0 };
     const birdEnd = settled.bird;
-    // with the course card: the words rise by the card (+ its gap); everything above makes room
-    const cardH = slot ? (slot.clientWidth * 598) / 1280 : 0;
-    const after = slot ? compose(copyTop - cardH - GAP) : null;
+    // with the next-step panel: the words rise by the panel (+ its gap); everything above makes room
+    const panel = slot ? q(".bjs-next-panel") : null;
+    const panelH = panel ? panel.offsetHeight : 0;
+    const after = slot ? compose(copyTop - panelH - GAP) : null;
     const chk = { k: 1 };
     const kAfter = after ? after.gh / gh : 1;
     // in flight: the opening's cruise place — centred, at Figma size
@@ -183,17 +193,9 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     };
 
     const lineSpan = q(".bjs-line > span");
-    const actionsEl = q(".bjs-actions");
-    const card = slot ? q(".bjs-card") : null;
-    const ctaA = q(".bjs-cta-a");
-    const ctaB = program ? q(".bjs-cta-b") : null;
-    const toEnroll = () => {
-      enroll.current = true;
-      ctaA.setAttribute("aria-hidden", "true");
-      ctaB?.removeAttribute("aria-hidden");
-    };
+    const actionsEl = q(".bjs-actions"); // the original ending's actions (no program only)
     // decode the banner now, so its first frame on screen costs nothing mid-animation
-    if (card) (card as HTMLImageElement).decode?.().catch(() => {});
+    if (panel) q<HTMLImageElement>(".bjs-card").decode?.().catch(() => {});
     const sky = q(".bjs-sky");
     const SETTLED = { speed: 0.2, amp: 20, trail: 0.3, beats: 0.25, pitch: -2, climb: CLIMB };
     let flight: ReturnType<typeof createFlight> | null = null;
@@ -208,13 +210,10 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
       placeCheck(1);
       gsap.set(rig, after ? after.bird : birdEnd);
       gsap.set(sky, { opacity: 1 });
-      gsap.set([lineSpan, actionsEl], { clearProps: "transform,opacity" });
-      if (slot && card && ctaB) {
-        gsap.set(slot, { height: cardH, marginBottom: 0 });
-        gsap.set(card, { yPercent: 0, opacity: 1 });
-        gsap.set(ctaA, { yPercent: -100, opacity: 0 });
-        gsap.set(ctaB, { yPercent: 0, opacity: 1 });
-        toEnroll();
+      gsap.set([lineSpan, actionsEl].filter(Boolean), { clearProps: "transform,opacity" });
+      if (slot && panel) {
+        gsap.set(slot, { height: panelH, marginTop: 0 });
+        gsap.set(panel, { yPercent: 0, opacity: 1 });
       }
     };
 
@@ -229,11 +228,8 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     gsap.set(rig, below);
     gsap.set(sky, { opacity: 0 });
     gsap.set(lineSpan, { yPercent: 150 });
-    gsap.set(actionsEl, { opacity: 0, y: 18 });
-    if (slot && card && ctaB) {
-      gsap.set(card, { yPercent: 45, opacity: 0 });
-      gsap.set(ctaB, { yPercent: 100, opacity: 0 });
-    }
+    if (actionsEl) gsap.set(actionsEl, { opacity: 0, y: 18 });
+    if (panel) gsap.set(panel, { yPercent: 35, opacity: 0 });
     fly({ speed: 0.9, amp: 24, trail: 0.7, beats: 0.6, pitch: -4, climb: CLIMB });
 
     const tl = gsap.timeline({ onComplete: () => finish() });
@@ -273,7 +269,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
 
     // the closing line, then the actions
     tl.to(lineSpan, { yPercent: 0, duration: C.line.dur, ease: "expo.out" }, C.line.at);
-    tl.to(actionsEl, { opacity: 1, y: 0, duration: C.actions.dur, ease: "power2.out" }, C.actions.at);
+    if (actionsEl) tl.to(actionsEl, { opacity: 1, y: 0, duration: C.actions.dur, ease: "power2.out" }, C.actions.at);
     // the ending is established: the flight settles into its steady beat (and it can't be skipped any more)
     const settle = () => {
       if (flight) Object.assign(flight.state, SETTLED);
@@ -282,17 +278,13 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     tl.call(settle, [], C.end);
     tl.set({}, {}, C.end);
 
-    // the course reveal — on the same timeline, after the ending has held (no tap)
-    if (slot && card && ctaB && after) {
+    // the next step — on the same timeline, after the ending has held (no tap)
+    if (slot && panel && after) {
       const R = C.reveal;
-      tl.to(slot, { height: cardH, marginBottom: 0, duration: R.dur, ease: "power3.inOut" }, R.at);
-      tl.to(card, { yPercent: 0, opacity: 1, duration: R.dur, ease: "power3.out" }, R.at + 0.08);
+      tl.to(slot, { height: panelH, marginTop: 0, duration: R.dur, ease: "power3.inOut" }, R.at);
+      tl.to(panel, { yPercent: 0, opacity: 1, duration: R.dur, ease: "power3.out" }, R.at + 0.06);
       tl.to(rig, { ...after.bird, duration: R.dur, ease: "power3.inOut" }, R.at);
       tl.to(chk, { k: kAfter, duration: R.dur, ease: "power3.inOut", onUpdate: () => placeCheck(1) }, R.at);
-      // the primary action becomes the enrolment — label and destination together
-      tl.to(ctaA, { yPercent: -100, opacity: 0, duration: C.cta.dur * 0.8, ease: "power2.in" }, C.cta.at);
-      tl.to(ctaB, { yPercent: 0, opacity: 1, duration: C.cta.dur, ease: "power2.out" }, C.cta.at + 0.12);
-      tl.call(toEnroll, [], C.cta.at + 0.12);
       tl.set({}, {}, C.revealEnd);
     }
 
@@ -370,31 +362,33 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
         <h1 className="bjs-line" aria-hidden="true">
           <span>{keepTogether(COPY.close.prdLine, "২০২৭-এ")}</span>
         </h1>
-        <div className="bjs-actions">
-          <div className="actions">
-            {/* the recommended program (its own banner, whole), directly above the primary action */}
-            {program && (
-              <div className="bjs-card-slot">
-                <img className="bjs-card" src={program.bannerUrl} alt={program.name} draggable={false} decoding="async" />
+        {program ? (
+          // the next step: the program's own banner (whole) and its action, one panel, part of the screen
+          <div className="bjs-next">
+            <div className="bjs-next-panel">
+              <img className="bjs-card" src={program.bannerUrl} alt={program.name} draggable={false} decoding="async" />
+              <div className="bjs-next-row">
+                <Button kind="primary" onClick={() => actions.openProgram(program.url)}>
+                  {COPY.close.enroll}
+                </Button>
+                <button type="button" className="bjs-share" aria-label={COPY.close.secondary} title={COPY.close.secondary} onClick={() => actions.share("marksheet")}>
+                  <ShareIcon />
+                </button>
               </div>
-            )}
-            <Button kind="primary" onClick={() => (enroll.current && program ? actions.openProgram(program.url) : actions.exitToHome())}>
-              <span className="bjs-cta">
-                <span className="bjs-cta-a">
-                  {COPY.close.primary}
-                </span>
-                {program && (
-                  <span className="bjs-cta-b" aria-hidden="true">
-                    {COPY.close.enroll}
-                  </span>
-                )}
-              </span>
-            </Button>
-            <Button kind="secondary" onClick={() => actions.share("marksheet")}>
-              {COPY.close.secondary}
-            </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bjs-actions">
+            <div className="actions">
+              <Button kind="primary" onClick={actions.exitToHome}>
+                {COPY.close.primary}
+              </Button>
+              <Button kind="secondary" onClick={() => actions.share("marksheet")}>
+                {COPY.close.secondary}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
       {playing && <button type="button" className="bj-skip" aria-label="এগিয়ে যাও" onClick={() => ctl.current?.skip()} />}
     </div>

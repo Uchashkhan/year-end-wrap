@@ -210,9 +210,14 @@
   .bjs-line { font-size: 21px; }
   .bjs-copy { gap: 14px; }
 }
-/* the course reveal: the program's banner (whole, 1280 : 598) above the primary action; the
-   primary label swaps in place (two labels stacked in one cell) */
-.bjs-card-slot { position: relative; overflow: hidden; border-radius: 14px; flex: none; }
-.bjs-card { display: block; width: 100%; height: auto; aspect-ratio: 1280 / 598; border-radius: 14px; }
-.bjs-cta { display: inline-grid; overflow: hidden; vertical-align: middle; }
-.bjs-cta > span { grid-area: 1 / 1; display: block; }
+/* the next step (a recommended program): one panel — the program's own banner (whole,
+   1280 : 598) and its action row: "প্রোগ্রামে ভর্তি হও" + a share icon button. A flat
+   tint of the sky's own white sits it in the scene (no blur, no shadow). */
+.bjs-next { position: relative; overflow: hidden; flex: none; border-radius: 20px; }
+.bjs-next-panel { display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: 20px; background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+.bjs-card { display: block; width: 100%; height: auto; aspect-ratio: 1280 / 598; border-radius: 12px; }
+.bjs-next-row { display: flex; gap: 10px; }
+.bjs-next-row .btn { flex: 1; }
+.bjs-share { flex: none; width: var(--tap, 48px); min-height: var(--tap, 48px); display: grid; place-items: center; border-radius: var(--radius-md); border: 1.5px solid rgba(255, 255, 255, 0.9); background: transparent; color: #fff; cursor: pointer; transition: transform 0.12s var(--ease-out); }
+.bjs-share:active { transform: scale(0.96); }
+.bjs-share:focus-visible { outline: 3px solid var(--c-gold); outline-offset: 2px; }
