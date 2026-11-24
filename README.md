@@ -33,6 +33,14 @@ pnpm typecheck
 ## Milestones
 - [x] **M1 Functional foundation.** Story engine, conditional composition, Fresh Start, home banner states, share stub, dev controls, reduced motion, repeat view, small-device layout.
 - [x] **M2 Visual direction (proposed, awaiting sign-off).** “তোমার খাতা”: the deck is one notebook. Navy cover board (01, 11, Fresh) → ruled paper pages (02–09) → certificate (10). Magenta typographic stamp for the learner type, reused on 09/10. Die-cut gold stickers for badges; the capstone is inverted navy+gold. Type scale with Bangla line heights. Motion tiers T0–T3. Screen *compositions* are unchanged from M1.
+- [x] **Dev panel redesign (Nov 24).** `dev/DevPanel.tsx`, styles under "dev panel" in `global.css`. Same controls and settings, reorganised for review:
+  - **Now viewing:** a sticky card with the current screen, its position, and ← / → buttons (Home ↔ the deck).
+  - **Student:** profiles as chips (activity level, edge cases), the profile's note, and the earned badges as chips (Bengali in its own face).
+  - **Deck:** every screen in story order, numbered. The screens this student doesn't get stay in place, struck through, with the reason (instead of a separate list).
+  - **Versions:** segmented Opening & closing / Marksheet switches, and the cover select.
+  - **Preview:** device and motion as segmented controls, and the three behaviour options as switches with their explanations.
+  - **Extras:** the review boards gathered as links, and a keyboard / tap legend.
+  - **Width:** the panel column is 320 px; it works in the phone drawer too.
 - [x] **Closing "The Year Turns" (Nov 24): the original Wrap's Screen 11.** `screens/YearTurnsClosing.tsx`, `styles/year-turns.css`. No dev switch; the previous Closing (EndScreens `Close`) stays in the code, unwired. Bird Journey is untouched.
   - **Reference:** `shikho_2027_year_turns.html`, proportions in cqw / %: hero at 10 % / 53 %, year at 28 cqw, two thin circle outlines, the "শিখোতে তোমার" label with its hairline (COPY.cover.headline), and the bottom stack. Ground: the closing's own designated background (SCREEN_BACKGROUND.close, as the approved Closing). Type: the project's Baloo Da 2.
   - **Timeline** (one master GSAP timeline, entered as `onward`, so the marksheet stays mounted while it recedes):

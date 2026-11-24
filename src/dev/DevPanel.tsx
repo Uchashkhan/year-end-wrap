@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
 import type { JourneyMode } from "../journey/journeyMode";
 import { MARKSHEET_DESIGNS, type MarksheetDesign } from "../marksheet/design";
 import { PROFILES } from "../data/profiles";
+import { DEFAULT_ORDER } from "../data/config";
 import type { StoryPlan } from "../data/compose";
 import { BADGES, CAPSTONE } from "../data/copy";
 import { SLIDE_LABEL } from "../screens/registry";
@@ -41,130 +43,199 @@ interface Props {
   onHome: () => void;
 }
 
+/** "07 Subject of the year" → ["07", "Subject of the year"]. */
+const splitLabel = (l: string) => {
+  const m = l.match(/^(\S+)\s+(.*)$/);
+  return m ? [m[1], m[2]] : ["", l];
+};
+
+/** A segmented control: one choice of a few, all visible. */
+function Seg<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { id: T; name: string }[]; onChange: (v: T) => void }) {
+  return (
+    <div className="dp-seg" role="radiogroup" aria-label={label} style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
+      {options.map((o) => (
+        <button key={o.id} type="button" role="radio" aria-checked={value === o.id} className={`dp-seg-btn ${value === o.id ? "is-on" : ""}`} onClick={() => onChange(o.id)}>
+          {o.name}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** An on/off switch with its explanation. */
+function Toggle({ checked, onChange, title, hint }: { checked: boolean; onChange: (v: boolean) => void; title: string; hint: string }) {
+  return (
+    <label className="dp-toggle">
+      <span className="dp-toggle-text">
+        <span className="dp-toggle-title">{title}</span>
+        <span className="dp-hint">{hint}</span>
+      </span>
+      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span className="dp-switch" aria-hidden="true" />
+    </label>
+  );
+}
+
+function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="dp-field">
+      <span className="dp-field-label">{label}</span>
+      {children}
+      {hint && <span className="dp-hint">{hint}</span>}
+    </div>
+  );
+}
+
+function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="dp-section">
+      <header className="dp-section-head">
+        <h2>{title}</h2>
+        {aside}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * The prototype's control panel (dev-only). Sections, top to bottom, in the
+ * order a review goes: where you are (sticky), who the student is, the deck
+ * (with the dropped screens in place, and why), which design versions are
+ * live, and how the preview behaves.
+ */
 export function DevPanel({ profileId, onProfile, settings, onSettings, plan, route, index, onJump, onHome }: Props) {
   const set = <K extends keyof DevSettings>(k: K, v: DevSettings[K]) => onSettings({ ...settings, [k]: v });
   const profile = PROFILES.find((p) => p.id === profileId)!;
-  const groups = ["Activity level", "Edge case"] as const;
+  const total = plan.slides.length;
+  const atHome = route === "home";
+  const current = atHome ? "Home banner" : SLIDE_LABEL[plan.slides[index]?.id] ?? "";
+  const [curNo, curName] = atHome ? ["00", "Home banner"] : splitLabel(current);
+  const prev = () => (atHome ? undefined : index === 0 ? onHome() : onJump(index - 1));
+  const next = () => (atHome ? onJump(0) : index < total - 1 ? onJump(index + 1) : undefined);
+
+  // the deck in story order; in a full story, the screens this student doesn't get stay in place, dimmed, with the reason
+  const omitted = new Map(plan.omitted.map((o) => [o.id, o.reason]));
+  const rows: { id: string; i: number | null; reason?: string }[] =
+    plan.mode === "full"
+      ? DEFAULT_ORDER.map((id) => {
+          const i = plan.slides.findIndex((s) => s.id === id);
+          return { id, i: i >= 0 ? i : null, reason: i >= 0 ? undefined : omitted.get(id) };
+        })
+      : plan.slides.map((s, i) => ({ id: s.id, i }));
 
   return (
-    <aside className="dev" aria-label="Developer preview controls">
-      <h1 className="dev-title">Wrap 2026 · M2 prototype</h1>
-      <p className="dev-sub">
-        Visual system applied; screen compositions still M1. <a href="?view=direction">Direction board →</a>
-      </p>
+    <aside className="dp" aria-label="Prototype controls">
+      <div className="dp-top">
+        <div className="dp-brand">
+          <span className="dp-brand-name">Wrap 2026</span>
+          <span className="dp-brand-tag">Prototype</span>
+        </div>
+        {/* where you are, and the way through it */}
+        <div className="dp-now" aria-live="polite">
+          <span className="dp-now-no">{curNo}</span>
+          <span className="dp-now-text">
+            <span className="dp-now-name">{curName}</span>
+            <span className="dp-hint">{atHome ? "Before the story" : `${index + 1} of ${total}`}</span>
+          </span>
+          <span className="dp-now-nav">
+            <button type="button" className="dp-icon-btn" onClick={prev} disabled={atHome} aria-label="Previous screen" title="Previous screen">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M10 3.5 5.5 8l4.5 4.5" />
+              </svg>
+            </button>
+            <button type="button" className="dp-icon-btn" onClick={next} disabled={!atHome && index >= total - 1} aria-label="Next screen" title="Next screen">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 3.5 10.5 8 6 12.5" />
+              </svg>
+            </button>
+          </span>
+        </div>
+      </div>
 
-      <section>
-        <h2>Student profile</h2>
-        {groups.map((g) => (
-          <div key={g} className="dev-group">
-            <h3>{g}</h3>
-            {PROFILES.filter((p) => p.group === g).map((p) => (
-              <label key={p.id} className="dev-radio">
-                <input type="radio" name="profile" checked={p.id === profileId} onChange={() => onProfile(p.id)} />
-                {p.label}
-              </label>
-            ))}
+      <Section title="Student">
+        {(["Activity level", "Edge case"] as const).map((g) => (
+          <div key={g} className="dp-chipset" role="radiogroup" aria-label={g}>
+            <span className="dp-field-label">{g}</span>
+            <div className="dp-chips">
+              {PROFILES.filter((p) => p.group === g).map((p) => (
+                <button key={p.id} type="button" role="radio" aria-checked={p.id === profileId} className={`dp-chip ${p.id === profileId ? "is-on" : ""}`} onClick={() => onProfile(p.id)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
           </div>
         ))}
-        <p className="dev-note">{profile.note}</p>
-      </section>
-
-      <section>
-        <h2>
-          Deck · {plan.slides.length} slides {plan.mode === "freshStart" && <em>(Fresh Start)</em>}
-        </h2>
-        <button type="button" className={`dev-slide ${route === "home" ? "on" : ""}`} onClick={onHome}>
-          00 Home banner
-        </button>
-        <ol className="dev-slides">
-          {plan.slides.map((s, i) => (
-            <li key={s.id}>
-              <button type="button" className={`dev-slide ${route === "story" && i === index ? "on" : ""}`} onClick={() => onJump(i)}>
-                {SLIDE_LABEL[s.id]}
-              </button>
-            </li>
-          ))}
-        </ol>
-        {plan.omitted.length > 0 && plan.mode === "full" && (
-          <>
-            <h3>Omitted</h3>
-            <ul className="dev-omitted">
-              {plan.omitted.map((o) => (
-                <li key={o.id}>
-                  <b>{SLIDE_LABEL[o.id]}</b> — {o.reason}
-                </li>
+        <p className="dp-note">{profile.note}</p>
+        <div className="dp-earned">
+          <span className="dp-field-label">Earned</span>
+          {plan.capstone || plan.badges.length ? (
+            <div className="dp-badges">
+              {plan.capstone && <span className="dp-badge is-cap">{CAPSTONE.name}</span>}
+              {plan.badges.map((b) => (
+                <span key={b} className="dp-badge">
+                  {BADGES[b].name}
+                </span>
               ))}
-            </ul>
-          </>
-        )}
-        <h3>Earned</h3>
-        <p className="dev-note">
-          {plan.capstone && <>⭐ {CAPSTONE.name} · </>}
-          {plan.badges.length ? plan.badges.map((b) => BADGES[b].name).join(" · ") : "No badges — none shown anywhere."}
-        </p>
-      </section>
+            </div>
+          ) : (
+            <span className="dp-hint">No badges — none shown anywhere.</span>
+          )}
+        </div>
+      </Section>
 
-      <section>
-        <h2>View state</h2>
-        <label className="dev-field">
-          Motion
-          <select value={settings.motion} onChange={(e) => set("motion", e.target.value as MotionPref)}>
-            <option value="system">Follow system</option>
-            <option value="reduce">Reduced</option>
-            <option value="full">Full</option>
-          </select>
-        </label>
-        <label className="dev-check">
-          <input type="checkbox" checked={settings.repeatView} onChange={(e) => set("repeatView", e.target.checked)} />
-          Repeat view (banner seen, type pre-revealed)
-        </label>
-        <label className="dev-check">
-          <input type="checkbox" checked={settings.teacherEnabled} onChange={(e) => set("teacherEnabled", e.target.checked)} />
-          Teacher slide launch-ready (P0 dependency)
-        </label>
-        <label className="dev-check">
-          <input type="checkbox" checked={settings.autoAdvance} onChange={(e) => set("autoAdvance", e.target.checked)} />
-          Auto-advance 6s (hold to pause) — open question
-        </label>
-        <div className="dev-field">
-          Opening &amp; closing
-          <div className="dev-seg" role="radiogroup" aria-label="Opening and closing">
-            {(["current", "bird"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                role="radio"
-                aria-checked={settings.journey === m}
-                className={`dev-seg-btn ${settings.journey === m ? "is-on" : ""}`}
-                onClick={() => set("journey", m)}
-              >
-                {m === "current" ? "Current" : "Bird Journey"}
-              </button>
-            ))}
-          </div>
-          <span className="dev-note">Bird Journey: experimental cover (01) and its closing (11) — the bird flies on through the sky to the ২০২৭ checkpoint.</span>
-        </div>
-        <div className="dev-field">
-          Marksheet (10)
-          <div className="dev-seg" role="radiogroup" aria-label="Marksheet design">
-            {MARKSHEET_DESIGNS.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                role="radio"
-                aria-checked={settings.marksheet === m.id}
-                className={`dev-seg-btn ${settings.marksheet === m.id ? "is-on" : ""}`}
-                onClick={() => set("marksheet", m.id)}
-              >
-                {m.name}
-              </button>
-            ))}
-          </div>
-          <span className="dev-note">V2: static in-app card with the student's identity; the share export drops it. Side by side: ?view=marksheet</span>
-        </div>
-        <label className="dev-field">
-          Cover (01)
-          <select value={settings.cover} onChange={(e) => set("cover", e.target.value as CoverVariant)}>
+      <Section title="Deck" aside={<span className="dp-count">{plan.mode === "freshStart" ? "Fresh Start · 2 screens" : `${total} of ${DEFAULT_ORDER.length} screens`}</span>}>
+        <ol className="dp-deck">
+          <li>
+            <button type="button" className={`dp-row ${atHome ? "is-on" : ""}`} onClick={onHome} aria-current={atHome ? "step" : undefined}>
+              <span className="dp-row-no">00</span>
+              <span className="dp-row-name">Home banner</span>
+            </button>
+          </li>
+          {rows.map((r) => {
+            const [no, name] = splitLabel(SLIDE_LABEL[r.id as keyof typeof SLIDE_LABEL] ?? r.id);
+            if (r.i == null)
+              return (
+                <li key={r.id}>
+                  <div className="dp-row is-off" title={r.reason}>
+                    <span className="dp-row-no">{no}</span>
+                    <span className="dp-row-text">
+                      <span className="dp-row-name">{name}</span>
+                      <span className="dp-row-why">Dropped · {r.reason}</span>
+                    </span>
+                  </div>
+                </li>
+              );
+            const on = !atHome && r.i === index;
+            return (
+              <li key={r.id}>
+                <button type="button" className={`dp-row ${on ? "is-on" : ""}`} onClick={() => onJump(r.i!)} aria-current={on ? "step" : undefined}>
+                  <span className="dp-row-no">{no}</span>
+                  <span className="dp-row-name">{name}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </Section>
+
+      <Section title="Versions">
+        <Field label="Opening & closing" hint="Bird Journey: the experimental cover (01) and its sky-flight closing (11).">
+          <Seg
+            label="Opening and closing"
+            value={settings.journey}
+            options={[
+              { id: "current", name: "Current" },
+              { id: "bird", name: "Bird Journey" },
+            ]}
+            onChange={(v) => set("journey", v)}
+          />
+        </Field>
+        <Field label="Marksheet (10)" hint="V2 looks are static explorations.">
+          <Seg label="Marksheet design" value={settings.marksheet} options={MARKSHEET_DESIGNS} onChange={(v) => set("marksheet", v)} />
+        </Field>
+        <Field label="Cover (01)">
+          <select className="dp-select" value={settings.cover} onChange={(e) => set("cover", e.target.value as CoverVariant)}>
             <option value="current">Approved Figma cover (current)</option>
             {COVER_VARIANTS.map((v) => (
               <option key={v.id} value={v.id}>
@@ -172,26 +243,56 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
               </option>
             ))}
           </select>
-        </label>
-        <p className="dev-note">
-          <a href="?view=covers">Compare cover explorations side by side →</a>
-        </p>
-        <label className="dev-field">
-          Device
-          <select value={settings.device} onChange={(e) => set("device", e.target.value as DeviceId)}>
-            {Object.entries(DEVICES).map(([k, d]) => (
-              <option key={k} value={k}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </section>
+        </Field>
+      </Section>
 
-      <section className="dev-help">
-        <h2>Navigate</h2>
-        <p>Tap right 70% → next · left 30% → back · swipe ←/→ · swipe ↓ or Esc closes · arrow keys on desktop.</p>
-      </section>
+      <Section title="Preview">
+        <Field label="Device" hint={DEVICES[settings.device].label.split(" · ")[1]}>
+          <Seg
+            label="Device"
+            value={settings.device}
+            options={(Object.keys(DEVICES) as DeviceId[]).map((k) => ({ id: k, name: k.replace("x", "×") }))}
+            onChange={(v) => set("device", v)}
+          />
+        </Field>
+        <Field label="Motion">
+          <Seg
+            label="Motion"
+            value={settings.motion}
+            options={[
+              { id: "system", name: "System" },
+              { id: "reduce", name: "Reduced" },
+              { id: "full", name: "Full" },
+            ]}
+            onChange={(v) => set("motion", v as MotionPref)}
+          />
+        </Field>
+        <div className="dp-toggles">
+          <Toggle checked={settings.repeatView} onChange={(v) => set("repeatView", v)} title="Repeat view" hint="Banner seen, learner type pre-revealed." />
+          <Toggle checked={settings.teacherEnabled} onChange={(v) => set("teacherEnabled", v)} title="Teacher screen launch-ready" hint="P0 dependency — off drops Screen 04." />
+          <Toggle checked={settings.autoAdvance} onChange={(v) => set("autoAdvance", v)} title="Auto-advance (6 s)" hint="Hold to pause. Open question." />
+        </div>
+      </Section>
+
+      <Section title="Review boards">
+        <nav className="dp-links" aria-label="Review boards">
+          <a href="?view=direction">Direction board</a>
+          <a href="?view=covers">Cover explorations</a>
+          <a href="?view=marksheet">Marksheet versions</a>
+          <a href="?view=bird">Bird poses</a>
+        </nav>
+      </Section>
+
+      <footer className="dp-keys">
+        <span>
+          <kbd>←</kbd>
+          <kbd>→</kbd> step
+        </span>
+        <span>
+          <kbd>Esc</kbd> close
+        </span>
+        <span>Tap right 70 % next · left 30 % back</span>
+      </footer>
     </aside>
   );
 }
