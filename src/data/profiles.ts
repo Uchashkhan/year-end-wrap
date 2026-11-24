@@ -23,8 +23,21 @@ const base: WrapRecord = {
   capstonePercentile: null,
 };
 
+// PROTO: a neutral placeholder avatar standing in for a real profile photo.
+const MOCK_PHOTO = "/assets/mock/student-avatar.svg";
+
+// PROTO: the one program banner we have (Academic Program · SSC 28 · Class 9 · Science).
+const MOCK_PROGRAM = {
+  id: "ssc-28-class-9-science",
+  name: "Academic Program — SSC 28, Class 9, Science",
+  bannerUrl: "/assets/programs/ssc-28-class-9-science.png",
+  url: "mock://programs/ssc-28-class-9-science",
+};
+
 const high: WrapRecord = {
   ...base,
+  nextProgram: MOCK_PROGRAM,
+  student: { ...base.student, photoUrl: MOCK_PHOTO },
   activeDays: 180,
   longestStreak: 24,
   studySeconds: 210 * H,
@@ -117,7 +130,7 @@ export const PROFILES: MockProfile[] = [
     note: "All four badges → সেরার সেরা. No truthful percentile → scarcity line only.",
     record: {
       ...high,
-      student: { name: "আরিফ", className: "দ্বাদশ", group: "বিজ্ঞান" },
+      student: { name: "আরিফ", className: "দ্বাদশ", group: "বিজ্ঞান", photoUrl: MOCK_PHOTO },
       activeDays: 281,
       longestStreak: 46,
       studySeconds: 412 * H,

@@ -12,9 +12,11 @@ import { SubjectTakeover } from "./SubjectTakeover";
 import { PeakDayLit } from "./PeakDayLit";
 import { LearnerReveal } from "./LearnerReveal";
 import { MarksheetBento } from "./MarksheetBento";
-import { useJourney } from "../journey/journeyMode";
+import { MarksheetV2 } from "./MarksheetV2";
+import { useMarksheetDesign } from "../marksheet/design";
+import { isBirdJourney, useJourney } from "../journey/journeyMode";
+import { ExperimentalBirdJourneyClosingSky } from "../journey/ExperimentalBirdJourneyClosingSky";
 import { ExperimentalBirdJourneyCover } from "../journey/ExperimentalBirdJourneyCover";
-import { ExperimentalBirdJourneyClosing } from "../journey/ExperimentalBirdJourneyClosing";
 import { useCoverVariant } from "../explore/variant";
 import { CoverTypographic } from "../explore/CoverTypographic";
 import { CoverGeometry } from "../explore/CoverGeometry";
@@ -60,7 +62,7 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       return new URLSearchParams(location.search).get("learner") === "v2" ? <LearnerType slide={slide} {...p} /> : <LearnerReveal slide={slide} {...p} />;
     case "marksheet":
       // Default: the Bento marksheet (Nov 23). The M1 sheet stays at ?marksheet=v2.
-      return new URLSearchParams(location.search).get("marksheet") === "v2" ? <Marksheet slide={slide} {...p} /> : <MarksheetBento slide={slide} {...p} />;
+      return new URLSearchParams(location.search).get("marksheet") === "v2" ? <Marksheet slide={slide} {...p} /> : <MarksheetSwitch slide={slide} {...p} />;
     case "close":
       return <CloseSwitch slide={slide} {...p} />;
     case "freshCover":
@@ -112,14 +114,21 @@ export const SLIDE_LABEL: Record<Slide["id"], string> = {
 
 /** Screen 01 picks the reviewed exploration (dev panel / ?cover=) — default is the current cover. */
 /** Dev-only comparison: the experimental 2027 closing in Bird Journey mode; otherwise the approved Close. */
+// Dev-only comparison (Nov 24): Marksheet V2's two looks beside the approved Chapter Bento.
+function MarksheetSwitch(props: ScreenProps<"marksheet">) {
+  const d = useMarksheetDesign();
+  return d === "current" ? <MarksheetBento {...props} /> : <MarksheetV2 {...props} look={d === "v2a" ? "a" : "b"} />;
+}
+
 function CloseSwitch(props: ScreenProps<"close">) {
-  return useJourney() === "bird" ? <ExperimentalBirdJourneyClosing {...props} /> : <Close {...props} />;
+  // Dev-only comparison: Bird Journey's closing is the sky flight (the approved Closing is untouched).
+  return isBirdJourney(useJourney()) ? <ExperimentalBirdJourneyClosingSky {...props} /> : <Close {...props} />;
 }
 
 function CoverSwitch(props: ScreenProps<"cover">) {
   const v = useCoverVariant();
   // Dev-only comparison: the experimental Bird Journey cover (the approved cover is untouched).
-  if (useJourney() === "bird") return <ExperimentalBirdJourneyCover {...props} />;
+  if (isBirdJourney(useJourney())) return <ExperimentalBirdJourneyCover {...props} />;
   const C = v === "current" ? CoverFigma : v === "m3" ? CoverGeo : v === "m2" ? Cover : v === "u" ? CoverUnfolded : v === "a" ? CoverTypographic : v === "b" ? CoverGeometry : v === "c" ? CoverEditorial : CoverGeo;
   return <C {...props} />;
 }

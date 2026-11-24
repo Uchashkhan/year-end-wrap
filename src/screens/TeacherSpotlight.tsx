@@ -19,7 +19,7 @@ const SOFT = [0.33, 0, 0.2, 1] as const;
  * guess a face". Lit from above by the beam: warm on the head and shoulders, the
  * jacket deepening into the room's violet so the figure rises out of the scene.
  */
-function Silhouette() {
+export function Silhouette() {
   const head =
     "M112 122C100 120 92 112 90 100C88 92 87 84 88 76C88 68 88 60 90 54C94 36 108 26 126 26C146 26 160 40 160 60C160 74 156 84 150 92C146 104 136 116 124 121C120 122 116 122 112 122Z";
   return (

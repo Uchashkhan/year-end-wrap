@@ -45,12 +45,14 @@ export function ClockArt() {
 }
 
 /** 03 — the hall, from LiveClass's own geometry; the student's seat in yellow. */
-export function HallArt() {
+export function HallArt({ aura = true, fromRow = 0 }: { aura?: boolean; fromRow?: number } = {}) {
   const id = `chair-${useId().replace(/:/g, "")}`;
+  // fromRow crops the hall to its front rows (the marksheet's small tile); the geometry is unchanged
+  const y0 = fromRow > 0 ? ROWS[fromRow].y - 4 : 0;
   const yc = YOU_AT.x + 50 * YOU_AT.s;
   const yf = YOU_AT.y + CHAIR_H * YOU_AT.s;
   return (
-    <svg className="art-hall" viewBox={`0 0 ${HALL_W} ${HALL_H}`} aria-hidden="true">
+    <svg className="art-hall" viewBox={`0 ${y0} ${HALL_W} ${HALL_H - y0}`} aria-hidden="true">
       <defs>
         <g id={id}>
           <rect x="16" y="0" width="68" height="68" rx="16" />
@@ -63,12 +65,12 @@ export function HallArt() {
           <stop offset="1" stopColor="#f3be28" stopOpacity="0" />
         </radialGradient>
       </defs>
-      {ROWS.map((r, ri) => (
+      {ROWS.map((r, ri) => ri < fromRow ? null : (
         <g key={ri} fill={r.fill} fillOpacity={Math.min(1, r.opacity + 0.12)}>
           {Array.from({ length: r.n }, (_, j) => (ri === YOU.row && j === YOU.seat ? null : <use key={j} href={`#${id}`} transform={tf(placeOf(r, j))} />))}
         </g>
       ))}
-      <ellipse cx={yc} cy={yf - CHAIR_H * YOU_AT.s * 0.55} rx="64" ry="64" fill={`url(#${id}-aura)`} />
+      {aura && <ellipse cx={yc} cy={yf - CHAIR_H * YOU_AT.s * 0.55} rx="64" ry="64" fill={`url(#${id}-aura)`} />}
       <use href={`#${id}`} transform={tf(YOU_AT)} fill="#f3be28" />
     </svg>
   );

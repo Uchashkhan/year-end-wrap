@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePresence } from "motion/react";
 import gsap from "gsap";
 import { COPY } from "../data/copy";
@@ -7,9 +7,11 @@ import { Actions } from "../components/primitives";
 import { useEntry } from "../story/entry";
 import type { ScreenProps } from "../screens/types";
 import { BirdPose, PIVOT, REAR, RESTING, poseBox } from "./BirdCharacter";
+import { createFlight } from "./flight";
+import { GATE, Gateway } from "./Gateway";
 import "../styles/journey.css";
 
-/** The cover's year digits (same boxes, glyphs and tilts as the Bird Journey cover). */
+/** The cover's year digits (same boxes, glyphs and tilts as the Bird Journey cover); `out` = the corner each slides in from. */
 const DIGITS = [
   { id: "tl", ch: "২", out: [-1, -1] },
   { id: "tr", ch: "০", out: [1, -1] },
@@ -17,43 +19,78 @@ const DIGITS = [
   { id: "br", ch: "৬", out: [1, 1] },
 ] as const;
 
+/** Clouds the climb passes (opening's art, faint on the night ground): world y as a share of H (negative = above the cover). */
+// (each passes the bird and clears the frame's lower half by the end, so none settles behind the words;
+// the last stays high at the left, beside the gateway)
+const CLOUDS = [
+  { src: "cloud1", x: -0.12, y: -0.18, w: 0.42, depth: 1.15 },
+  { src: "cloud3", x: 0.78, y: -0.48, w: 0.24, depth: 0.95 },
+  { src: "cloud2", x: -0.04, y: -0.86, w: 0.3, depth: 1.15 },
+  { src: "cloud1", x: 0.7, y: -1.2, w: 0.4, depth: 1.3 },
+  { src: "cloud3", x: 0.02, y: -1.45, w: 0.22, depth: 0.95 },
+] as const;
+
+/** Parallax depth of each world layer (1 = moves with the camera; < 1 = farther away). */
+const DEPTH = { far: 0.35, digits: 1.3, gate: 0.55 } as const;
+
 /**
- * The closing's master timeline (s). Overlapping phases, one camera:
- *   A  0–0.45     the marksheet clears in three groups (the badge a beat longer);
- *                 its ink ground opens onto the Cover world's violet
- *   B  0.08–0.75  the Cover world returns: its four year digits slide back in
- *                 from their corners; the front-facing bird lands in its place
- *   C  0.68–1.37  the bird notices ২০২৭: eyes up-right, the head follows, the
- *                 body turns (front → three-quarter rear, head-registered), the
- *                 wings open a little, the tail answers
- *   D  0.72–1.6   the camera follows its gaze up and to the right: ২০২৬ moves
- *                 out behind, ২০২৭ comes in from where it looks (one world,
- *                 parallax by depth); the story chrome never moves
- *   F  1.45–2.15  the closing line, then the actions
+ * "The Next Checkpoint" — one master timeline (s), phases overlapping:
+ *   A  0–0.6      the marksheet recedes as one artifact; the Cover world's ground shows
+ *   B  0.45–1.2   the Cover world: stars, the four ২০২৬ digits slide home, the
+ *                 front-facing bird takes its place — a beat to breathe
+ *   C  1.15–1.7   the bird notices where it is going: eyes up-right, the head
+ *                 follows, the body turns (front → three-quarter rear, one size),
+ *                 the wings open, the first air moves
+ *   D  1.55–4.4   it flies: one shared speed drives the wingbeat, the airflow and
+ *                 the camera (accelerate → cruise → long deceleration); ২০২৬
+ *                 falls away below, clouds pass at their depths, the gateway comes
+ *                 down from the top of the world and grows a little as it nears
+ *   E  ~4.0–4.4   everything settles: the bird hovers below the gateway, short of it
+ *   F  4.3–4.95   the closing line (masked rise), then the actions
  */
 export const CLOSING = {
-  msFoot: { at: 0, dur: 0.18 },
-  msGroups: [
-    { at: 0, dur: 0.26 },
-    { at: 0.09, dur: 0.26 },
-    { at: 0.18, dur: 0.26 },
-  ],
-  msBadge: { at: 0.2, dur: 0.25 },
-  msGround: { at: 0.1, dur: 0.35 },
-  digitsIn: { at: 0.08, dur: 0.5 },
-  decor: { at: 0.15, dur: 0.4 },
-  birdIn: { at: 0.35, dur: 0.27 },
-  land: { at: 0.6, dur: 0.15 },
-  gaze: { at: 0.68, dur: 0.14 },
-  head: { at: 0.74, dur: 0.16 },
-  turn: { at: 0.86, dur: 0.12 },
-  wings: { at: 0.9, dur: 0.32 },
-  tail: { at: 0.95, dur: 0.42 },
-  camera: { at: 0.72, dur: 0.88 },
-  line: { at: 1.45, dur: 0.5 },
-  actions: { at: 1.62, dur: 0.5 },
-  end: 2.2,
+  ms: { at: 0, dur: 0.6 },
+  decor: { at: 0.45, dur: 0.5 },
+  digitsIn: { at: 0.5, dur: 0.62 },
+  birdIn: { at: 0.6, dur: 0.32 },
+  gaze: { at: 1.15, dur: 0.16 },
+  head: { at: 1.22, dur: 0.2 },
+  turn: { at: 1.36, dur: 0.14 },
+  open: { at: 1.42, dur: 0.3 },
+  flight: { at: 1.55, dur: 2.85 },
+  line: { at: 4.3, dur: 0.55 },
+  actions: { at: 4.45, dur: 0.5 },
+  end: 4.95,
 } as const;
+
+/**
+ * The climb's speed over the flight (u = 0…1): from rest, up to cruise by
+ * 0.24, held, then a long ease down to a hover (not zero: it keeps flying).
+ * Returns the normalised distance E(u) and the speed v(u) (0…1).
+ */
+function climbProfile() {
+  const v = (u: number) => {
+    if (u < 0.24) {
+      const k = u / 0.24;
+      return 0.04 + 0.96 * k * k * (3 - 2 * k);
+    }
+    if (u < 0.52) return 1;
+    const k = (u - 0.52) / 0.48;
+    return 0.1 + 0.9 * (1 - k) ** 2;
+  };
+  const N = 600;
+  const cum = [0];
+  for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + v((i - 0.5) / N) / N);
+  const total = cum[N];
+  return {
+    E: (u: number) => {
+      const x = Math.max(0, Math.min(1, u)) * N;
+      const i = Math.floor(x);
+      return (cum[i] + (cum[Math.min(N, i + 1)] - cum[i]) * (x - i)) / total;
+    },
+    v: (u: number) => v(Math.max(0, Math.min(1, u))),
+  };
+}
 
 /** The line, exactly as given, with one word kept whole (no break inside "২০২৭-এ"). */
 function keepTogether(text: string, word: string) {
@@ -69,81 +106,19 @@ function keepTogether(text: string, word: string) {
 }
 
 /**
- * The settled bird's idle life (full motion only; starts when the closing has
- * finished, stops on leave). One gsap.ticker drives the wings so the constant
- * flutter and the occasional eager flaps add up instead of competing:
- *   breath   the bird rises and falls a hair (1.5 px, 2.8 s)
- *   flutter  the part-open wings stir (±2.5°, a little out of step)
- *   tail     a slow sway (±2.5°)
- *   blink    every 2.4–5 s (sometimes twice)
- *   eager    every 4.5–7 s: two quick flaps and a small lift, the excitement
- *            ticks pop — ready to go, never leaving
- */
-function startIdle(el: HTMLElement) {
-  const rear = el.querySelector<HTMLElement>(".bjw-rear");
-  const wingL = el.querySelector<SVGGElement>(".bjw-rear .bl-wingL");
-  const wingR = el.querySelector<SVGGElement>(".bjw-rear .bl-wingR");
-  const tail = el.querySelector<SVGGElement>(".bjw-rear .bl-tail");
-  const eye = el.querySelector<SVGGElement>(".bjw-rear .bl-eyeR");
-  const marks = el.querySelector<SVGGElement>(".bjw-rear .bl-marks");
-  if (!rear || !wingL || !wingR || !tail) return () => {};
-  const P = PIVOT.rear;
-  const amp = { burst: 0 };
-  let t = 0;
-  const tick = (_: number, dms: number) => {
-    t += Math.min(dms, 50) / 1000;
-    const f = Math.sin(t * 2.4) * 2.5;
-    const g = Math.sin(t * 2.4 - 0.5) * 2.5;
-    // raising: the left wing turns +, the right wing − (about their shoulders)
-    wingL.setAttribute("transform", `rotate(${(f + amp.burst).toFixed(2)} ${P.wingL![0]} ${P.wingL![1]})`);
-    wingR.setAttribute("transform", `rotate(${(-g - amp.burst * 1.1).toFixed(2)} ${P.wingR![0]} ${P.wingR![1]})`);
-    tail.setAttribute("transform", `rotate(${(Math.sin(t * 1.7 - 1) * 2.5).toFixed(2)} ${P.tail![0]} ${P.tail![1]})`);
-  };
-  gsap.ticker.add(tick);
-  const breath = gsap.to(rear, { y: -1.5, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: -1 });
-  const calls: gsap.core.Tween[] = [];
-  const later = (s: number, fn: () => void) => calls.push(gsap.delayedCall(s, fn));
-  const blink = () => {
-    if (eye) {
-      gsap.set(eye, { svgOrigin: "107.5 41" });
-      const tl = gsap.timeline();
-      const once = (at: number) => tl.to(eye, { scaleY: 0.08, duration: 0.07, ease: "power2.in" }, at).to(eye, { scaleY: 1, duration: 0.11, ease: "power2.out" }, at + 0.09);
-      once(0);
-      if (Math.random() < 0.25) once(0.26);
-    }
-    later(2.4 + Math.random() * 2.6, blink);
-  };
-  const eager = () => {
-    const tl = gsap.timeline();
-    tl.to(amp, { keyframes: { burst: [0, 13, 1, 12, 0], easeEach: "sine.inOut" }, duration: 0.62, ease: "none" }, 0);
-    tl.to(el.querySelector(".bjw-pose.bjw-rear svg"), { keyframes: { y: [0, -7, 0], easeEach: "sine.inOut" }, duration: 0.62, ease: "none" }, 0);
-    if (marks) {
-      gsap.set(marks, { svgOrigin: "106 16" });
-      tl.to(marks, { keyframes: { scale: [1, 1.3, 1], easeEach: "sine.out" }, duration: 0.42, ease: "none" }, 0.06);
-    }
-    later(4.5 + Math.random() * 2.5, eager);
-  };
-  later(0.8, blink);
-  later(1.8, eager);
-  return () => {
-    gsap.ticker.remove(tick);
-    breath.kill();
-    calls.forEach((c) => c.kill());
-    gsap.killTweensOf([amp, eye, marks, el.querySelector(".bjw-pose.bjw-rear svg")].filter(Boolean));
-  };
-}
-
-/** Parallax depth of each world layer (1 = moves with the camera). */
-const DEPTH = { far: 0.5, digits: 1.25, next: 0.9 } as const;
-
-/**
- * EXPERIMENT — 11 Closing, "The Journey Continues" (Bird Journey mode only;
- * the approved Closing is untouched). Marksheet → the familiar Cover world →
- * the bird turns toward ২০২৭ → the camera follows → the closing line.
- * Bird: the Figma poses only (front-facing Reference 02, three-quarter rear
- * Pose 03), head-registered so the turn is in place at one size.
+ * EXPERIMENT — 11 Closing, "The Next Checkpoint" (Bird Journey mode only; the
+ * approved Closing is untouched). Marksheet → the familiar ২০২৬ Cover world →
+ * the bird turns → it flies again → ২০২৬ falls away → the ২০২৭ gateway
+ * approaches → the bird hovers short of it, the next journey still ahead →
+ * the closing line and actions.
+ *
+ * One world under one camera: every layer is placed from the same camera
+ * value at its own depth; the story chrome (progress, close) is outside it.
+ * The bird is the Figma poses only (front-facing Reference 02, three-quarter
+ * rear Pose 03), head-registered, flown by the opening's flight system.
  * Copy: the PRD closing line (exact) and the approved closing actions.
- * Reduced motion / repeat view: the final frame.
+ * Tap during the sequence to skip to the settled frame. Reduced motion /
+ * repeat view: the settled frame, still.
  */
 export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">) {
   const { reduced, repeatView } = usePrefs();
@@ -151,6 +126,7 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
   const fromMarksheet = useEntry().kind === "onward";
   const root = useRef<HTMLDivElement>(null);
   const [isPresent, safeToRemove] = usePresence();
+  const [playing, setPlaying] = useState(!still);
   const ctl = useRef<{ stop: () => void; finish: () => void } | null>(null);
 
   useLayoutEffect(() => {
@@ -161,52 +137,87 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
     const qa = <T extends Element = HTMLElement>(s: string) => [...el.querySelectorAll(s)] as T[];
     const W = el.clientWidth;
     const H = el.clientHeight;
+    const f = W / 412;
     const C = CLOSING;
 
-    // ── the bird: one anchor (its head centre), two poses on it ──
-    const bird = q(".bjw-bird");
-    const front = q(".bjw-front");
-    const rear = q(".bjw-rear");
+    // ── the final composition: gateway above, bird in the middle, words below ──
+    const copy = q(".bjw-copy");
+    const copyTop = H - copy.offsetHeight - parseFloat(getComputedStyle(copy).bottom);
+    const top0 = Math.max(66, 0.075 * H);
+    const avail = copyTop - top0;
+    const gw = Math.min(0.66 * W, 286, ((avail * 0.42) * GATE.w) / GATE.h);
+    const gh = (gw * GATE.h) / GATE.w;
+    const gate = q(".bjw-gate");
+    gate.style.width = `${gw}px`;
+    const gateEnd = { x: W * 0.55 - gw / 2, y: top0 };
+    const rb = poseBox("rear", 51);
+    const unit = rb.width / REAR.w; // rear-pose units → px at scale 1
+    const bs = Math.max(0.9, Math.min(1.28, avail / 430)); // the bird's settled scale
+    const above = 45 * unit * bs; // head centre (rear pose y 45) → top of the pose
+    const below = (REAR.h - 45) * unit * bs;
+    const free = copyTop - 14 - (gateEnd.y + gh) - (above + below);
+    const birdEnd = { x: W * 0.43, y: gateEnd.y + gh + free * 0.6 + above, scale: bs };
+
     // where it starts: exactly the cover's resting bird (Reference 02's slot)
     const slotX = W / 2 - 0.5 - RESTING.w / 2;
     const slotY = H / 2 - 37.12 - 120.5;
-    const startAt = { x: slotX + 48.5, y: slotY + 27, scale: 1 };
-    // where it ends: centre-left, under ২০২৭, a touch larger
-    const endAt = { x: W * 0.4, y: H * 0.43, scale: 1.34 };
+    const birdStart = { x: slotX + 48.5, y: slotY + 27, scale: 1 };
 
-    // ── the camera: one value, every world layer follows it at its depth ──
-    const cam = { x: 0, y: 0 };
-    const camEnd = { x: -0.16 * W, y: 0.95 * H };
+    // ── the camera: one value; every layer is placed from it at its depth ──
+    const cam = { y: 0 };
+    const camEnd = 1.75 * H;
     const far = q(".bjw-far");
     const digits = q(".bjw-digits");
-    const next = q(".bjw-2027");
-    // ২০২৭ lives in the same world, above and to the right: placed so the camera brings it to the upper right
-    // (high in the frame, but always clear of the progress bar and close control)
-    const nextCy = Math.max(0.17 * H, 64 + next.offsetHeight * 0.42);
-    const nextAt = { x: W * 0.6 - next.offsetWidth / 2 - camEnd.x * DEPTH.next, y: nextCy - next.offsetHeight / 2 - camEnd.y * DEPTH.next };
+    const clouds = qa<HTMLElement>(".bjw-cloud").map((c, i) => ({ el: c, ...CLOUDS[i] }));
+    const gateY0 = gateEnd.y - camEnd * DEPTH.gate;
     const frame = () => {
-      far.style.transform = `translate3d(${(cam.x * DEPTH.far).toFixed(1)}px, ${(cam.y * DEPTH.far).toFixed(1)}px, 0)`;
-      digits.style.transform = `translate3d(${(cam.x * DEPTH.digits).toFixed(1)}px, ${(cam.y * DEPTH.digits).toFixed(1)}px, 0)`;
-      next.style.transform = `translate3d(${(nextAt.x + cam.x * DEPTH.next).toFixed(1)}px, ${(nextAt.y + cam.y * DEPTH.next).toFixed(1)}px, 0)`;
+      const e = cam.y / camEnd;
+      far.style.transform = `translate3d(0, ${(cam.y * DEPTH.far).toFixed(1)}px, 0)`;
+      digits.style.transform = `translate3d(0, ${(cam.y * DEPTH.digits).toFixed(1)}px, 0)`;
+      clouds.forEach((c) => (c.el.style.transform = `translate3d(${(c.x * W).toFixed(1)}px, ${(c.y * H + cam.y * c.depth).toFixed(1)}px, 0)`));
+      // the gateway: far away (slow) and a little smaller until the bird nears it
+      const sc = 0.64 + 0.36 * Math.pow(e, 1.6);
+      gate.style.transform = `translate3d(${gateEnd.x.toFixed(1)}px, ${(gateY0 + cam.y * DEPTH.gate).toFixed(1)}px, 0) scale(${sc.toFixed(4)})`;
     };
 
-    // the front pose's moving parts (resting-pose units)
+    const bird = q(".bjw-bird");
+    const front = q(".bjw-front");
+    const rear = q(".bjw-rear");
     const head = q<SVGGElement>(".bjw-front .bl-head");
     const pupils = qa<SVGPathElement>(".bjw-front .bl-eyeL path:nth-child(n+3), .bjw-front .bl-eyeR path:nth-child(2), .bjw-front .bl-eyeR path:nth-child(3)");
-    const rWingL = q<SVGGElement>(".bjw-rear .bl-wingL");
-    const rWingR = q<SVGGElement>(".bjw-rear .bl-wingR");
-    const rTail = q<SVGGElement>(".bjw-rear .bl-tail");
-    const P = PIVOT;
+    const lineSpan = q(".bjw-line > span");
+    const actionsEl = q(".bjw-actions");
+
+    // the flight system (the opening's), on the rear pose; airflow anchors follow the bird
+    let flight: ReturnType<typeof createFlight> | null = null;
+    const startFlight = (state: Partial<{ speed: number; amp: number; trail: number; pitch: number }>) => {
+      flight?.stop();
+      flight = createFlight({
+        rig: bird,
+        pose: "rear",
+        tilt: q<HTMLElement>(".bjw-rear-tilt"),
+        trails: q<SVGSVGElement>(".bjw-air"),
+        frame: () => ({ W, H, f }),
+        state,
+        anchor: (ax, ay) => {
+          const bx = Number(gsap.getProperty(bird, "x"));
+          const by = Number(gsap.getProperty(bird, "y"));
+          const S = Number(gsap.getProperty(bird, "scale"));
+          return [bx + (rb.left + ax * unit) * S, by + (rb.top + ay * unit) * S, S * unit];
+        },
+      });
+      return flight.state;
+    };
+    const HOVER = { speed: 0.1, amp: 9, trail: 0.12, pitch: 3 };
 
     const final = () => {
-      cam.x = camEnd.x;
-      cam.y = camEnd.y;
+      cam.y = camEnd;
       frame();
-      gsap.set(bird, { ...endAt, opacity: 1 });
+      gsap.set(bird, { ...birdEnd, opacity: 1 });
       gsap.set(front, { opacity: 0 });
       gsap.set(rear, { opacity: 1 });
       gsap.set(far, { opacity: 1 });
-      gsap.set([q(".bjw-line > span"), q(".bjw-actions")], { clearProps: "transform,opacity" });
+      gsap.set([lineSpan, actionsEl], { clearProps: "transform,opacity" });
     };
 
     if (still) {
@@ -216,94 +227,110 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
 
     // ── initial state ──
     frame();
-    gsap.set(bird, { ...startAt, opacity: 0 });
+    gsap.set(bird, { ...birdStart, opacity: 0 });
     gsap.set(front, { opacity: 1 });
     gsap.set(rear, { opacity: 0 });
     gsap.set(far, { opacity: 0 });
-    gsap.set(q(".bjw-line > span"), { yPercent: 150 });
-    gsap.set(q(".bjw-actions"), { opacity: 0, y: 18 });
+    gsap.set(lineSpan, { yPercent: 150 });
+    gsap.set(actionsEl, { opacity: 0, y: 18 });
+    qa<HTMLElement>(".bjw-digits .bj-dgm").forEach((m, i) => {
+      const [ox, oy] = DIGITS[i].out;
+      gsap.set(m, { x: ox * 0.42 * W, y: oy * 0.3 * H });
+    });
 
     const tl = gsap.timeline({ onComplete: () => finish() });
 
-    // A — the marksheet clears (only when we came from it), the badge last
+    // A — the marksheet recedes as one artifact (only when we came from it)
     const ms = fromMarksheet ? el.closest(".story")?.querySelector<HTMLElement>(".slide.ms") : null;
-    // everything this timeline touches on Screen 10, so it can be handed back intact
-    const msTouched: HTMLElement[] = ms ? [...ms.querySelectorAll<HTMLElement>(".ms-foot, .bt, .bn-foot, .bn-strip, .bn-head, .bn-type, .bn-badge, .bento, .ms-card")] : [];
+    const msTouched: HTMLElement[] = ms ? [...ms.querySelectorAll<HTMLElement>(".ms-card, .ms-title, .ms-foot")] : [];
     const restoreMarksheet = () => {
       if (!ms?.isConnected) return;
       gsap.killTweensOf(msTouched);
-      gsap.set(msTouched, { clearProps: "opacity,transform,backgroundColor,backgroundImage,boxShadow" });
+      gsap.set(msTouched, { clearProps: "opacity,transform" });
     };
     if (ms) {
       const g = (s: string) => [...ms.querySelectorAll<HTMLElement>(s)];
-      tl.to(g(".ms-foot"), { opacity: 0, y: 10, duration: C.msFoot.dur, ease: "sine.in" }, C.msFoot.at);
-      const groups = [g('.bt-slot[data-row="pair"] > .bt, .bn-foot'), g('.bt-slot[data-row="hero"] > .bt, .bn-strip'), g(".bt-id > .bn-head, .bt-id > .bn-type")];
-      groups.forEach((grp, i) => {
-        // each group sinks back and away together (out of focus), the lower chapters first
-        if (grp.length) tl.to(grp, { opacity: 0, y: 44, scale: 0.94, duration: C.msGroups[i].dur, ease: "power2.in" }, C.msGroups[i].at);
-      });
-      // the identity tile's violet thins away; its badge goes a beat later
-      tl.to(g(".bt-id"), { backgroundColor: "rgba(0,0,0,0)", backgroundImage: "none", duration: 0.001 }, C.msGroups[2].at);
-      tl.fromTo(g(".bt-id"), { boxShadow: "inset 0 0 0 999px rgba(87, 58, 160, 0.9)" }, { boxShadow: "inset 0 0 0 999px rgba(87, 58, 160, 0)", duration: C.msGroups[2].dur, ease: "power2.in" }, C.msGroups[2].at);
-      tl.to(g(".bn-badge"), { opacity: 0, scale: 0.9, duration: C.msBadge.dur, ease: "power2.in" }, C.msBadge.at);
-      // the emptied card frame (its edge) goes with the last of its content
-      tl.to(g(".ms-card"), { opacity: 0, duration: 0.14, ease: "sine.in" }, C.msBadge.at + C.msBadge.dur - 0.1);
-      tl.to(g(".bento"), { backgroundColor: "rgba(11, 15, 74, 0)", duration: C.msGround.dur, ease: "sine.inOut" }, C.msGround.at);
-      tl.to(g(".ms-card"), { boxShadow: "0 18px 40px rgba(10, 12, 60, 0)", duration: C.msGround.dur, ease: "sine.inOut" }, C.msGround.at);
+      tl.to(g(".ms-foot, .ms-title"), { opacity: 0, duration: 0.22, ease: "sine.in" }, C.ms.at);
+      tl.to(g(".ms-card"), { scale: 0.84, y: -0.04 * H, opacity: 0, transformOrigin: "50% 40%", duration: C.ms.dur, ease: "power2.in" }, C.ms.at);
     }
 
-    // B — the Cover world returns: the digits slide back in from their corners; the bird lands
-    qa<HTMLElement>(".bjw-digits .bj-dgm").forEach((m, i) => {
-      const [ox, oy] = DIGITS[i].out;
-      tl.fromTo(m, { x: ox * 0.42 * W, y: oy * 0.3 * H }, { x: 0, y: 0, duration: C.digitsIn.dur, ease: "power3.out" }, C.digitsIn.at + i * 0.03);
-    });
+    // B — the Cover world: the stars, the four ২০২৬ digits slide home, the bird takes its place
     tl.to(far, { opacity: 1, duration: C.decor.dur, ease: "sine.out" }, C.decor.at);
-    tl.fromTo(bird, { opacity: 0, y: startAt.y + 26 }, { opacity: 1, y: startAt.y, duration: C.birdIn.dur, ease: "power2.out" }, C.birdIn.at);
-    tl.set(front, { transformOrigin: "50% 100%" }, C.land.at);
-    tl.to(front, { keyframes: { scaleY: [1, 0.94, 1], scaleX: [1, 1.04, 1], easeEach: "sine.inOut" }, duration: C.land.dur, ease: "none" }, C.land.at);
+    qa<HTMLElement>(".bjw-digits .bj-dgm").forEach((m, i) => {
+      tl.to(m, { x: 0, y: 0, duration: C.digitsIn.dur, ease: "power3.out" }, C.digitsIn.at + i * 0.04);
+    });
+    tl.fromTo(bird, { opacity: 0, y: birdStart.y + 22 }, { opacity: 1, y: birdStart.y, duration: C.birdIn.dur, ease: "power2.out" }, C.birdIn.at);
 
-    // C — it notices ২০২৭: eyes, then head, then the body turns
+    // C — it notices where it's going: eyes, head, then the body turns and the wings open
     tl.to(pupils, { x: 1.4, y: -1.6, duration: C.gaze.dur, ease: "power2.out" }, C.gaze.at);
-    tl.set(head, { svgOrigin: `${P.resting.neck![0]} ${P.resting.neck![1]}` }, 0);
-    tl.to(head, { rotation: 6, x: 1, duration: C.head.dur, ease: "sine.inOut" }, C.head.at);
+    tl.set(head, { svgOrigin: `${PIVOT.resting.neck![0]} ${PIVOT.resting.neck![1]}` }, 0);
+    tl.to(head, { rotation: 7, x: 1, duration: C.head.dur, ease: "sine.inOut" }, C.head.at);
+    const fs = { speed: 0, amp: 0, trail: 0, pitch: 0 };
+    tl.call(() => Object.assign(fs, startFlight({ speed: 0, amp: 0, trail: 0, pitch: 0 })), [], C.turn.at - 0.02);
     tl.to(rear, { opacity: 1, duration: C.turn.dur, ease: "none" }, C.turn.at);
     tl.to(front, { opacity: 0, duration: C.turn.dur, ease: "none" }, C.turn.at + 0.04);
-    // the rear pose's wings open a little from just-folded; the tail answers the turn
-    tl.fromTo(rWingL, { rotation: 10, svgOrigin: `${P.rear.wingL![0]} ${P.rear.wingL![1]}` }, { rotation: 0, duration: C.wings.dur, ease: "power2.out" }, C.wings.at);
-    tl.fromTo(rWingR, { rotation: -12, svgOrigin: `${P.rear.wingR![0]} ${P.rear.wingR![1]}` }, { rotation: 0, duration: C.wings.dur, ease: "power2.out" }, C.wings.at);
-    tl.fromTo(rTail, { rotation: 0, svgOrigin: `${P.rear.tail![0]} ${P.rear.tail![1]}` }, { keyframes: { rotation: [0, 6, -3, 0], easeEach: "sine.inOut" }, duration: C.tail.dur, ease: "none" }, C.tail.at);
+    const open = { a: 0 };
+    tl.to(open, {
+      a: 1,
+      duration: C.open.dur,
+      ease: "sine.inOut",
+      onUpdate: () => {
+        if (flight) Object.assign(flight.state, { amp: 10 * open.a, trail: 0.15 * open.a, speed: 0.04 });
+      },
+    }, C.open.at);
 
-    // D — the camera follows its gaze; the bird stays in frame, settling under ২০২৭
-    tl.to(cam, { x: camEnd.x, y: camEnd.y, duration: C.camera.dur, ease: "power2.inOut", onUpdate: frame }, C.camera.at);
-    tl.to(bird, { x: endAt.x, y: endAt.y, scale: endAt.scale, duration: C.camera.dur, ease: "power2.inOut" }, C.camera.at);
+    // D + E — the flight: one progress value drives the speed, the camera and the bird
+    const prof = climbProfile();
+    const fl = { u: 0 };
+    const lift = 0.07 * H; // the bird leads: it rises off its place before the camera catches up
+    tl.to(fl, {
+      u: 1,
+      duration: C.flight.dur,
+      ease: "none",
+      onUpdate: () => {
+        const u = fl.u;
+        const v = prof.v(u);
+        cam.y = camEnd * prof.E(u);
+        frame();
+        if (flight) Object.assign(flight.state, { speed: v, amp: 10 + 14 * v, trail: 0.15 + 0.75 * v, pitch: 3 + 5 * v });
+        // the bird's place in frame: up off the cover (leading), then easing down into its settled place
+        const k = gsap.parseEase("sine.inOut")(Math.min(1, u / 0.3));
+        const m = gsap.parseEase("power2.inOut")(Math.max(0, (u - 0.18) / 0.82));
+        const y = birdStart.y - lift * k * (1 - m) + (birdEnd.y - birdStart.y) * m;
+        const x = birdStart.x + (birdEnd.x - birdStart.x) * gsap.parseEase("sine.inOut")(u);
+        gsap.set(bird, { x, y, scale: birdStart.scale + (birdEnd.scale - birdStart.scale) * gsap.parseEase("sine.inOut")(u) });
+      },
+    }, C.flight.at);
 
     // F — the closing line, then the actions
-    tl.to(q(".bjw-line > span"), { yPercent: 0, duration: C.line.dur, ease: "expo.out" }, C.line.at);
-    tl.to(q(".bjw-actions"), { opacity: 1, y: 0, duration: C.actions.dur, ease: "power2.out" }, C.actions.at);
+    tl.to(lineSpan, { yPercent: 0, duration: C.line.dur, ease: "expo.out" }, C.line.at);
+    tl.to(actionsEl, { opacity: 1, y: 0, duration: C.actions.dur, ease: "power2.out" }, C.actions.at);
     tl.set({}, {}, C.end);
 
     let done = false;
-    let idle: (() => void) | null = null;
     function finish() {
       if (done) return;
       done = true;
       tl.progress(1);
       tl.kill();
       final();
-      idle = startIdle(el);
+      // it keeps flying in place: a slow hover beat, the air almost still
+      if (!flight) startFlight(HOVER);
+      else Object.assign(flight.state, HOVER);
+      setPlaying(false);
     }
     // Leaving early (e.g. a quick tap back to 10 while it is still mounted): stop, and give Screen 10 back as it was.
     ctl.current = {
       stop: () => {
         tl.kill();
-        idle?.();
+        flight?.stop();
         restoreMarksheet();
       },
       finish,
     };
     return () => {
       tl.kill();
-      idle?.();
+      flight?.stop();
     };
     // the entry is fixed for this mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -329,9 +356,16 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
   return (
     <div ref={root} className="slide bj bjw">
       <p className="bjw-sr">{COPY.close.prdLine}</p>
-      {/* the world the camera moves through (Reference 02's Cover world + the next checkpoint) */}
+      {/* the world the camera moves through: the Cover world below, the gateway far above */}
       <div className="bjw-far" aria-hidden="true">
         <img className="bj-decor" src="/assets/journey/cover-decorations.svg" alt="" />
+        <img className="bj-decor bjw-decor-2" src="/assets/journey/cover-decorations.svg" alt="" />
+      </div>
+      {CLOUDS.map((c, i) => (
+        <img key={i} className="bjw-cloud" src={`/assets/journey/${c.src}.svg`} alt="" aria-hidden="true" style={{ width: `${c.w * 100}cqw` }} />
+      ))}
+      <div className="bjw-gate" aria-hidden="true">
+        <Gateway year="২০২৭" />
       </div>
       <div className="bjw-digits" aria-hidden="true">
         {DIGITS.map((d) => (
@@ -342,9 +376,12 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
           </div>
         ))}
       </div>
-      <span className="bjw-2027" aria-hidden="true">
-        ২০২৭
-      </span>
+
+      <svg className="bjw-air" aria-hidden="true">
+        <path />
+        <path />
+        <path />
+      </svg>
 
       {/* the bird: its head centre is the anchor; both poses are placed around it at one head size */}
       <div className="bjw-bird" aria-hidden="true">
@@ -352,7 +389,9 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
           <BirdPose pose={RESTING} name="resting" />
         </div>
         <div className="bjw-pose bjw-rear" style={{ left: rb.left, top: rb.top, width: rb.width, height: rb.height }}>
-          <BirdPose pose={REAR} name="rear" />
+          <div className="bjw-rear-tilt">
+            <BirdPose pose={REAR} name="rear" />
+          </div>
         </div>
       </div>
 
@@ -367,6 +406,7 @@ export function ExperimentalBirdJourneyClosing({ actions }: ScreenProps<"close">
           />
         </div>
       </div>
+      {playing && <button type="button" className="bj-skip" aria-label="এগিয়ে যাও" onClick={() => ctl.current?.finish()} />}
     </div>
   );
 }

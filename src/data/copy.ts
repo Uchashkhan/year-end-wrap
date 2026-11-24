@@ -112,6 +112,8 @@ export const COPY = {
 
   marksheet: {
     headline: "তোমার ২০২৬, এক খাতায়",
+    /** The screen's title above the card — Figma 121:5084 (Nov 24). */
+    title: "তোমার ২০২৬",
     /** PRD Screen 10 proposed closing line (exact). */
     closing: "দারুণ একটা বছর কাটিয়েছ — ২০২৭ হোক আরও বড়।",
     privacy: "কার্ডে তোমার নাম, স্কুল বা র‍্যাংক থাকে না।",
@@ -133,6 +135,8 @@ export const COPY = {
     line: ["২০২৬ এখানেই শেষ।", "২০২৭-এ আবার দেখা হবে।"],
     primary: "শেখা চালিয়ে যাও",
     secondary: "আবার শেয়ার করো",
+    /** The primary action once a recommended program is shown (Nov 24 brief). */
+    enroll: "প্রোগ্রামে ভর্তি হও",
   },
 
   freshStart: {

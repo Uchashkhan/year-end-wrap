@@ -6,6 +6,8 @@ export interface ScreenActions {
   next: () => void;
   exitToHome: () => void;
   share: (kind: ShareKind) => void;
+  /** Open a recommended program's enrolment (the closing's course card). */
+  openProgram: (url: string) => void;
 }
 
 export type ScreenProps<T extends Slide["id"]> = {

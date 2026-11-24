@@ -35,7 +35,7 @@ const CONCEPT: Record<V, string> = {
 
 const REVIEW_PROFILES = ["high", "limited", "longName", "noName", "moderate"];
 
-const noop = { next() {}, exitToHome() {}, share() {} };
+const noop = { next() {}, exitToHome() {}, share() {}, openProgram() {} };
 
 function Phone({ id, profileId, device }: { id: V; profileId: string; device: DeviceId }) {
   const plan = composeStory(getProfile(profileId).record, { teacherSlideEnabled: true });

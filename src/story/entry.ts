@@ -341,7 +341,7 @@ export const ASSEMBLE = {
  * world returns; the bird turns toward ২০২৭ and the camera follows. ≈ 2.15 s.
  */
 export const ONWARD = {
-  /** Screen 10 stays mounted while its card clears. */
-  out: 0.5,
+  /** Screen 10 stays mounted while its card recedes (the closing's Phase A, 0–0.6 s). */
+  out: 0.62,
   lockMs: 1300,
 } as const;

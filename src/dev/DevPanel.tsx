@@ -1,4 +1,5 @@
 import type { JourneyMode } from "../journey/journeyMode";
+import { MARKSHEET_DESIGNS, type MarksheetDesign } from "../marksheet/design";
 import { PROFILES } from "../data/profiles";
 import type { StoryPlan } from "../data/compose";
 import { BADGES, CAPSTONE } from "../data/copy";
@@ -24,6 +25,8 @@ export interface DevSettings {
   cover: CoverVariant;
   /** Dev-only comparison: the approved Cover + Closing, or the experimental Bird Journey pair. */
   journey: JourneyMode;
+  /** Dev-only comparison for Screen 10: the approved Chapter Bento, or Marksheet V2-A / V2-B. */
+  marksheet: MarksheetDesign;
 }
 
 interface Props {
@@ -139,7 +142,25 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
               </button>
             ))}
           </div>
-          <span className="dev-note">Bird Journey: experimental cover (01) and 2027 closing (11); everything else unchanged.</span>
+          <span className="dev-note">Bird Journey: experimental cover (01) and its closing (11) — the bird flies on through the sky to the ২০২৭ checkpoint.</span>
+        </div>
+        <div className="dev-field">
+          Marksheet (10)
+          <div className="dev-seg" role="radiogroup" aria-label="Marksheet design">
+            {MARKSHEET_DESIGNS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                role="radio"
+                aria-checked={settings.marksheet === m.id}
+                className={`dev-seg-btn ${settings.marksheet === m.id ? "is-on" : ""}`}
+                onClick={() => set("marksheet", m.id)}
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
+          <span className="dev-note">V2: static in-app card with the student's identity; the share export drops it. Side by side: ?view=marksheet</span>
         </div>
         <label className="dev-field">
           Cover (01)

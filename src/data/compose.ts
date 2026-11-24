@@ -7,7 +7,7 @@
  */
 import { BADGE_RULES, CAPSTONE_RULE, DEFAULT_ORDER, RULES } from "./config";
 import { BADGES, COPY, LEARNER_TYPES, SUBJECTS } from "./copy";
-import type { LearnerTypeId, SubjectId, WrapRecord } from "./types";
+import type { LearnerTypeId, NextProgram, SubjectId, WrapRecord } from "./types";
 import { bn as bnNum, hoursFromSeconds } from "../lib/bangla";
 
 export type BadgeId = keyof typeof BADGES;
@@ -30,8 +30,8 @@ export type Slide =
       activeDays: number;
       streak: number | null;
     }
-  | { id: "marksheet"; rows: MarksheetRow[]; type: LearnerTypeId; badges: BadgeId[]; capstone: boolean; name: string | null; facts: MarksheetFacts }
-  | { id: "close" }
+  | { id: "marksheet"; rows: MarksheetRow[]; type: LearnerTypeId; badges: BadgeId[]; capstone: boolean; name: string | null; facts: MarksheetFacts; owner: MarksheetOwner }
+  | { id: "close"; program: NextProgram | null }
   | { id: "freshCover"; name: string | null }
   | { id: "freshClose" };
 
@@ -53,6 +53,18 @@ export interface MarksheetFacts {
   type: { id: LearnerTypeId; assigned: boolean };
   badges: BadgeId[];
   capstone: boolean;
+}
+
+/**
+ * Who the card belongs to — for the PRIVATE in-app marksheet only (Marksheet V2's
+ * identity header). Kept apart from MarksheetFacts so the export, which is
+ * built from the facts alone, can never carry it.
+ */
+export interface MarksheetOwner {
+  name: string | null;
+  className: string | null;
+  group: string | null;
+  photoUrl: string | null;
 }
 
 export interface MarksheetRow {
@@ -232,10 +244,12 @@ export function composeStory(r: WrapRecord, opts: ComposeOptions): StoryPlan {
     badges,
     capstone,
   };
-  built.set("marksheet", { id: "marksheet", rows, type, badges, capstone, name, facts });
+  const owner: MarksheetOwner = { name, className: clean(r.student.className), group: clean(r.student.group), photoUrl: clean(r.student.photoUrl) };
+  built.set("marksheet", { id: "marksheet", rows, type, badges, capstone, name, facts, owner });
 
   // 11 Close
-  built.set("close", { id: "close" });
+  // the recommended next program, when the service has one (else the original ending)
+  built.set("close", { id: "close", program: r.nextProgram ?? null });
 
   const order = opts.order ?? DEFAULT_ORDER;
   return {

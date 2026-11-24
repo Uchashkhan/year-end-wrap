@@ -14,13 +14,17 @@
 }
 .ms-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 /* the card's space: under the progress bar and close button, above the actions */
-.ms-stage { flex: 1; min-height: 0; margin: max(58px, 7.4cqh) 0 0; padding: 0 5cqw; display: grid; place-items: center; }
-.ms-card { position: relative; overflow: hidden; border-radius: calc(40px * 0.36); box-shadow: 0 18px 40px rgba(10, 12, 60, 0.35); }
+/* 12 px side margins: the card is 388 wide at the 412 reference */
+/* Figma 120:2007: the title (Title 32-Bold) 29 above the card; the card 385 wide (13.5 margins) */
+.ms-stage { flex: 1; min-height: 0; margin: 47px 0 0; padding: 0 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+.ms-title { margin: 0; font-weight: 700; font-size: 32px; line-height: 1.5; color: #fff; text-align: center; flex: none; }
+.ms-card { position: relative; overflow: hidden; flex: none; }
 .ms-card .bento { position: absolute; left: 0; top: 0; }
 .ms-id-ground { position: absolute; inset: 0; border-radius: inherit; background: var(--g-id); transform-origin: 72% 34%; }
 
 /* a quiet ink scrim under the actions: the periwinkle's light band would leave white text at ~3:1 */
-.ms-foot { flex: none; padding: 12px 7cqw max(18px, 2.6cqh); display: flex; flex-direction: column; align-items: stretch; gap: 6px; background: linear-gradient(180deg, rgba(11, 15, 74, 0.38) 0%, rgba(11, 15, 74, 0.56) 30%, rgba(11, 15, 74, 0.64) 100%); }
+/* Figma 121:5090: the two actions, 354 wide (28.84 margins), 20 apart */
+.ms-foot { flex: none; padding: 0 7cqw 15px; display: flex; flex-direction: column; align-items: stretch; gap: 20px; }
 .ms-privacy { margin: 0 0 4px; text-align: center; font-size: 13px; line-height: 1.5; color: #fff; }
 .ms-primary {
   height: 48px;
@@ -40,8 +44,9 @@
 .ms-secondary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 @container (max-height: 720px) {
-  .ms-stage { margin-top: 50px; }
-  .ms-foot { gap: 2px; padding-bottom: 12px; }
+  .ms-stage { margin-top: 48px; gap: 14px; }
+  .ms-title { font-size: 26px; }
+  .ms-foot { gap: 8px; padding: 14px 7cqw 12px; }
   .ms-privacy { font-size: 12px; margin-bottom: 2px; }
 }
 
@@ -51,3 +56,4 @@
 .ms.is-pre .bt-id { background: none; }
 .ms.is-pre :is(.bt:not(.bt-id), .bn-strip, .bn-foot, .ms-foot) { opacity: 0; }
 .ms.is-pre .bt-id > :is(.bn-head, .bn-type) { opacity: 0; }
+.ms.is-pre .ms-title { opacity: 0; }

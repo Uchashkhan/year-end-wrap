@@ -144,7 +144,7 @@ function StampDemo() {
 export function DirectionBoard() {
   const plan = composeStory(getProfile("high").record, { teacherSlideEnabled: true });
   const fresh = composeStory(getProfile("fresh").record, { teacherSlideEnabled: true });
-  const noop = { next() {}, exitToHome() {}, share() {} };
+  const noop = { next() {}, exitToHome() {}, share() {}, openProgram() {} };
   const deck = [...plan.slides, ...fresh.slides];
 
   return (

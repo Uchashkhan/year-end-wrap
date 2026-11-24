@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { usePresence } from "motion/react";
+import { animate, usePresence, type AnimationPlaybackControls } from "motion/react";
 import gsap from "gsap";
 import { COPY } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
+import { SKY_HANDOFF, useNav } from "../story/entry";
 import type { ScreenProps } from "../screens/types";
 import { BirdPose, BirdRig, EYES, MARKS_AT, REST_BOX, RESTING } from "./BirdCharacter";
 import { createFlight, type Cloud } from "./flight";
@@ -17,6 +18,8 @@ const DIGITS = [
   { id: "br", ch: "৬" },
 ] as const;
 const MARKER_INK = "#3b2f9e";
+/** The approved cover's fade curve (CoverFigma FADE), for the shared cover → 02 exit. */
+const FADE = [0.2, 0, 0.4, 1] as const;
 /** The approved cover's per-digit float (CoverFigma): periods (s), start delay, direction. */
 const FLOAT = [
   { py: 6.4, px: 9.1, delay: 0.9, dir: 1 },
@@ -121,7 +124,8 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
     const S1 = RESTING.w / REST_BOX.w;
     const end = { x: slotX - REST_BOX.x * S1, y: slotY - REST_BOX.y * S1, scale: S1 };
     // in flight: Reference 01's place — centred, at Figma size
-    const cruise = { x: W / 2 - (200.173 / 2) * f, y: H * 0.5 - 83.5 * f, scale: f };
+    // (the flying pose's own box: Figma 983:1722, 200.173 × 152.315)
+    const cruise = { x: W / 2 - (200.173 / 2) * f, y: H * 0.5 - (152.315 / 2) * f, scale: f };
     gsap.set(rig, cruise);
 
     // ── clouds ──
@@ -143,7 +147,7 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
     // (away from the bird, never across it) ──
     const markers = qa<HTMLElement>(".bj-yr");
     const sp = 0.4 * H;
-    const landC = cruise.y + 83.5 * f;
+    const landC = cruise.y + (152.315 / 2) * f;
     const c0 = (-0.12 * H - landC) / sp;
     const place = (c: number) =>
       markers.forEach((m, i) => {
@@ -221,7 +225,7 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
     tl.to(fly, { opacity: 0, duration: J.cross.dur, ease: "none" }, J.cross.at + 0.05);
 
     // the cover settles: decorations, title (rising in its masks), support, start
-    tl.to(q(".bj-decor"), { opacity: 1, duration: J.decor.dur, ease: "sine.out" }, J.decor.at);
+    tl.to(qa(".bj-decor, .bj-scrim, .bj-bird-light"), { opacity: 1, duration: J.decor.dur, ease: "sine.out" }, J.decor.at);
     tl.to(q(".bj-head > span"), { y: 0, duration: J.head.dur, ease: "expo.out" }, J.head.at);
     tl.to(q(".bj-year > span"), { y: 0, duration: J.year.dur, ease: "expo.out" }, J.year.at);
     tl.to(q(".bj-support"), { opacity: 1, duration: J.support.dur, ease: "sine.out" }, J.support.at);
@@ -236,7 +240,7 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
       flight.stop();
       gsap.killTweensOf(moves);
       // the resting frame is CSS: clear what the journey set, then leave flight mode
-      [...moves, ...markers, ...qa(".bj-dg"), q(".bj-decor"), q(".bj-head > span"), q(".bj-year > span"), q(".bj-support"), q(".bj-cta")].forEach((n) => gsap.set(n, { clearProps: "all" }));
+      [...moves, ...markers, ...qa(".bj-dg"), q(".bj-decor"), ...qa(".bj-scrim, .bj-bird-light"), q(".bj-head > span"), q(".bj-year > span"), q(".bj-support"), q(".bj-cta")].forEach((n) => gsap.set(n, { clearProps: "all" }));
       setFlying(false);
     }
     ctl.current = { stop: () => { tl.kill(); flight.stop(); }, finish };
@@ -255,6 +259,7 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
   //   bird    blinks every few seconds (sometimes twice), and now and then a
   //           sudden little hop: anticipation, spring, land, settle — the
   //           excitement ticks pop as it leaves the ground
+  const ambient = useRef<(() => void) | null>(null);
   useEffect(() => {
     const el = root.current;
     if (still || flying || !el) return;
@@ -310,7 +315,14 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
     };
     later(0.9, blink);
     later(1.6, hop);
+    // Stop in place (the cover → 02 exit starts each digit from where its float has it).
+    ambient.current = () => {
+      ctx.kill();
+      timers.forEach((x) => x.kill());
+      gsap.killTweensOf([bird, ...eyes, marks].filter(Boolean));
+    };
     return () => {
+      ambient.current = null;
       ctx.revert();
       timers.forEach((x) => x.kill());
       gsap.killTweensOf([bird, ...eyes, marks].filter(Boolean));
@@ -320,19 +332,71 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
     };
   }, [still, flying]);
 
-  // Leaving: stop; removal is immediate. Revived before removal: the final cover.
+  // Leaving. To Screen 02 ("sky", forward) it plays the approved cover's exit,
+  // with the same choreography and constants (SKY_HANDOFF) on this cover's own
+  // parts: the centre content (the resting bird, title, support) and the start
+  // control fade and lift; each corner digit leaves from where its float has
+  // it, straight out from the frame's centre just far enough to clear its own
+  // edges (never regrouping) while it fades. 02 reveals on the same cue it uses
+  // after the approved cover. Any other exit is immediate. Revived before
+  // removal: the final cover.
+  const nav = useNav();
   const wasLeaving = useRef(false);
   useEffect(() => {
     if (isPresent) {
       if (wasLeaving.current) {
         wasLeaving.current = false;
         ctl.current?.finish();
+        // undo a started cover → 02 exit (the parts it moved and faded)
+        const r = root.current;
+        if (r) {
+          animate([...r.querySelectorAll(".bj-center > :not(.bj-bird-light), .bj-cta > *, .bj-decor, .bj-float")], { opacity: 1, x: 0, y: 0, scale: 1 }, { duration: 0 });
+          animate([...r.querySelectorAll(".bj-scrim, .bj-bird-light")], { opacity: 1 }, { duration: 0 });
+        }
       }
       return;
     }
     wasLeaving.current = true;
     ctl.current?.stop();
-    safeToRemove?.();
+    const el = root.current;
+    if (nav.kind !== "sky" || flying || still || !el) {
+      safeToRemove?.();
+      return;
+    }
+    ambient.current?.();
+    const H = SKY_HANDOFF;
+    const D = H.digitsOut;
+    const frame = el.getBoundingClientRect();
+    const fcx = frame.left + frame.width / 2;
+    const fcy = frame.top + frame.height / 2;
+    const anims: AnimationPlaybackControls[] = [];
+    // (their children: .bj-center and .bj-cta are centred by their own translate)
+    anims.push(animate([...el.querySelectorAll(".bj-center > :not(.bj-bird-light), .bj-cta > *")], { opacity: 0, y: -H.contentLift }, { duration: H.contentFade, ease: FADE }));
+    anims.push(animate([...el.querySelectorAll(".bj-decor, .bj-scrim, .bj-bird-light")], { opacity: 0 }, { duration: H.contentFade + 0.15, ease: FADE }));
+    el.querySelectorAll<HTMLElement>(".bj-float").forEach((f) => {
+      const g = f.querySelector<HTMLElement>(".bj-glyph");
+      if (!g) return;
+      const range = document.createRange();
+      range.selectNodeContents(g);
+      const r = range.getBoundingClientRect();
+      let dx = r.left + r.width / 2 - fcx;
+      let dy = r.top + r.height / 2 - fcy;
+      const len = Math.hypot(dx, dy) || 1;
+      dx /= len;
+      dy /= len;
+      const outX = dx < 0 ? (r.right - frame.left) / -dx : (frame.right - r.left) / dx;
+      const outY = dy < 0 ? (r.bottom - frame.top) / -dy : (frame.bottom - r.top) / dy;
+      const dist = Math.min(outX, outY);
+      const m = new DOMMatrix(getComputedStyle(f).transform); // the float's current offset
+      anims.push(animate(f, { x: [m.e, m.e + dx * dist], y: [m.f, m.f + dy * dist], scale: [1, 1.04] }, { duration: D.dur, delay: D.at, ease: D.ease }));
+      anims.push(animate(f, { opacity: [1, 0] }, { duration: D.dur - D.fadeAt, delay: D.at + D.fadeAt, ease: FADE }));
+    });
+    const t = window.setTimeout(() => safeToRemove?.(), H.coverOut * 1000);
+    return () => {
+      anims.forEach((a) => a.stop());
+      clearTimeout(t);
+    };
+    // nav and the cover's state are read at the moment it starts leaving
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPresent]);
 
@@ -341,6 +405,8 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
       {/* the flight's world (Reference 01) */}
       <div className="bj-sky" aria-hidden="true" />
       <img className="bj-decor" src="/assets/journey/cover-decorations.svg" alt="" aria-hidden="true" />
+      {/* the approved cover's contrast for the centre (CoverFigma .cf-scrim) */}
+      <i className="bj-scrim" aria-hidden="true" />
       <div className="bj-years" aria-hidden="true">
         {YEARS.map((y, i) => (
           <span key={y} className={`bj-yr bj-yr-${i}`}>
@@ -386,6 +452,8 @@ export function ExperimentalBirdJourneyCover({ actions }: ScreenProps<"cover">) 
 
       {/* Reference 02's centred stack: the resting bird, the title, the support line */}
       <div className="bj-center">
+        {/* the approved cover's faint cool light behind the mascot (CoverFigma .cf-bird-light) */}
+        <i className="bj-bird-light" aria-hidden="true" />
         <div className="bj-slot" aria-hidden="true">
           <BirdPose pose={RESTING} name="resting" />
         </div>

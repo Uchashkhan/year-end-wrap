@@ -3,7 +3,8 @@
  * alternative to the approved Cover (CoverFigma) and Closing; those are untouched.
  *
  * Final cover = Figma Smart Class (R) 980:1442 (Reference 02, 412 × 852):
- * Soft Violet ground (the story background, background.ts), its decorations,
+ * the approved cover's ground (COVER_BG — Deep Indigo, with its centre scrim and
+ * the faint light behind the mascot; Nov 24) in place of Reference 02's Soft Violet, its decorations,
  * the four oversized year digits, the resting bird over "শিখোতে তোমার / ২০২৬",
  * the support line and the start control. --u is one Figma unit (1/412 width);
  * the top digits pin to the top edge, the bottom ones to the bottom edge.
@@ -41,9 +42,9 @@
 .bj-air path { fill: none; stroke: #ffffff; stroke-linecap: round; opacity: 0; }
 
 /* ── the bird rig (BirdCharacter): flying units, scaled by GSAP ── */
-.bj-rig { position: absolute; left: 0; top: 0; width: 200.173px; height: 167px; transform-origin: 0 0; will-change: transform; z-index: 6; pointer-events: none; }
+.bj-rig { position: absolute; left: 0; top: 0; width: 200.173px; height: 152.315px; transform-origin: 0 0; will-change: transform; z-index: 6; pointer-events: none; }
 .bj-rig-tilt { position: absolute; inset: 0; transform-origin: 53.6% 49%; }
-.bj-fly { position: absolute; left: 0; top: 0; width: 200.173px; height: 167px; display: block; }
+.bj-fly { position: absolute; left: 0; top: 0; width: 200.173px; height: 152.315px; display: block; }
 .bj-rest { position: absolute; opacity: 0; }
 .bj-rest svg { display: block; width: 100%; height: 100%; }
 .bird .bl-beats { opacity: 0; }
@@ -80,6 +81,27 @@
   z-index: 4;
 }
 .bj-slot { width: 88.6821px; height: 100px; flex: none; }
+
+/* The approved cover's contrast touches (cover-figma.css .cf-scrim / .cf-bird-light),
+   the light sized to the mascot (≈ 2× its width, like the logo's) and centred on it. */
+.bj-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 62% 30% at 50% 50%, rgba(8, 11, 52, 0.34) 0%, rgba(8, 11, 52, 0.16) 55%, rgba(8, 11, 52, 0) 100%);
+}
+.bj-bird-light {
+  position: absolute;
+  left: 50%;
+  top: 50px;
+  width: 180px;
+  height: 150px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(150, 178, 255, 0.2) 0%, rgba(150, 178, 255, 0.07) 60%, rgba(150, 178, 255, 0) 100%);
+}
 .bj-slot svg { display: block; width: 100%; height: 100%; }
 .bj-copy { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .bj-title { margin: 0; font: inherit; width: 200px; display: flex; flex-direction: column; align-items: center; }
@@ -132,32 +154,29 @@
 /* ── states ── */
 .bj:not(.bjc):not(.is-flying) :is(.bj-sky, .bj-years, .bj-clouds, .bj-air, .bj-rig) { display: none; }
 .bj.is-flying .bj-slot { visibility: hidden; }
-.bj.is-flying :is(.bj-dg, .bj-decor, .bj-cta, .bj-support) { opacity: 0; }
+.bj.is-flying :is(.bj-dg, .bj-decor, .bj-scrim, .bj-bird-light, .bj-cta, .bj-support) { opacity: 0; }
 .bj.is-flying .bj-mask > span { transform: translateY(150%); }
 
-/* ════════ the 2027 closing — "The Journey Continues" (ExperimentalBirdJourneyClosing) ════════
-   One world the camera moves through: the Cover world (Reference 02's decorations
-   and year digits, at their cover places) and, above and to the right, ২০২৭.
-   Layers move at their own depth; the story chrome is outside and never moves. */
+/* ════════ the closing — "The Next Checkpoint" (ExperimentalBirdJourneyClosing) ════════
+   One world the camera moves through: the Cover world (its stars and ২০২৬
+   digits) below, faint clouds on the way up, the ২০২৭ gateway far above.
+   Each layer is placed from one camera value at its own depth; the story
+   chrome is outside and never moves. */
 .bjw-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 .bjw-far,
 .bjw-digits { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
-.bjw-2027 {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: calc(112 * var(--u));
-  font-weight: 700;
-  line-height: 1.3;
-  color: #f3be28;
-  white-space: nowrap;
-  padding: 0.3em 0.12em 0.1em;
-  pointer-events: none;
-  will-change: transform;
-}
+.bjw-far .bjw-decor-2 { top: -95%; transform: scaleX(-1); }
+.bjw-cloud { position: absolute; left: 0; top: 0; height: auto; opacity: 0.13; pointer-events: none; will-change: transform; }
+.bjw-gate { position: absolute; left: 0; top: 0; transform-origin: 50% 0; pointer-events: none; will-change: transform; }
+.bjw-gate-art { display: block; width: 100%; height: auto; overflow: visible; }
+.bjw-gate-year { font-family: var(--f-bn); font-weight: 800; font-size: 60px; fill: #f9c531; letter-spacing: -0.01em; }
+/* the airflow (flight.ts, rear pose) */
+.bjw-air { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 4; }
+.bjw-air path { fill: none; stroke: #ffffff; stroke-linecap: round; opacity: 0; }
 /* the bird's anchor is its head centre; the poses are placed around it (poseBox) */
 .bjw-bird { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; z-index: 5; pointer-events: none; }
 .bjw-pose { position: absolute; }
+.bjw-rear-tilt { width: 100%; height: 100%; transform-origin: 50% 45%; }
 .bjw-pose svg { display: block; width: 100%; height: 100%; overflow: visible; }
 /* the closing line and the approved actions */
 .bjw-copy { position: absolute; left: 7cqw; right: 7cqw; bottom: max(24px, 3.4cqh); display: flex; flex-direction: column; gap: 22px; z-index: 7; }
@@ -167,3 +186,33 @@
   .bjw-line { font-size: 21px; }
   .bjw-copy { gap: 14px; }
 }
+
+/* ════════ the closing — "Sky flight" (ExperimentalBirdJourneyClosingSky; Journey: Bird Journey · Sky) ════════
+   The opening's sky, clouds and flying rig, straight from the marksheet. The sky
+   deepens toward the bottom so the closing words keep their contrast; the clouds
+   thin out there for the same reason. */
+.bjs-sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #c4e2ff 0%, #cce5fc 40%, #7fa9ee 62%, #4a6fd2 80%, #3557bf 100%);
+}
+.bjs .bj-clouds { -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 74%); mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 74%); }
+.bjs-check { position: absolute; left: 0; top: 0; transform-origin: 50% 0; will-change: transform; z-index: 2; }
+.bjs-check-art { display: block; width: 100%; height: auto; overflow: visible; }
+.bjs-check-year { font-family: var(--f-bn); font-weight: 800; font-size: 66px; fill: #f9c531; letter-spacing: -0.01em; }
+.bjs .bj-air { z-index: 5; }
+.bjs .bj-rig { z-index: 6; }
+.bjs-copy { position: absolute; left: 7cqw; right: 7cqw; bottom: max(24px, 3.4cqh); display: flex; flex-direction: column; gap: 22px; z-index: 7; }
+.bjs-line { margin: -0.35em -0.1em -0.1em; padding: 0.35em 0.1em 0.1em; overflow: hidden; font: inherit; font-size: 24px; line-height: 1.45; font-weight: 700; text-align: center; text-wrap: balance; color: #fff; }
+.bjs-line > span { display: block; }
+@container (max-height: 720px) {
+  .bjs-line { font-size: 21px; }
+  .bjs-copy { gap: 14px; }
+}
+/* the course reveal: the program's banner (whole, 1280 : 598) above the primary action; the
+   primary label swaps in place (two labels stacked in one cell) */
+.bjs-card-slot { position: relative; overflow: hidden; border-radius: 14px; flex: none; }
+.bjs-card { display: block; width: 100%; height: auto; aspect-ratio: 1280 / 598; border-radius: 14px; }
+.bjs-cta { display: inline-grid; overflow: hidden; vertical-align: middle; }
+.bjs-cta > span { grid-area: 1 / 1; display: block; }

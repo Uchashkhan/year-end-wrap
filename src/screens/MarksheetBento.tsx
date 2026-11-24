@@ -3,7 +3,7 @@ import { useAnimate, usePresence } from "motion/react";
 import { COPY, LEARNER_TYPES } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { ASSEMBLE, ONWARD, useEntry, useNav } from "../story/entry";
-import { BentoCard, CARD_H, CARD_W } from "../marksheet/Bento";
+import { MS_W, MarksheetCard, marksheetLayout } from "../marksheet/MarksheetCard";
 import type { ScreenProps } from "./types";
 import "../styles/marksheet-screen.css";
 
@@ -39,16 +39,25 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
   const [s, setS] = useState(0);
   const ctl = useRef<{ stop: () => void } | null>(null);
 
-  // The card's scale: as large as the stage allows, at 9 : 16.
+  // The card's scale: as large as the stage allows (1 at the 412 × 852 reference).
+  const cardH = marksheetLayout(slide.facts).height;
   useLayoutEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const fit = () => setS(Math.min(el.clientWidth / CARD_W, el.clientHeight / CARD_H));
+    // clientWidth includes the stage's side padding (the 12 px margins)
+    const fit = () => {
+      const cs = getComputedStyle(el);
+      const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      // the title and its gap sit above the card, unscaled (Figma 121:5089: 48 + 29)
+      const title = el.querySelector<HTMLElement>(".ms-title")?.offsetHeight ?? 48;
+      const gap = parseFloat(cs.rowGap) || 29;
+      setS(Math.min(w / MS_W, (el.clientHeight - title - gap) / cardH));
+    };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [cardH]);
 
   useEffect(() => {
     const root = scope.current;
@@ -63,8 +72,7 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
       if (el && (!Array.isArray(el) || el.length)) segs.push([el, kf, { at, duration: d, ease }]);
     };
 
-    add(card, { backgroundColor: ["rgba(11, 15, 74, 0)", "rgba(11, 15, 74, 1)"] }, A.ground.at, A.ground.dur, "linear");
-    add(root.querySelector(".ms-card"), { boxShadow: ["0 18px 40px rgba(10, 12, 60, 0)", "0 18px 40px rgba(10, 12, 60, 0.35)"] }, A.ground.at, A.ground.dur + 0.1, "linear");
+    add(card, { backgroundColor: ["rgba(15, 31, 89, 0)", "rgba(15, 31, 89, 1)"] }, A.ground.at, A.ground.dur, "linear");
 
     // the badge: out of 09's place (when there), into the identity tile
     const from = fromType ? root.closest(".story")?.querySelector<HTMLElement>(".slide.lt .lt-badge") : null;
@@ -91,7 +99,7 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
     id.prepend(ground);
     add(ground, { opacity: [0, 1], scale: [0.94, 1] }, A.identity.at, A.identity.dur);
     // the chapters, in three groups
-    const g1 = [...q(".bn-strip"), ...q('.bt-slot[data-row="hero"] > .bt')];
+    const g1 = [...q(".bn-strip, .ms-title"), ...q('.bt-slot[data-row="hero"] > .bt')];
     const g2 = q('.bt-slot[data-row="pair"] > .bt');
     const g3 = q(".bn-foot");
     [g1, g2, g3].forEach((g, i) => add(g, { opacity: [0, 1], y: [36, 0] }, A.groups[i].at, A.groups[i].dur));
@@ -123,8 +131,8 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
       if (wasLeaving.current && scope.current) {
         wasLeaving.current = false;
         const done = { duration: 0 };
-        animate(".bento", { backgroundColor: "rgba(11, 15, 74, 1)" }, done);
-        animate(".bt, .bn-strip, .bn-foot, .bn-head, .bn-type, .ms-foot, .ms-id-ground", { opacity: 1, x: 0, y: 0, scale: 1 }, done);
+        animate(".bento", { backgroundColor: "rgba(15, 31, 89, 1)" }, done);
+        animate(".bt, .bn-strip, .ms-title, .bn-foot, .bn-head, .bn-type, .ms-foot, .ms-id-ground", { opacity: 1, x: 0, y: 0, scale: 1 }, done);
         animate(".lt-badge-art", { opacity: 1, x: 0, y: 0, scale: 1 }, done);
       }
       return;
@@ -150,13 +158,15 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
       </p>
       <div ref={stage} className="ms-stage" aria-hidden="true">
         {s > 0 && (
-          <div className="ms-card" style={{ width: CARD_W * s, height: CARD_H * s }}>
-            <BentoCard facts={f} variant="a" style={{ transform: `scale(${s})`, transformOrigin: "0 0" }} />
+          <>
+          <h2 className="ms-title">{COPY.marksheet.title}</h2>
+          <div className="ms-card" style={{ width: MS_W * s, height: cardH * s, borderRadius: 15 * s }}>
+            <MarksheetCard facts={f} style={{ transform: `scale(${s})`, transformOrigin: "0 0" }} />
           </div>
+          </>
         )}
       </div>
       <div className="ms-foot">
-        <p className="ms-privacy">{COPY.marksheet.privacy}</p>
         <button type="button" className="ms-primary" onClick={() => actions.share("marksheet")}>
           {COPY.marksheet.primary}
         </button>

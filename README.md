@@ -33,6 +33,70 @@ pnpm typecheck
 ## Milestones
 - [x] **M1 Functional foundation.** Story engine, conditional composition, Fresh Start, home banner states, share stub, dev controls, reduced motion, repeat view, small-device layout.
 - [x] **M2 Visual direction (proposed, awaiting sign-off).** “তোমার খাতা”: the deck is one notebook. Navy cover board (01, 11, Fresh) → ruled paper pages (02–09) → certificate (10). Magenta typographic stamp for the learner type, reused on 09/10. Die-cut gold stickers for badges; the capstone is inverted navy+gold. Type scale with Bangla line heights. Motion tiers T0–T3. Screen *compositions* are unchanged from M1.
+- [x] **Bird Journey closing, "Sky flight" (Nov 24).** This is now **Bird Journey's** closing, merged; there is no separate option, and `?journey=sky` maps to `bird`. The closing is `ExperimentalBirdJourneyClosingSky.tsx`; Current is untouched.
+  - **Course recommendation reveal (Nov 24):** automatic, no tap. On the same master timeline, the settled ending holds about 1.5 s; then over 6.45–7.35 the recommended program's banner (its own artwork, whole, 1280 : 598) slides up directly above the primary action.
+    - **Making room:** the line and the bird rise together and the checkpoint eases a little smaller. The bird keeps flying and the clouds keep drifting.
+    - **Primary action:** it turns into "প্রোগ্রামে ভর্তি হও" (`COPY.close.enroll`), and its destination switches with the label (`actions.openProgram(url)`). "আবার শেয়ার করো" stays.
+    - **Data:** `WrapRecord.nextProgram` → the close slide's `program`. With none, the original ending and CTA stay. The mock profiles derived from "high" have the SSC 28 · Class 9 · Science banner; moderate / limited have none.
+    - **Taps and motion:** a tap during the flight skips to the ending, and the reveal still follows on its own. Reduced motion shows the revealed frame, still.
+    - **Smoothness:** the banner is decoded at mount, and the CTA switch avoids a re-render, so there are no mid-reveal stalls (max frame gap 17 ms in the recording).
+  - **Previous closing:** the Next Checkpoint closing (`ExperimentalBirdJourneyClosing.tsx`, `Gateway.tsx`) is no longer wired in; its files remain for reference.
+  - **Flow:** marksheet → straight into the opening's sky with the flying bird already climbing → the ২০২৭ checkpoint comes into view → the line and actions. No Cover callback and no ২০২৬ composition. About 4.95 s on one master GSAP timeline:
+    - **0–0.6:** the marksheet recedes as one artifact.
+    - **0.04–0.46:** the sky comes up under it.
+    - **0.34–1.3:** the bird rises into frame mid-climb.
+    - **0.2–4.3:** the climb.
+    - **3.0–4.3:** the bird eases into its place.
+    - **4.3–4.95:** the copy.
+  - **Reuse:** the opening's sky, clouds (recycled), flying rig and `createFlight`. One speed value (cruise, then a long ease to a steady beat) drives the wingbeat, lift, tail, airflow, cloud parallax and the checkpoint. The checkpoint sits at a far depth (0.3), placed by the same travelled distance, and grows 0.72 → 1 as it nears.
+  - **Settled frame:** the bird keeps flying (a slower beat, clouds drifting) below the checkpoint, never reaching it.
+  - **Sky:** it deepens toward the bottom and the clouds thin out there, so the white closing words keep their contrast. Close-screen ground stays periwinkle in this mode.
+  - **Checkpoint (`SkyCheckpoint.tsx`):** a ২০২৭ milestone marker in the sky: a deep violet plaque with a yellow inner frame and a yellow ExtraBold ২০২৭, between two flag poles with pennants, under a bunting string (Shikho blue, magenta and yellow), resting on a flat cloud bank.
+  - **Controls:** tap to skip to the settled frame. Reduced motion / repeat view show the settled frame, still.
+  - **Review:** `review/m48/`.
+- [x] **Bird Journey closing v3, "The Next Checkpoint" (Nov 24; experiment, Bird Journey mode only).** `ExperimentalBirdJourneyClosing.tsx` is rewritten; the previous turn-and-pan timeline, the static ২০২৭ text and the perched idle are removed.
+  - **Story:** Marksheet → the ২০২৬ Cover world → the bird turns → it flies → ২০২৬ falls away → the ২০২৭ gateway approaches → the bird hovers short of it → the closing line and actions. About 4.95 s on one master GSAP timeline:
+    - **A, 0–0.6:** the marksheet recedes as one artifact (`ONWARD.out` 0.62).
+    - **B, 0.45–1.2:** the Cover world returns (stars, digits, front bird).
+    - **C, 1.15–1.7:** gaze, head, turn to the rear pose, the wings open.
+    - **D + E, 1.55–4.4:** the flight.
+    - **F, 4.3–4.95:** the line, then the actions.
+  - **Flight:** `flight.ts` now flies the rear pose too (`createFlight({ pose: "rear" })`): the same wingbeat cycle, lift, lean, tail and airflow, with the wings within the joints' safe range (+22° … −14°). One progress value drives the speed profile (accelerate → cruise → long deceleration to a hover), the camera, the wingbeat, the airflow and the bird's place in frame.
+  - **World:** one camera value places every layer at its depth: stars 0.35, gateway 0.55 (scaling 0.64 → 1 as it nears), clouds 0.95–1.3, ২০২৬ digits 1.3. The story chrome never moves.
+  - **The Gateway (`Gateway.tsx`):** a flat geometric arch in three bands (yellow rim, violet, blue), with capitals, keystone and plinth, a faintly lit opening, and ২০২৭ in Baloo ExtraBold yellow.
+  - **Final frame:** gateway above, bird hovering below it (never reaching it), words below; sizes are computed from the copy's height.
+  - **Controls:** tap to skip to the settled frame. Reduced motion / repeat view show the settled frame, still.
+  - **Review:** `review/m47/`.
+- [x] **Marksheet = Figma 120:2007 (Nov 24).** Screen 10 is now built to the Figma frame, with exact positions, sizes, gradients, type styles and gaps.
+  - **Screen:** the title "তোমার ২০২৬" (Title 32-Bold) 29 px above the card. The card is #0f1f59, 385 × 558, radius 15, padding 16, two 174 columns, 5 gap. The actions sit 20 apart at y 798.
+  - **Card:** no student header, closing line or privacy note (per Figma), so the in-app card and the export are the same card.
+  - **Type:** the learner-type name and the best-day date use Noto Sans Bengali Bold 22 (added to the font link); numerals are Baloo Bold 700.
+  - **Verified:** at 412 × 915 the card lands at y 182 and the actions at 798, as in Figma; a pixel diff leaves only 1–2 px font-metric differences.
+  - **Conditional layouts** are unchanged. Four or five earned tags wrap, and the identity grows 26.
+  - **Enlarged to use the screen (Nov 24):** card 385 → 392 (10 px margins), padding 12, gap 6, rows 128 / 126 + 126 / 104 / 104 (558 → 636 tall); title gap 22.
+    - **Type:** study 56, live/quiz 32, video 30, subject/teacher 21, type name 25, date 24, labels 13.
+    - **Art:** up in proportion with the same anchoring: clock 228, chairs 122, rails 128, player 70, icon 74, portrait 88 × 110, calendar 78.
+  - **Review:** `review/m46/`.
+- [x] **Marksheet, finalized structure (Nov 24): the default Screen 10 card is now `marksheet/MarksheetCard.tsx` (`styles/marksheet-card.css`).** It keeps the original Chapter Bento's look (navy container, each chapter's own ground, yellow figures, each screen's own art) on the agreed arrangement.
+  - **Arrangement:** header (avatar, name, class; shikho / Wrap ২০২৬) → learner identity (badge, label, type, earned tags) → study (tall, the oversized clock) beside live + quiz → video | subject → teacher | best day → closing line.
+  - **Geometry:** the 412 × 852 reference, one CSS grid: a 388 container, 16 padding, two 174 columns, 8 gap, 20 / 14 radii, 12 card padding. Rows are 44 / 120 / 108 + 108 / 88 / 88 / 20.
+  - **Art:** Screen 02's clock (bottom-anchored, cropped); 03's hall cropped to its front rows (`HallArt fromRow`, no glow); 05's rails; 06's player; 07's subject icon; 04's portrait (or its neutral bust); 08's calendar with the day lit; 09's LearnerBadge.
+  - **Absent chapters:** the grid closes up. Study's partner grows to full height; live + quiz share a row; a lone card spans; small cards pair in order, and an odd one goes wide.
+  - **Export:** `MarksheetExport` puts the card without its owner on a 1080 × 1920 navy frame. The header becomes "তোমার ২০২৬, এক খাতায়" with the logo; there's no photo, name, class or group.
+  - **Motion:** the 09 → 10 assembly (MarksheetBento) is unchanged; the card keeps its class hooks, and the header joins the first group.
+  - **Previous versions:** the previous Chapter Bento is at `?view=marksheet&one=bento`; V2-A / V2-B stay in the dev switch.
+  - **Review:** `review/m45/`.
+- [x] **Marksheet V2, "Refined Bento" (Nov 24): two static explorations beside the approved card, not replacing it.**
+  - **Switch:** the dev panel's Marksheet (10) control, or `?ms=current|v2a|v2b`. `?view=marksheet&p=<profile>` shows all three side by side, each V2 both in-app and as the export; `&one=v2a&export=1` renders one card at its native 1080 × 1920.
+  - **Files:** `marksheet/BentoV2.tsx` (card and layout), `marksheet/art2.tsx` (compact memories), `styles/bento-v2.css`, `screens/MarksheetV2.tsx`, `marksheet/design.ts`. The current card, its screen and its 09 → 10 assembly are untouched; with V2 selected, 09 → 10 is a plain step (V2 is static by brief).
+  - **Grid:** six columns at 1080 × 1920; 42 margin, 21 gutter, 42 radius, 36 tile padding (14 / 7 / 14 / 12 at 360 wide). V2-B uses 46 / 24 / 38 / 40.
+  - **Reading order:** identity header → learner type (featured, earned badges inside it) → study (tall, the hero figure) beside live + quiz → video (wide) → subject + peak day → teacher (wide) → footer (closing line).
+  - **Art per tile:** Screen 02's clock rising from the tile's foot; 03's chair, two rows, your yellow front-row seat; 05's A–D answer rails; 06's watchline (four playback tiles, the yellow watched line); 07's own subject icon; 08 reduced to the one week holding the day (the date is the headline); 04's portrait large, or 04's neutral bust when there's none; 09's LearnerBadge (still replaceable).
+  - **Looks:** A, Bold Graphic: deep navy ground, flat colour per tile (light cyan study, deep blue live, lavender quiz, blue video, pink subject, yellow peak day, violet teacher), magenta avatar ring. B, Refined Editorial: pale paper ground, white and light-tint tiles, the learner type as the one dark anchor, lighter numerals, wider spacing.
+  - **Identity (private, in-app only):** profile photo (`student.photoUrl`, new; the mock profiles use a placeholder avatar), else the name's first grapheme. Then name (one line, fitted; over 16 letters it wraps to two), and "দশম শ্রেণি, বিজ্ঞান বিভাগ" (class alone for Classes 6–8). No name → the Wrap ২০২৬ title header, never an empty avatar.
+  - **Export:** the same design built without `MarksheetOwner` (kept apart from `MarksheetFacts`). The header becomes "তোমার ২০২৬, এক খাতায়" with the logo, and there is no photo, name, class or group. Verified in the share sheet's DOM.
+  - **Conditional layout:** rows exist only for chapters the story had; rows share the height by weight, and the learner-type tile absorbs the rest. A short story makes it a centred medal; lone tiles go wide. Checked: high, moderate, limited, capstone, very long name, missing name, no live and tied subject.
+  - **Review:** `review/m44/`.
 - [x] **M2b Screen 01 Cover (designed + entrance motion).** Left-aligned composition: mark → mascot band (flexes, shrinks first) → headline + gold ২০২৬ → journal label (নাম · শ্রেণি · বিভাগ, V2 labels) → support line. New reusable pieces: `components/JournalLabel.tsx`, `components/Entrance.tsx` (rise/fade/write beats, reduced-motion safe), `MOTION.entrance` in `lib/motion.ts`. Also fixed the close (×) button, which wasn't receiving taps (shared navigation).
 - [x] **M2c Cover explorations: Bold & Energetic** (`?view=covers`). Three static Screen 01 directions on Shikho DS 1.1 tokens: A Typographic Impact, B Playful Geometry, C Editorial Celebration. Switch one into the live prototype with the dev panel's *Cover (01)* select or `?cover=a|b|c`; the default stays the current cover. Files: `src/explore/`. Year weight 800 and display sizes above Title 36 are a flagged extension of Baloo Da 2. Superseded by M2d; A/B/C kept as archive.
 - [x] **M2d Cover: Your Year, Unfolded** (`?view=covers`, default view; `?cover=u` in the prototype). One art-directed static cover: an accordion-folded magenta sheet printed with ২০২৬, pleated at lower-left and opening to a flat panel off the right edge. Depth is fold geometry only (foreshortening, shear, darker DS step on turned faces); no shadows or 3D transforms. Files: `src/explore/CoverUnfolded.tsx`, `src/explore/unfolded.css`. Awaiting approval before animation (the unfold is the natural entrance). Archived (`?cover=u`).
@@ -212,7 +276,16 @@ pnpm typecheck
 - [~] **EXPERIMENT — "Bird Journey" opening and closing** (Nov 23; dev-only alternative). The approved Cover (`CoverFigma`) and Closing (`Close`) are untouched.
   - **Switch:** in the dev panel, "Opening & closing: Current | Bird Journey". It is persisted with the dev settings; `?journey=bird` also works.
     - **Current:** the approved screens and behaviour, including the cover → 02 hand-over.
-    - **Bird Journey:** swaps only Screens 01 and 11. The story background under them becomes Reference 02's Soft Violet. The cover uses a normal exit, because the approved hand-over belongs to the approved cover.
+    - **Bird Journey:** swaps only Screens 01 and 11. The story background under them is the approved cover's Deep Indigo (see Cover ground below).
+    - **Cover ground (Nov 24):** the Bird Journey cover now sits on the approved cover's ground (`COVER_BG`, Deep Indigo) instead of Reference 02's Soft Violet.
+      - **Contrast touches:** it also has the approved cover's two: the soft scrim behind the centre (`.bj-scrim`), and the faint cool light behind the mascot (`.bj-bird-light`, sized to the bird). Both fade in as the cover settles, and out on the hand-over to 02.
+      - **Closing:** the 2027 closing's Cover world uses the same ground, so its callback still reads as the cover.
+    - **Cover → 02 (Nov 24):** the Bird Journey cover now plays the approved cover's hand-over to 02, with the same choreography and `SKY_HANDOFF` constants on its own parts.
+      - **Content:** the resting bird, title, support and start control fade and lift.
+      - **Digits:** each corner digit leaves from its current float offset, straight out from the frame's centre just past its nearest edge, fading.
+      - **Background and 02:** the background shifts to 02's colour, and 02 reveals on its usual cue.
+      - **Other exits:** any other exit is immediate.
+      - **Verified:** recorded side by side with Current; the frames match.
     - The student-facing default is always "Current"; the switch lives only in the prototype's dev shell.
   - **Sources:** Figma Smart Class (R) `ymvbwOoxZvLjuM6S23QJ8l`.
     - **Reference 01 (980:1332):** the flying bird (980:1341), the #cce5fc sky, three clouds and the cloud bank (`public/assets/journey/`).
@@ -231,6 +304,14 @@ pnpm typecheck
     - **Airflow:** three light SVG streams flowing down from under the wings and the tail. Their length, flow and opacity follow speed.
     - **Clouds:** parallax at different depths, re-entering at the edges to keep the middle clear.
     - No filters, blur, glow, 3D or particles.
+  - **Figma wingbeat (Nov 23):** the flight now plays the supplied Figma motion (Smart Class (R), timeline 983:1716) on the bird it was made for, node 983:1722.
+    - **Pose:** the flying pose is now that version (`birdParts.ts`, 200.173 × 152.315). Its 43 layers are verbatim, each placed by a translate. The wings are painted behind the body, so no joint can open; the old wing underlay is gone.
+    - **Pivots:** Figma's own transform origins. Every piece of a wing shares one shoulder point: left (70.517, 50.709), right (143.2, 50.88) in the group.
+    - **Wingbeat (`WINGBEAT`, `flight.ts`):** the JSON's keyframes. A 500 ms cycle; the wings go 0 → 48° in 180 ms (ease-in, cubic-bezier .42,0,1,1) and back in 320 ms (ease-out, 0,0,.58,1). The bird rises 6 px by 240 ms (ease-in-out) and settles by 500 ms.
+    - **Speed:** at full climb it plays at exactly that rate and stroke; as the bird slows, the cycle slows to 60 % and the stroke shrinks with `amp`.
+    - **White strokes:** they flick as the wings reach the top instead of standing still. Static, they detach from the wings at the 48° peak.
+    - **Turn:** before the swap the wings fold down (±62°) behind the body.
+    - **Verified:** at 0°, 24° and 48° the rig matches a replay of the JSON on the Figma layers. Live flight and the arrival turn were recorded.
   - **Pass 3, cover (`ExperimentalBirdJourneyCover.tsx`):** one GSAP timeline, ≈ 3.95 s.
     - **Flight:** a speed profile (already climbing, a slight mid-way surge, a long smooth slow-down) moves one year track: ২০২০ → ২০২৫ pass downward in order.
     - **Arrival:** ২০২৬ lands at the bird's own height, and the earlier years fade. The sky turns to violet and the clouds thin out.

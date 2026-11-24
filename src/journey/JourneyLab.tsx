@@ -15,7 +15,6 @@ export function JourneyLab() {
   return (
     <div style={{ display: "flex", gap: 24, padding: 24, background: "#fff", alignItems: "flex-start" }}>
       {cell(FLYING.w, FLYING.h, <BirdPose pose={FLYING} name="flying" className="lab-svg" />)}
-      {cell(FLYING.w, FLYING.h, <img src="/assets/journey/_ref-flying.svg" style={{ width: "100%", height: "100%", display: "block" }} alt="" />)}
       {cell(RESTING.w, RESTING.h, <BirdPose pose={RESTING} name="resting" className="lab-svg" />)}
       {cell(RESTING.w, RESTING.h, <img src="/assets/journey/_ref-resting.svg" style={{ width: "100%", height: "100%", display: "block" }} alt="" />)}
       {cell(REAR.w, REAR.h, <BirdPose pose={REAR} name="rear" className="lab-svg" />)}
@@ -52,9 +51,9 @@ function RearRotated({ a }: { a: number }) {
   );
 }
 
-/** Seam check: the flying pose at 4×, its wings at rest and through the downstroke (the flight's own angles and pivots). */
+/** Seam check: the flying pose (Figma 983:1722) at 4×, its wings at rest and through the Figma stroke (0°, 24°, 48°) about its pivots. */
 function SeamCheck() {
-  const angles = [0, -12, -24];
+  const angles = [0, -24, -48];
   return (
     <div style={{ display: "flex", gap: 16, flex: "none" }}>
       {angles.map((a) => (
@@ -69,7 +68,7 @@ function Rotated({ a }: { a: number }) {
     const L = ref.current?.querySelector(".bl-wingL");
     const R = ref.current?.querySelector(".bl-wingR");
     L?.setAttribute("transform", `rotate(${a} ${PIVOT.flying.wingL![0]} ${PIVOT.flying.wingL![1]})`);
-    R?.setAttribute("transform", `rotate(${-a * 0.93} ${PIVOT.flying.wingR![0]} ${PIVOT.flying.wingR![1]})`);
+    R?.setAttribute("transform", `rotate(${-a} ${PIVOT.flying.wingR![0]} ${PIVOT.flying.wingR![1]})`);
   }, [a]);
   return (
     <div ref={ref} className="seam-cell" style={{ width: FLYING.w * 4, height: FLYING.h * 4, background: "#cce5fc", flex: "none" }}>

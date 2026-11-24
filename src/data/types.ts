@@ -36,6 +36,8 @@ export interface WrapRecord {
     /** Already-localised labels from the profile service. */
     className: string | null; // e.g. "দশম"
     group: string | null; // e.g. "বিজ্ঞান"
+    /** Profile photo from the profile service. null/absent → the name's initial. Never exported. */
+    photoUrl?: string | null;
   };
 
   /** Distinct days with any learning activity in the reporting window. */
@@ -76,8 +78,24 @@ export interface WrapRecord {
   /** Server-assigned (cohort z-score). Absent for Fresh Start students. */
   learnerType: LearnerTypeId | null;
 
+  /**
+   * The student's recommended next program (from the recommendation service).
+   * null/absent → no recommendation: the closing keeps its original ending and CTA.
+   */
+  nextProgram?: NextProgram | null;
+
   /** Truthful percentile for the capstone rarity line; null → scarcity framing only. */
   capstonePercentile: number | null;
+}
+
+export interface NextProgram {
+  id: string;
+  /** Display name (used as the banner's alt text). */
+  name: string;
+  /** The program's own banner artwork (1280 × 598 here); shown as-is, never cropped. */
+  bannerUrl: string;
+  /** Where "প্রোগ্রামে ভর্তি হও" leads (the program's enrolment page / deep link). */
+  url: string;
 }
 
 export interface MockProfile {

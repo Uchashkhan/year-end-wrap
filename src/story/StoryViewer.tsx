@@ -7,10 +7,11 @@ import { usePrefs } from "../lib/prefs";
 import { ProgressBar } from "./ProgressBar";
 import { MOTION } from "../lib/motion";
 import { coverSurface, useCoverVariant } from "../explore/variant";
-import { useJourney } from "../journey/journeyMode";
+import { isBirdJourney, useJourney } from "../journey/journeyMode";
+import { useMarksheetDesign } from "../marksheet/design";
 import { ANSWER, WATCH, TAKEOVER, DAYLINE, ASSEMBLE, ONWARD, EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
 import { StoryBackground } from "./StoryBackground";
-import { SCREEN_BACKGROUND, bgTransition } from "./background";
+import { COVER_BG, SCREEN_BACKGROUND, bgTransition } from "./background";
 
 const TAP_BACK_ZONE = 0.3; // left 30% = back (Stories convention)
 const SWIPE_X = 48;
@@ -65,7 +66,8 @@ const SLIDE_VARIANTS = {
 };
 
 /** Slides joined by the bespoke 01 → 02 → 03 hand-overs and in-place cross-fades. */
-const onSky = (id: string, coverVariant: string) => id === "study" || id === "live" || (id === "cover" && coverVariant === "current");
+// The Bird Journey cover (dev-only) shares the approved cover's hand-over to 02.
+const onSky = (id: string, coverVariant: string) => id === "study" || id === "live" || (id === "cover" && (coverVariant === "current" || coverVariant === "bird"));
 /** Slides drawn over the shared background: all of them except archived cover explorations. */
 const onBg = (id: string, coverVariant: string) => id !== "cover" || coverVariant === "current" || coverVariant === "bird";
 
@@ -83,13 +85,15 @@ interface Props {
 export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvance, paused }: Props) {
   const { reduced } = usePrefs();
   const journey = useJourney();
+  // Marksheet V2 (dev comparison) is static for now: 09 → 10 is an ordinary step, not the badge assembly.
+  const marksheetDesign = useMarksheetDesign();
   const chosenCover = useCoverVariant();
   // Bird Journey (dev-only): its own cover, so the approved cover's hand-over is not used.
-  const coverVariant = journey === "bird" ? "bird" : chosenCover;
+  const coverVariant = isBirdJourney(journey) ? "bird" : chosenCover;
   const slides = plan.slides;
   const slide = slides[index];
   // Chrome tone only: a light-ground cover exploration needs dark progress/close.
-  const surface = slide.id === "cover" ? (journey === "bird" ? "cover" : coverSurface(chosenCover)) : SURFACE[slide.id];
+  const surface = slide.id === "cover" ? (isBirdJourney(journey) ? "cover" : coverSurface(chosenCover)) : SURFACE[slide.id];
   const last = slides.length - 1;
 
   // Direction + entry kind are derived from the index change itself, so taps,
@@ -120,9 +124,9 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
               ? "takeover"
             : step && from?.id === "subject" && slide.id === "peakDay"
               ? "dayline"
-            : step && from?.id === "learnerType" && slide.id === "marksheet"
+            : step && from?.id === "learnerType" && slide.id === "marksheet" && marksheetDesign === "current"
               ? "assemble"
-            : step && from?.id === "marksheet" && slide.id === "close" && journey === "bird"
+            : step && from?.id === "marksheet" && slide.id === "close" && isBirdJourney(journey)
               ? "onward"
             : bothSky
               ? "fade"
@@ -243,7 +247,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
 
       {/* Persistent background: never unmounts while the story is open, so its twinkle never restarts. */}
       <div className="story-bg">
-        <StoryBackground variant={journey === "bird" && (slide.id === "cover" || slide.id === "close") ? "soft-violet" : SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
+        <StoryBackground variant={isBirdJourney(journey) && slide.id === "cover" ? COVER_BG : SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
       </div>
 
       <NavCtx.Provider value={nav.current}>

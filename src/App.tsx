@@ -1,6 +1,8 @@
 import { JourneyCtx, journeyFromUrl } from "./journey/journeyMode";
 import { JourneyLab } from "./journey/JourneyLab";
 import { BentoLab } from "./marksheet/BentoLab";
+import { MarksheetLab } from "./marksheet/MarksheetLab";
+import { MarksheetDesignCtx, marksheetDesignFromUrl } from "./marksheet/design";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { composeStory } from "./data/compose";
@@ -26,6 +28,7 @@ const DEFAULTS: DevSettings = {
   device: "390x844",
   cover: "current",
   journey: "current",
+  marksheet: "current",
 };
 
 function loadSettings(): DevSettings {
@@ -53,6 +56,7 @@ export default function App() {
   if (view === "direction") return <DirectionBoard />;
   if (view === "covers") return <CoverExplore />;
   if (view === "bento") return <BentoLab />;
+  if (view === "marksheet") return <MarksheetLab />;
   if (view === "bird") return <JourneyLab />;
   return <Prototype />;
 }
@@ -63,7 +67,9 @@ function Prototype() {
     const s = loadSettings();
     const c = new URLSearchParams(location.search).get("cover") as CoverVariant | null;
     const j = journeyFromUrl();
-    const s2 = j ? { ...s, journey: j } : s;
+    const m = marksheetDesignFromUrl();
+    const s1 = m ? { ...s, marksheet: m } : s;
+    const s2 = j ? { ...s1, journey: j } : s1;
     return c && ["current", "m3", "m2", "u", "a", "b", "c"].includes(c) ? { ...s2, cover: c } : s2;
   });
   const [route, setRoute] = useState<"home" | "story">("home");
@@ -112,9 +118,9 @@ function Prototype() {
     const lt = plan.slides.find((s) => s.id === "learnerType");
     if (sheet === "type" && lt?.id === "learnerType") return { kind: "type", type: lt.type, reason: lt.reason };
     if (ms?.id === "marksheet")
-      return { kind: "marksheet", facts: ms.facts };
+      return { kind: "marksheet", facts: ms.facts, design: settings.marksheet };
     return null;
-  }, [sheet, plan]);
+  }, [sheet, plan, settings.marksheet]);
 
   const device = DEVICES[settings.device];
 
@@ -148,6 +154,11 @@ function Prototype() {
               paused={sheet !== null}
               actions={{
                 exitToHome: () => setRoute("home"),
+                // PROTO: the program's enrolment page lives in the app; here we just leave the story
+                openProgram: (url) => {
+                  console.info("[wrap] open program", url);
+                  setRoute("home");
+                },
                 share: (k) => setSheet(k),
               }}
             />
@@ -159,6 +170,7 @@ function Prototype() {
   );
 
   return (
+    <MarksheetDesignCtx.Provider value={settings.marksheet}>
     <JourneyCtx.Provider value={settings.journey}>
     <CoverVariantCtx.Provider value={settings.cover}>
     <PrefsProvider motion={settings.motion} repeatView={settings.repeatView}>
@@ -196,5 +208,6 @@ function Prototype() {
     </PrefsProvider>
     </CoverVariantCtx.Provider>
     </JourneyCtx.Provider>
+    </MarksheetDesignCtx.Provider>
   );
 }

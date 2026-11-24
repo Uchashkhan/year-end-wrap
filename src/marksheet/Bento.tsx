@@ -87,7 +87,7 @@ export function layoutA(tiles: TileId[], strip: boolean) {
  * fitted to their box: measured at their design size and scaled down only if
  * they would overflow. Runs again once the Bengali face has loaded.
  */
-function useFitWords(root: React.RefObject<HTMLDivElement | null>, key: string) {
+export function useFitWords(root: React.RefObject<HTMLDivElement | null>, key: string) {
   useLayoutEffect(() => {
     const el = root.current;
     if (!el) return;

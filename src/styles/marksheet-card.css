@@ -1,0 +1,123 @@
+/*
+ * Screen 10's card (MarksheetCard.tsx) — Figma 121:4364, in frame px
+ * (412 × 915). Every value below is read from the Figma node; per-card
+ * gradients carry the Figma angles and stops.
+ */
+.ms3 {
+  display: grid;
+  grid-template-columns: 181px 181px;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 15px;
+  background: #0f1f59;
+  --ink-88: rgba(255, 255, 255, 0.88);
+}
+:where(.ms3) :where(p, h1, ul) { margin: 0; padding: 0; font: inherit; }
+:where(.ms3) img { display: block; }
+
+/* ── cards ── */
+.ms3 .bt { border-radius: 14px; }
+.ms3-t { container-type: size; }
+.ms3-copy { position: absolute; z-index: 2; left: 14px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; }
+.ms3-art { position: absolute; z-index: 1; pointer-events: none; }
+:where(.ms3-art) > :where(svg, img, div) { display: block; width: 100%; height: auto; }
+
+/* Figma: Web Title 28-Bold (1.5) with a pulled-up label (Body 12-Medium, 1.6) */
+.ms3-num { width: 100%; font-weight: 700; font-size: 32px; line-height: 1.5; color: #f9c531; white-space: nowrap; margin-bottom: -6px; }
+.ms3-num > span { display: inline-block; white-space: nowrap; }
+.ms3-label { font-weight: 500; font-size: 13px; line-height: 1.55; color: var(--ink-88); }
+
+/* ══ learner identity (121:4365) ══ */
+.ms3-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(176.07deg, #432684 6.9%, #7652bc 60.34%, #9a7bcc 93.1%);
+  --g-id: linear-gradient(176.07deg, #432684 6.9%, #7652bc 60.34%, #9a7bcc 93.1%);
+}
+.ms3-badge { flex: none; width: 92px; height: 100px; filter: drop-shadow(0 6px 8px rgba(42, 12, 74, 0.35)); }
+.ms3-badge .lt-badge-art,
+.ms3-badge svg,
+.ms3-badge img { display: block; width: 91.7px; height: 100px; }
+.ms3-type { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.ms3-type-head { width: 100%; display: flex; flex-direction: column; gap: 2px; }
+.ms3-type-label { font-weight: 500; font-size: 13px; line-height: 1.6; color: rgba(255, 255, 255, 0.84); }
+.ms3-type-name { width: 100%; font-family: "Noto Sans Bengali", var(--f-bn); font-weight: 700; font-size: 25px; line-height: 34px; color: #fff2bb; }
+.ms3-type-name > span { display: inline-block; white-space: nowrap; }
+.ms3-tags { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.ms3-tags li { font-weight: 600; font-size: 10px; line-height: 1.6; padding: 5px 7px 3px; border-radius: 999px; background: #f9c531; color: #2a2160; white-space: nowrap; }
+.ms3-tags li.is-cap { background: #101a5c; color: #f9c531; box-shadow: inset 0 0 0 1.5px #f9c531; }
+/* more than three earned: they wrap to two lines, a little tighter */
+.ms3-tags[data-count="4"],
+.ms3-tags[data-count="5"] { gap: 4px 5px; }
+.ms3:has(.ms3-tags[data-count="4"], .ms3-tags[data-count="5"]) .ms3-type { gap: 6px; }
+.ms3-id.is-plain { padding-left: 20px; }
+.ms3-id.is-plain .ms3-type { width: auto; flex: 1; }
+
+/* ══ study (121:4387) — Title 48-Bold, Body 14; the 198 clock at (7.13, 118.27) ══ */
+.ms3-study { background: linear-gradient(155.19deg, #15458e 8.49%, #2777cf 91.51%); }
+.ms3-study .ms3-copy { left: 16px; top: 12px; }
+.ms3-study .ms3-num { font-size: 56px; margin-bottom: -12px; }
+.ms3-study .ms3-label { font-size: 15px; }
+.ms3-study .ms3-art { width: 228px; left: 8px; top: 140px; }
+.ms3-study[data-shape="wide"] .ms3-art { left: auto; right: -30px; top: 34px; }
+
+/* ══ live (121:4417) — the hall's front rows, 106 wide at (70, 63.77) ══ */
+.ms3-live { background: linear-gradient(167.27deg, #191b80 8.49%, #3047b8 91.51%); }
+.ms3-live .ms3-art { width: 122px; left: 61px; top: 75px; }
+.ms3-live[data-shape="tall"] .ms3-art { width: 160px; left: 14px; top: auto; bottom: 10px; }
+.ms3-live[data-shape="wide"] .ms3-art { width: 150px; left: auto; right: 14px; top: 30px; }
+
+/* ══ quiz (121:4470) — the rails, 112 wide at (94, 38.84) ══ */
+.ms3-quiz { background: linear-gradient(192.73deg, #2777cf 8.49%, #15458e 91.51%); }
+.ms3-quiz .ms3-art { width: 128px; left: 88px; top: 48px; }
+.ms3-quiz[data-shape="tall"] .ms3-art { width: 170px; left: 30px; top: auto; bottom: -10px; }
+.ms3-quiz[data-shape="wide"] .ms3-art { width: 140px; left: auto; right: -20px; top: 18px; }
+
+/* ══ video (121:4509) — copy and the 66 player both centred vertically ══ */
+.ms3-video { background: linear-gradient(190.43deg, #3047b8 8.49%, #191b80 91.51%); }
+.ms3-video .ms3-copy { top: 50%; transform: translateY(-50%); width: 90px; }
+.ms3-video .ms3-num { font-size: 30px; }
+.ms3-video .ms3-num { margin-bottom: -5px; }
+.ms3-video .ms3-label { line-height: 1.4; }
+.ms3-video .ms3-art { width: 70px; left: 104px; top: 50%; transform: translateY(-50%); }
+.ms3-video[data-shape="wide"] .ms3-art { width: 100px; left: auto; right: 24px; }
+
+/* ══ subject (121:4530) — Title 18-Bold; the icon 55.8 in a 62 box at (120, 40) ══ */
+.ms3-subject { background: linear-gradient(169.57deg, #36258d 8.49%, #6051cc 91.51%); }
+.ms3-subject .ms3-copy { top: 12px; width: 112px; }
+.ms3-subject .ms3-num { font-size: 21px; margin-bottom: -4px; }
+.ms3-subject .ms3-label { color: #fff; }
+.ms3-subject .ms3-art { width: 74px; left: 115px; top: 46px; padding: 3.7px; }
+.ms3-subject[data-shape="wide"] .ms3-copy { width: 200px; }
+.ms3-subject[data-shape="wide"] .ms3-art { left: auto; right: 24px; top: 16px; }
+
+/* ══ teacher (121:4547) — the portrait 74 × 93 at right −8, top 11 ══ */
+.ms3-teacher { background: linear-gradient(190.43deg, #6051cc 8.49%, #36258d 91.51%); }
+.ms3-teacher .ms3-copy { top: 12px; width: 108px; }
+.ms3-teacher .ms3-num { font-size: 21px; margin-bottom: 0; }
+.ms3-teacher .ms3-label { line-height: 1.4; color: #fff; }
+.ms3-teacher .ms3-art { width: 88px; height: 110px; right: -10px; top: 10px; }
+.ms3-teacher .ms3-art > img { width: 100%; height: 100%; object-fit: cover; }
+.ms3-teacher .ms3-art > svg { width: 100%; height: 100%; }
+.ms3-teacher[data-shape="wide"] .ms3-copy { width: 220px; }
+.ms3-teacher[data-shape="wide"] .ms3-art { right: 24px; }
+
+/* ══ best day (121:4552) — date + label beside the 68 calendar, centred, 3 apart ══ */
+.ms3-peak { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: linear-gradient(169.57deg, #2464ad 8.49%, #2777cf 91.51%); }
+.ms3-peak .ms3-copy,
+.ms3-peak .ms3-art { position: relative; left: auto; top: auto; flex: none; }
+.ms3-peak .ms3-copy { width: 84px; }
+.ms3-peak .ms3-num { font-family: "Noto Sans Bengali", var(--f-bn); font-size: 24px; line-height: 34px; margin-bottom: -2px; }
+.ms3-peak .ms3-label { line-height: 1.4; color: #fff; }
+.ms3-peak .ms3-art { width: 78px; }
+.ms3-peak .art-cal { font-size: 4.82px; width: 78px; border-radius: 6.4px; padding: 6px 6px 5.5px; background: rgba(255, 255, 255, 0.12); box-shadow: none; }
+.ms3-peak .art-cal-grid span.is-lit { background: #f9c531; color: #222066; box-shadow: none; }
+.ms3-peak[data-shape="wide"] { gap: 40px; }
+.ms3-peak[data-shape="wide"] .ms3-copy { width: 160px; }
+
+/* the export frame (1080 × 1920): the title and the card on the card's navy */
+.ms3-export { position: relative; overflow: hidden; background: #0f1f59; display: grid; place-items: center; }
+.ms3-export-in { display: flex; flex-direction: column; align-items: center; gap: 29px; transform-origin: 50% 50%; }
+.ms3-export-title { margin: 0; font-family: var(--f-bn); font-weight: 700; font-size: 32px; line-height: 1.5; color: #fff; }

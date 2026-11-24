@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PROTOTYPE ONLY: a neutral placeholder standing in for a student's profile photo. -->
+  <rect width="200" height="200" fill="#c9d6ff"/>
+  <circle cx="100" cy="82" r="38" fill="#7d8fe0"/>
+  <path d="M30 200c4-44 34-70 70-70s66 26 70 70z" fill="#7d8fe0"/>
+</svg>
