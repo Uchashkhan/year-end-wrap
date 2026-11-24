@@ -1,7 +1,7 @@
 /*
  * 11 Closing — "The Year Turns" (YearTurnsClosing). Proportions from the
  * reference (shikho_2027_year_turns.html, a 390 × 844 phone), in cqw / %;
- * the year enlarged to 36 cqw (Nov 24) and centred, with its label, in the band
+ * the year enlarged to 36 cqw (Nov 24) and centred in the band
  * above the closing line; the closing stack sits 7 % in from each side, 3.6 % from the bottom.
  * The ground is the closing's own Gentle Atmosphere background (SCREEN_BACKGROUND.close).
  * (The reference's magenta ribbon is left out: its wording isn't PRD copy.)
@@ -11,16 +11,13 @@
 .yt-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 
 /* the hero fills the band between the story controls and the closing line (set in JS from the
-   line's place); the label and the year are centred in it as one group — the year is the hero */
+   line's place); the year is centred in it — the year is the hero */
 .yt-hero { position: absolute; left: 0; right: 0; top: 10%; height: 53%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5cqw; transform-origin: 50% 50%; will-change: transform; }
 /* the two thin circle outlines (cropped by the frame's edges) */
 .yt-ring { position: absolute; aspect-ratio: 1; border-radius: 50%; pointer-events: none; will-change: transform; }
 /* two concentric frames around the year (centred on the hero; the outer one is cropped by the frame) */
 .yt-ring-a { width: 128cqw; left: calc(50% - 64cqw); top: calc(50% - 64cqw + 3cqw); border: 1px solid rgba(255, 255, 255, 0.086); }
 .yt-ring-b { width: 96cqw; left: calc(50% - 48cqw); top: calc(50% - 48cqw + 3cqw); border: 1px solid rgba(255, 255, 255, 0.094); }
-/* the label and its hairline */
-.yt-rule { position: relative; width: 82%; display: flex; align-items: center; color: #d8d5ff; font-size: 3.4cqw; font-weight: 600; line-height: 1.5; white-space: nowrap; }
-.yt-rule::after { content: ""; height: 1px; background: rgba(255, 255, 255, 0.27); flex: 1; margin-left: 14px; }
 /* the year: ২০২ holds; the last digit rolls in a masked window, in Shikho yellow */
 .yt-year {
   position: relative;

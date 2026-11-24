@@ -15,7 +15,7 @@ import "../styles/year-turns.css";
  * (shikho_2027_year_turns.html), started after the marksheet's exit:
  *   0–0.55     the marksheet recedes as one artifact; the closing's ground and
  *              hero come up under it (no Cover, no blank frame)
- *   0.2–0.96   the outlines and label, then ২০২৬ settles in (as the card clears)
+ *   0.2–0.96   the outlines, then ২০২৬ settles in (as the card clears)
  *   0.85–2.0   the year turns: ২০২ holds, the last digit rolls ৬ → ৭ in its
  *              yellow window; the outlines drift with it
  *   1.7–2.25   the closing line (and, with no program, its actions)
@@ -73,7 +73,6 @@ export function YearTurnsClosing({ slide, actions }: ScreenProps<"close">) {
     const hero = q(".yt-hero");
     const ringA = q(".yt-ring-a");
     const ringB = q(".yt-ring-b");
-    const rule = q(".yt-rule");
     const year = q(".yt-year");
     const wheel = q(".yt-wheel");
     const line = q(".yt-line");
@@ -104,7 +103,7 @@ export function YearTurnsClosing({ slide, actions }: ScreenProps<"close">) {
     const offer = { scale: sc, y: Math.min(-0.13 * W, need) };
 
     const final = () => {
-      gsap.set([hero, ringA, ringB, rule, year, line, actionsEl].filter(Boolean), { clearProps: "opacity,transform" });
+      gsap.set([hero, ringA, ringB, year, line, actionsEl].filter(Boolean), { clearProps: "opacity,transform" });
       gsap.set(wheel, { y: ROLL });
       gsap.set(ringA, { x: -6 });
       gsap.set(ringB, { x: 6 });
@@ -121,7 +120,6 @@ export function YearTurnsClosing({ slide, actions }: ScreenProps<"close">) {
 
     // ── initial state ──
     gsap.set([ringA, ringB], { opacity: 0 });
-    gsap.set(rule, { opacity: 0, y: 8 });
     gsap.set(year, { opacity: 0, y: 0.04 * W });
     gsap.set(wheel, { y: 0 });
     gsap.set(line, { opacity: 0, y: 12 });
@@ -144,7 +142,6 @@ export function YearTurnsClosing({ slide, actions }: ScreenProps<"close">) {
       tl.to(g(".ms-card"), { scale: 0.84, y: -0.05 * H, opacity: 0, transformOrigin: "50% 40%", duration: C.ms.dur, ease: "power2.in" }, C.ms.at);
     }
     tl.to([ringA, ringB], { opacity: 1, duration: C.hero.dur, ease: "sine.out" }, C.hero.at);
-    tl.to(rule, { opacity: 1, y: 0, duration: C.hero.dur, ease: "power2.out" }, C.hero.at + 0.08);
     tl.to(year, { opacity: 1, y: 0, duration: C.year.dur, ease: "power3.out" }, C.year.at);
     // the year turns: the last digit rolls in its window; the outlines drift with it
     tl.to(wheel, { y: ROLL, duration: C.roll.dur, ease: "power2.inOut" }, C.roll.at);
@@ -206,7 +203,6 @@ export function YearTurnsClosing({ slide, actions }: ScreenProps<"close">) {
       <div className="yt-hero" aria-hidden="true">
         <i className="yt-ring yt-ring-a" />
         <i className="yt-ring yt-ring-b" />
-        <div className="yt-rule">{COPY.cover.headline}</div>
         <div className="yt-year">
           <span className="yt-digits">২০২</span>
           <span className="yt-window">
