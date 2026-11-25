@@ -28,12 +28,16 @@ import { PeakDay, Subject, Teacher } from "./RevealScreens";
 import { LearnerType } from "./LearnerType";
 import { FreshClose, FreshCover, Marksheet } from "./EndScreens";
 import type { ScreenActions, ScreenProps } from "./types";
+import { refinedFor } from "../motion/versions";
 
 /** Screens whose V2 action hierarchy includes on-slide buttons. 01–08 must not. */
 export const HAS_ACTIONS: Slide["id"][] = ["learnerType", "marksheet", "close", "freshClose"];
 
 export function renderSlide(slide: Slide, actions: ScreenActions, active: boolean) {
   const p = { actions, active };
+  // Motion versions (dev): a refined screen, when the inspector's frame asks for one and it exists.
+  const Refined = refinedFor(slide.id);
+  if (Refined) return <Refined {...({ slide, actions, active } as unknown as ScreenProps<never>)} />;
   switch (slide.id) {
     case "cover":
       return <CoverSwitch slide={slide} {...p} />;

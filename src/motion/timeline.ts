@@ -188,11 +188,12 @@ export function createClock(opts: { duration: number; render: (t: number) => voi
  * global timeline and Motion's global config are left alone: only timelines
  * that registered are affected, so nothing changes until a screen opts in.
  */
-const live = new Set<TimelineHandle>();
+const live = new Map<TimelineHandle, string>();
 let playbackSpeed = 1;
 
-export function registerTimeline(h: TimelineHandle): () => void {
-  live.add(h);
+/** Register a live timeline (optionally labelled, e.g. "03 live · stage"). Returns the unregister function. */
+export function registerTimeline(h: TimelineHandle, label = ""): () => void {
+  live.set(h, label);
   if (playbackSpeed !== 1) h.setSpeed(playbackSpeed);
   return () => {
     live.delete(h);
@@ -201,8 +202,40 @@ export function registerTimeline(h: TimelineHandle): () => void {
 
 export function setPlaybackSpeed(s: number) {
   playbackSpeed = s;
-  live.forEach((h) => h.setSpeed(s));
+  live.forEach((_, h) => h.setSpeed(s));
 }
 
 export const getPlaybackSpeed = () => playbackSpeed;
-export const liveTimelines = () => [...live];
+export const liveTimelines = () => [...live.keys()];
+export const liveTimelineEntries = () => [...live.entries()].map(([handle, label]) => ({ handle, label }));
+
+/**
+ * A screen whose clock can only be observed (and finished), not driven: e.g. a
+ * hand-written rAF loop that has not migrated to createClock. Reports its time;
+ * pause / seek / speed are no-ops (the Motion Inspector drives such screens
+ * through its virtual clock instead).
+ */
+export function observeOnly(o: { duration: number; time: () => number; finish: () => void; stop: () => void }): TimelineHandle {
+  return {
+    source: "clock",
+    duration: o.duration,
+    get time() {
+      return o.time();
+    },
+    play: () => {},
+    pause: () => {},
+    seek: () => {},
+    finish: o.finish,
+    stop: o.stop,
+    setSpeed: () => {},
+  };
+}
+
+/**
+ * Development-only registration from inside a screen: a no-op in production
+ * builds, so the screen's behaviour and cost there are unchanged.
+ */
+export function devRegister(label: string, h: TimelineHandle | null | undefined): () => void {
+  if (!import.meta.env.DEV || !h) return () => {};
+  return registerTimeline(h, label);
+}

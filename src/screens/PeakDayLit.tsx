@@ -6,6 +6,7 @@ import { usePrefs } from "../lib/prefs";
 import { DAYLINE, useEntry } from "../story/entry";
 import type { ScreenProps } from "./types";
 import "../styles/peak-day.css";
+import { devRegister, observeOnly } from "../motion/timeline";
 
 const smooth = (x: number) => {
   x = Math.max(0, Math.min(1, x));
@@ -247,7 +248,12 @@ export function PeakDayLit({ slide }: ScreenProps<"peakDay">) {
     });
     const stop = () => cancelAnimationFrame(raf);
     ctl.current = { stop, finish };
-    return stop;
+    // dev only (no-op in production): lets the Motion Inspector read this clock
+    const unregister = devRegister("08 Peak day · rAF clock", observeOnly({ duration: T.end, time: () => t, finish, stop }));
+    return () => {
+      unregister();
+      stop();
+    };
     // entry is fixed for this mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [still]);

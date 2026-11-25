@@ -10,6 +10,8 @@ import { VideoCard } from "./VideoPlayer";
 import { watchSequence } from "./watchHandoff";
 import type { ScreenProps } from "./types";
 import "../styles/video-watchline.css";
+import { devRegister, fromMotion } from "../motion/timeline";
+import type { AnimationPlaybackControls } from "motion/react";
 
 
 /** The minutes step down with digit count so number + "মিনিট" keep one row. */
@@ -70,7 +72,10 @@ export function VideoWatchline({ slide }: ScreenProps<"video">) {
       c.time = freeze;
       c.pause();
     }
+    // dev only (no-op in production): the Motion Inspector reads this sequence
+    const unregister = devRegister("06 Video · sequence (Motion)", c ? fromMotion(c as unknown as AnimationPlaybackControls) : null);
     return () => {
+      unregister();
       c?.stop();
       clearTimeout(t);
     };

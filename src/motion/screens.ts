@@ -22,6 +22,8 @@ import { OFFER_RULE } from "./tokens";
  * settleAt     the finite entrance has settled (ambient loops excluded); for a
  *              closing, the emotional ending
  * offerSettleAt  closings only: settled including the course recommendation
+ * offerStartAt   closings only: the course recommendation starts
+ * conceptEndAt   02 only: the clock's initial spin lands (after the copy)
  */
 export type Seconds = number;
 export type Range = readonly [Seconds, Seconds];
@@ -32,6 +34,10 @@ export interface PhaseMarkers {
   copyAt: Seconds | null;
   settleAt: Seconds | null;
   offerSettleAt?: Seconds | null;
+  /** 02 only: the clock's initial spin lands (the concept), after the copy has completed. */
+  conceptEndAt?: Seconds | null;
+  /** Closings only: the course recommendation starts (the end of the recommendation hold). */
+  offerStartAt?: Seconds | null;
 }
 
 export interface TargetMarkers {
@@ -81,13 +87,14 @@ export const SCREEN_MOTION = {
     library: "Motion",
     ambientLoops: ["liveClock", "backgroundTwinkle"],
     // settle: the copy; the clock hands land on the real time at ≈ 3.8–4.7 s
-    measured: { handoverEnd: 0.73, heroAt: 1.74, copyAt: 2.18, settleAt: 2.18 },
+    measured: { handoverEnd: 0.73, heroAt: 1.74, copyAt: 2.18, settleAt: 2.18, conceptEndAt: 3.8 },
     // t0 = revealAt 0.28; count from t0 + 0.3 for 1.4; comparison at t0 + 0.3 + 1.05 + 0.15, 0.45
     code: {
       handoverEnd: SKY_HANDOFF.coverOut,
       heroAt: SKY_HANDOFF.revealAt + 0.3 + 1.4,
       copyAt: SKY_HANDOFF.revealAt + 0.3 + 1.4 * 0.75 + 0.15 + 0.45,
       settleAt: SKY_HANDOFF.revealAt + 0.3 + 1.4 * 0.75 + 0.15 + 0.45,
+      conceptEndAt: SKY_HANDOFF.revealAt + 0.3 + 3.2,
     },
     target: STAT,
     notes: "Clock hands land at t0 + 0.3 + 3.2 ≈ 3.78 s (code); counted as the concept, not the settle.",
@@ -222,7 +229,7 @@ export const SCREEN_MOTION = {
     // hero (the roll) was not measured separately; settleAt = the ending before the offer
     measured: { handoverEnd: 0.71, heroAt: null, copyAt: null, settleAt: null, offerSettleAt: 4.24 },
     // roll 0.85 + 1.15; line 1.7 + 0.55; end 2.35; offer 3.45 → 4.2
-    code: { handoverEnd: ONWARD.out, heroAt: 2.0, copyAt: 2.25, settleAt: 2.35, offerSettleAt: 4.2 },
+    code: { handoverEnd: ONWARD.out, heroAt: 2.0, copyAt: 2.25, settleAt: 2.35, offerStartAt: 3.45, offerSettleAt: 4.2 },
     target: { heroAt: "keep", copyAt: "keep", settleAt: "keep", ...OFFER },
     notes: `Follows the shared offer rule once refinement activates it (decided Nov 25; the ≈ 0.1 s shift is accepted): start ${OFFER_RULE.afterCopySettle} s after the copy settles (≈ 3.55 s vs 3.45 s today), ${OFFER_RULE.entrance} s entrance.`,
   },
@@ -271,7 +278,7 @@ export const BIRD_MOTION = {
     ambientLoops: ["birdFlight", "backgroundTwinkle"],
     measured: { handoverEnd: 0.7, heroAt: 4.85, copyAt: 4.85, settleAt: null, offerSettleAt: 7.35 },
     // line 4.3 + 0.55; actions 4.45 + 0.5 = end 4.95; reveal 6.45 → 7.35
-    code: { handoverEnd: ONWARD.out, heroAt: 4.85, copyAt: 4.95, settleAt: 4.95, offerSettleAt: 7.35 },
+    code: { handoverEnd: ONWARD.out, heroAt: 4.85, copyAt: 4.95, settleAt: 4.95, offerStartAt: 6.45, offerSettleAt: 7.35 },
     target: { heroAt: [3.0, 3.2], ...OFFER },
     notes: "Future: the closing message at ≈ 3.0–3.2 s without giving up convincing flight.",
   },

@@ -3,7 +3,7 @@ import { JourneyLab } from "./journey/JourneyLab";
 import { BentoLab } from "./marksheet/BentoLab";
 import { MarksheetLab } from "./marksheet/MarksheetLab";
 import { MarksheetDesignCtx, marksheetDesignFromUrl } from "./marksheet/design";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { composeStory } from "./data/compose";
 import { getProfile } from "./data/profiles";
@@ -18,6 +18,11 @@ import { DEVICES, DevPanel, type DevSettings } from "./dev/DevPanel";
 import { DirectionBoard } from "./dev/DirectionBoard";
 import { CoverExplore } from "./explore/CoverExplore";
 import { CoverVariantCtx, type CoverVariant } from "./explore/variant";
+import { inspectorFrameParams } from "./inspector/frameParams";
+
+// Development only: the Motion Inspector workspace (?view=motion) and its preview frame (?motionFrame).
+const MotionInspector = import.meta.env.DEV ? lazy(() => import("./inspector/MotionInspector")) : null;
+const FRAME = inspectorFrameParams();
 
 const STORE_KEY = "wrap26.dev";
 const DEFAULTS: DevSettings = {
@@ -58,6 +63,12 @@ export default function App() {
   if (view === "bento") return <BentoLab />;
   if (view === "marksheet") return <MarksheetLab />;
   if (view === "bird") return <JourneyLab />;
+  if (view === "motion" && MotionInspector)
+    return (
+      <Suspense fallback={null}>
+        <MotionInspector />
+      </Suspense>
+    );
   return <Prototype />;
 }
 
@@ -65,7 +76,8 @@ function Prototype() {
   const [profileId, setProfileId] = useState(() => new URLSearchParams(location.search).get("p") ?? "high");
   const [settings, setSettings] = useState(() => {
     // the marksheet design has no panel switch any more: always the shipped card (V2 only via ?marksheet=)
-    const s: DevSettings = { ...loadSettings(), marksheet: "current" };
+    // (the inspector's frame never reads the developer's saved settings)
+    const s: DevSettings = FRAME ? { ...DEFAULTS, motion: FRAME.reduced ? "reduce" : "full" } : { ...loadSettings(), marksheet: "current" };
     const c = new URLSearchParams(location.search).get("cover") as CoverVariant | null;
     const j = journeyFromUrl();
     const m = marksheetDesignFromUrl();
@@ -73,13 +85,19 @@ function Prototype() {
     const s2 = j ? { ...s1, journey: j } : s1;
     return c && ["current", "m3", "m2", "u", "a", "b", "c"].includes(c) ? { ...s2, cover: c } : s2;
   });
-  const [route, setRoute] = useState<"home" | "story">("home");
-  const [index, setIndex] = useState(0);
+  const [route, setRoute] = useState<"home" | "story">(() => (FRAME?.start ? "story" : "home"));
+  const [index, setIndex] = useState(() => {
+    if (!FRAME?.start) return 0;
+    const p = getProfile(profileId);
+    const first = composeStory(p.record, { teacherSlideEnabled: settings.teacherEnabled });
+    return Math.max(0, first.slides.findIndex((x) => x.id === FRAME.start));
+  });
   const [sheet, setSheet] = useState<"comingSoon" | ShareKind | null>(null);
   const [devOpen, setDevOpen] = useState(false);
   const narrow = useNarrow();
 
   useEffect(() => {
+    if (FRAME) return;
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify(settings));
     } catch {
@@ -89,7 +107,10 @@ function Prototype() {
 
   const profile = getProfile(profileId);
   const plan = useMemo(
-    () => composeStory(profile.record, { teacherSlideEnabled: settings.teacherEnabled }),
+    () =>
+      composeStory(FRAME?.noProgram ? { ...profile.record, nextProgram: undefined } : profile.record, {
+        teacherSlideEnabled: settings.teacherEnabled,
+      }),
     [profile, settings.teacherEnabled],
   );
 
@@ -127,8 +148,8 @@ function Prototype() {
 
   const phone = (
     <div
-      className={`device ${narrow ? "device-full" : ""}`}
-      style={narrow ? undefined : { width: device.w, height: device.h }}
+      className={`device ${narrow || FRAME ? "device-full" : ""}`}
+      style={narrow || FRAME ? undefined : { width: device.w, height: device.h }}
     >
       <HomePreview
         name={profile.record.student.name?.trim() || null}
@@ -169,6 +190,22 @@ function Prototype() {
       <AnimatePresence>{shareCard && <ShareSheet card={shareCard} onClose={() => setSheet(null)} />}</AnimatePresence>
     </div>
   );
+
+  // The inspector's preview frame: the phone only, full-bleed, no dev controls.
+  if (FRAME)
+    return (
+      <MarksheetDesignCtx.Provider value={settings.marksheet}>
+        <JourneyCtx.Provider value={settings.journey}>
+          <CoverVariantCtx.Provider value={settings.cover}>
+            <PrefsProvider motion={settings.motion} repeatView={false}>
+              <div className="shell shell-narrow motion-frame-shell">
+                <main className="stage-col">{phone}</main>
+              </div>
+            </PrefsProvider>
+          </CoverVariantCtx.Provider>
+        </JourneyCtx.Provider>
+      </MarksheetDesignCtx.Provider>
+    );
 
   return (
     <MarksheetDesignCtx.Provider value={settings.marksheet}>

@@ -464,6 +464,14 @@ pnpm typecheck
     - the timeline adapters and `useScreenTimeline` (not adopted by any screen yet).
   - **Baseline:** local git tag `motion-baseline-v0`.
   - **Verified against the audit baseline:** every screen's markers within the run-to-run noise; dev variants and back steps take the same hand-overs; adapters tested at runtime; no console errors.
+- [x] **Motion Inspector (Nov 25; dev only, `?view=motion`; see `src/inspector/README.md`):**
+  - **Preview:** the real prototype in an iframe, driven by a virtual clock, so every animation library pauses, seeks and changes speed together, and replays are deterministic.
+  - **Modes:** Screen, Transition (the production hand-overs) and Journey (Original / Bird Journey).
+  - **Timings:** markers in four sources (code, measured, target, live), plus a draggable timeline.
+  - **Adapters:** registered on 03, 06, 08 and 11.
+  - **Original / Refined versions:** comparison is ready in `motion/versions.ts`. No refined screen exists yet.
+  - **Budgets:** Quiz settle budget set to 3.0 s.
+  - **Production:** unchanged. Timings match the baseline, and the inspector is absent from the build.
 - [ ] M3 Anchor screens (01, 02, 09) · M4 Remaining screens · M5 Marksheet & export · M6 Motion polish · M7 QA & handoff
 
 ## Needs product clarification

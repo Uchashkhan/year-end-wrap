@@ -9,6 +9,7 @@ import { ShareIcon } from "../journey/ExperimentalBirdJourneyClosingSky";
 import type { ScreenProps } from "./types";
 import "../styles/journey.css"; // the shared next-step panel (.bjs-next …), unchanged
 import "../styles/year-turns.css";
+import { devRegister, fromGsap } from "../motion/timeline";
 
 /**
  * "The Year Turns" — one master timeline (s); the reference's choreography
@@ -174,7 +175,10 @@ export function YearTurnsClosing({ slide, actions }: ScreenProps<"close">) {
       },
       finish,
     };
+    // dev only (no-op in production): the Motion Inspector reads this timeline
+    const unregister = devRegister("11 Year Turns · master (GSAP)", fromGsap(tl));
     return () => {
+      unregister();
       tl.kill();
     };
     // the entry is fixed for this mount

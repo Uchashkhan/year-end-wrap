@@ -10,6 +10,7 @@ import { FLOW, FOCUS, useEntry, useNav } from "../story/entry";
 import type { ScreenProps } from "./types";
 import { heroTimeline, settleHall } from "./heroHandoff";
 import "../styles/live-class.css";
+import { devRegister, fromGsap, fromMotion, group } from "../motion/timeline";
 
 const OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -111,7 +112,10 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
     const c = sequence(root, animate, steps);
     textRef.current = c ?? null;
     const t = window.setTimeout(() => setCounting(true), at(st.at) * 1000);
+    // dev only (no-op in production): the Motion Inspector reads the stage (GSAP) and text (Motion) as one
+    const unregister = devRegister("03 Live · stage (GSAP) + text (Motion)", group(fromGsap(hero), c ? fromMotion(c) : null));
     return () => {
+      unregister();
       hero.kill();
       c?.stop();
       clearTimeout(t);
