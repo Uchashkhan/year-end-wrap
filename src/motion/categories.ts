@@ -32,7 +32,7 @@ export const CATEGORIES: Record<MotionCategory, CategoryBudget> = {
     rules: [
       "Applies to 02 Study time, 03 Live classes, 05 Quiz, 06 Video, 07 Subject, 08 Most active day.",
       "Continuous motion, without unnecessary intermediate holds.",
-      "Quiz is the extended exception: hero ≈ 2.6 s.",
+      "Quiz is the extended exception: hero ≈ 2.6 s, settle within 3.0 s (decided Nov 25).",
       "Reference: 08 Most active day (pacing, continuous movement); 03 Live classes (shared-element hand-over).",
     ],
   },
@@ -70,7 +70,8 @@ export const CATEGORIES: Record<MotionCategory, CategoryBudget> = {
 /** Screens used as internal motion references; their animation is not changed during refinement of others. */
 export const REFERENCE_SCREENS = ["peakDay", "live", "close"] as const;
 
-/** Quiz's extended hero target (M1 exception). */
+/** Quiz's extended targets (M1 exception, decided Nov 25): hero ≈ 2.6 s, settle within 3.0 s. */
 export const QUIZ_HERO_TARGET = 2.6;
+export const QUIZ_SETTLE_TARGET = 3.0;
 /** Bird Closing's future closing-message target window. */
 export const BIRD_CLOSING_LINE_TARGET = [3.0, 3.2] as const;

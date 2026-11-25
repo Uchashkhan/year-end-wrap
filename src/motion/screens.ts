@@ -136,8 +136,8 @@ export const SCREEN_MOTION = {
       copyAt: ANSWER.note.at + ANSWER.note.dur,
       settleAt: ANSWER.note.at + ANSWER.note.dur,
     },
-    target: { heroAt: 2.6, settleAt: 2.8 },
-    notes: "M1's extended exception (hero ≈ 2.6 s). Its settle target is the M1 standard pending review.",
+    target: { heroAt: 2.6, settleAt: 3.0 },
+    notes: "M1's extended exception (decided Nov 25): hero ≈ 2.6 s, settle within 3.0 s.",
   },
   video: {
     label: "06 Video",
@@ -224,7 +224,7 @@ export const SCREEN_MOTION = {
     // roll 0.85 + 1.15; line 1.7 + 0.55; end 2.35; offer 3.45 → 4.2
     code: { handoverEnd: ONWARD.out, heroAt: 2.0, copyAt: 2.25, settleAt: 2.35, offerSettleAt: 4.2 },
     target: { heroAt: "keep", copyAt: "keep", settleAt: "keep", ...OFFER },
-    notes: `Future offer rule: start ${OFFER_RULE.afterCopySettle} s after the copy settles (≈ 3.55 s vs 3.45 s today), ${OFFER_RULE.entrance} s entrance.`,
+    notes: `Follows the shared offer rule once refinement activates it (decided Nov 25; the ≈ 0.1 s shift is accepted): start ${OFFER_RULE.afterCopySettle} s after the copy settles (≈ 3.55 s vs 3.45 s today), ${OFFER_RULE.entrance} s entrance.`,
   },
   freshCover: {
     label: "Fresh Start · cover",

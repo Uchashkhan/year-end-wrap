@@ -450,6 +450,20 @@ pnpm typecheck
     - 02's comparison line: 2.4:1.
     - Placeholder support lines on 05, 07, 08, 09 and 10: 1.7–3:1.
     - Needs a design decision; not patched in code.
+- [x] **Refined backgrounds (Nov 25):**
+  - **Refined four:** Signature Blue, Ocean Blue, Soft Violet and Periwinkle use the refined 34-stop gradients from Figma 137:51 (exact values).
+  - **Warm Violet:** not in that set, so it gets the same refinement, derived from the measured curve (marked as derived in `background.ts`).
+  - **How it is drawn:** the layer now transitions 34 registered stops. The cover grounds render as before.
+- [x] **Motion Design System V1: foundation (Nov 25; `src/motion/`, see its README):**
+  - **What it contains:**
+    - tokens and easing adapters;
+    - the M1–M4 categories and budgets;
+    - the allowed ambient loops;
+    - the hand-over table, which `StoryViewer` and `background.ts` now read (same values);
+    - per-screen phase markers (measured / code / target);
+    - the timeline adapters and `useScreenTimeline` (not adopted by any screen yet).
+  - **Baseline:** local git tag `motion-baseline-v0`.
+  - **Verified against the audit baseline:** every screen's markers within the run-to-run noise; dev variants and back steps take the same hand-overs; adapters tested at runtime; no console errors.
 - [ ] M3 Anchor screens (01, 02, 09) · M4 Remaining screens · M5 Marksheet & export · M6 Motion polish · M7 QA & handoff
 
 ## Needs product clarification

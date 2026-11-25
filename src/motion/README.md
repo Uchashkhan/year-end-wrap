@@ -41,7 +41,7 @@ The curves that are essential to an existing animation stay as they are. They ar
 
 | Category | Screens | Hero readable | Settle | Character |
 |---|---|---|---|---|
-| **M1** Standard storytelling | 02, 03, 05, 06, 07, 08 | 1.6–2.4 s (Quiz ≈ 2.6 s) | ≤ 2.8 s | Continuous, without needless holds |
+| **M1** Standard storytelling | 02, 03, 05, 06, 07, 08 | 1.6–2.4 s (Quiz ≈ 2.6 s) | ≤ 2.8 s (Quiz ≤ 3.0 s) | Continuous, without needless holds |
 | **M2** Emotional reveal | 04, 09 | 2.2–2.6 s | ≈ 3.0 s | One deliberate anticipation beat |
 | **M3** Information assembly | 10 | — | ≈ 1.6 s | Deliberate staggered assembly; Bento stays readable |
 | **M4** Cinematic storytelling | Covers and closings (original and Bird Journey) | each its own | each its own | The original Cover and The Year Turns are references. The Bird Cover keeps its length. The Bird Closing's future target is its message at ≈ 3.0–3.2 s. |
@@ -50,6 +50,13 @@ The curves that are essential to an existing animation stay as they are. They ar
 - 08 Most active day: pacing and continuous movement.
 - 03 Live classes: shared-element hand-over.
 - 11 The Year Turns: closing and course reveal.
+
+## Decisions (Nov 25, Phase 02 review)
+
+- **Quiz:** hero ≈ 2.6 s and its own settle budget of 3.0 s.
+- **The Year Turns:** follows the shared course-recommendation rule once refinement activates it. The ≈ 0.1 s shift is accepted.
+- **GSAP lag smoothing:** `gsap.ticker.lagSmoothing(0)` stays as it is until its performance impact is investigated separately.
+- **Marksheet:** the stale assembly selectors (`.bn-strip`, `.bn-foot`) are fixed in the M3 refinement.
 
 ## Common choreography
 
