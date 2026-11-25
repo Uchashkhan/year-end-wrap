@@ -122,8 +122,8 @@ export const TIMEKEEPER = {
   contact: 1.0,
   /** Contact → release: the hand resists, then gains speed; the bird's lean follows the hand (solved per frame). */
   release: 1.7,
-  /** Follow-through: the body carries on a little past the release, then rights itself. */
-  follow: { over: 5, out: 0.16, back: 0.36 },
+  /** Follow-through: a damped spring (ωn, ζ) from the release lean and a share of the lunge's speed. */
+  follow: { wn: 13, zeta: 0.62, carry: 0.3, dur: 0.6 },
   /** Lift into a hover beside the clock to watch; the hour hand is free once the bird is off it. */
   lift: { at: 2.02, dur: 0.5 },
   bob: { amp: 7, period: 0.9 },
@@ -136,39 +136,37 @@ export const TIMEKEEPER = {
 } as const;
 
 /**
- * The minute hand's motion as one function of time: resistance and acceleration
- * while the bird pushes (ω = ωr·x^p), then free, decaying momentum (ω = ωr·(1−s)^n)
- * — continuous angle and angular velocity at the release, and it comes to rest
- * exactly on the real minute. The free parameters are solved per run, within
- * what reads as physical: the push moves the hand 16–24° (what the wing can
- * follow with a lean of at most ≈ 20°), the free run lasts 1.4–2.3 s.
+ * The minute hand as a body with friction (physics-inspired, closed form):
+ *   stuck     static friction holds it while the bird presses (it does not move)
+ *   gives way the push overcomes it: the hand accelerates steadily (and the bird,
+ *             its wing on the hand, lunges with it) until it has turned `push`°,
+ *             more than the wing can follow — the release, at full speed
+ *   coasts    free, slowed by drag and friction together (ω' = −b·ω − μ), so it
+ *             loses speed quickly at first, then more gently, and comes to rest
+ * Angle and angular velocity are continuous throughout; it comes to rest exactly
+ * on the real minute. A bigger turn gets a harder push (a faster release) and a
+ * longer coast (1.6–2.8 s), never a fling.
  */
-function solveHand(D: number, Tp: number) {
-  // a bigger turn takes a stronger push (more travel with the wing, a later, sharper rise in speed)
-  const push = Math.max(16, Math.min(24, 0.06 * D + 14));
-  const D2 = D - push;
-  let n = 1.6;
-  let T = 1.8;
-  let w = ((n + 1) * D2) / T;
-  let p = (w * Tp) / push - 1;
-  if (p > 10) {
-    w = (11 * push) / Tp;
-    T = ((n + 1) * D2) / w;
-    if (T > 2.3) {
-      T = 2.3;
-      n = Math.max(0.8, (w * T) / D2 - 1);
-    }
-  } else if (p < 2) {
-    w = (3 * push) / Tp;
-    T = ((n + 1) * D2) / w;
-    if (T < 1.4) {
-      T = 1.4;
-      n = Math.min(4, (w * T) / D2 - 1);
-    }
+const FRICTION_MIX = 3; // ωr / (μ/b): how much of the slowing is friction rather than drag
+function solveHand(D: number, window: number) {
+  const coast = (D2: number) => Math.max(1.6, Math.min(2.8, 1.7 + 0.003 * D2));
+  const k = 1 - Math.log(1 + FRICTION_MIX) / FRICTION_MIX; // coast distance = k · ωr / b
+  let push = 22;
+  let D2 = D - push;
+  let T = coast(D2);
+  let wr = (D2 * Math.log(1 + FRICTION_MIX)) / (k * T);
+  let gap = (2 * push) / wr; // how long the hand takes to give way (constant acceleration)
+  if (gap > window) {
+    // a small turn: an easy push, the hand gives at once and moves less with the wing
+    push = Math.max(6, (wr * window) / 2);
+    D2 = D - push;
+    T = coast(D2);
+    wr = (D2 * Math.log(1 + FRICTION_MIX)) / (k * T);
+    gap = Math.min(window, (2 * push) / wr);
   }
-  w = ((n + 1) * D2) / T;
-  p = Math.max(1, (w * Tp) / push - 1);
-  return { push, D2, T, n, p, w };
+  const b = Math.log(1 + FRICTION_MIX) / T;
+  const r = wr / FRICTION_MIX; // μ / b
+  return { push, D2, T, wr, gap, b, r };
 }
 
 
@@ -180,20 +178,122 @@ const bez = (p: Pt[], u: number): Pt => {
 };
 
 const NS = "http://www.w3.org/2000/svg";
-/** The supplied SVG, unchanged in drawing: sized by its box; optionally the feet split from the body. */
-function poseSvg(raw: string, feet?: number[]) {
+
+/**
+ * Eyes, for gaze (flying and pushing poses). Path indices in the supplied SVGs.
+ * The far eye's pupil is its own path; the near eye's pupil is one shape with its
+ * eyebrow, so it is split without editing it: a copy cut to an ellipse round the
+ * pupil moves, and the original keeps everything else (the brow) with that
+ * ellipse masked out. Each moving pupil (with its highlights) is clipped to its
+ * own eye white, so it can never leave the eye.
+ */
+interface EyeDef {
+  white: number;
+  pupil: number;
+  highlights: number[];
+  /** The pupil's ellipse within a brow+pupil shape (SVG units), measured from the shape. */
+  fused?: { cx: number; cy: number; rx: number; ry: number };
+}
+interface FaceDef {
+  eyes: EyeDef[];
+  /** The near eye's centre (SVG units): where the gaze is measured from. */
+  eye: Pt;
+  /** Head and face paths [first, last] (contiguous), plus any later head paths; turned for a head tilt about `neck`. */
+  head?: { from: number; to: number; extra: number[]; neck: Pt };
+}
+const FACE: Partial<Record<PoseName, FaceDef>> = {
+  flying: {
+    eyes: [
+      { white: 2, pupil: 3, highlights: [4, 5] },
+      { white: 13, pupil: 14, highlights: [15], fused: { cx: 525.5, cy: 171, rx: 24, ry: 25 } },
+    ],
+    eye: { x: 503, y: 176 },
+    head: { from: 1, to: 15, extra: [31], neck: { x: 480, y: 300 } },
+  },
+  pushing: {
+    eyes: [
+      { white: 8, pupil: 9, highlights: [10] },
+      { white: 12, pupil: 13, highlights: [14], fused: { cx: 602.5, cy: 207.5, rx: 26, ry: 26 } },
+    ],
+    eye: { x: 574, y: 205 },
+  },
+};
+/**
+ * How far a pupil may travel from rest (SVG units). The whites leave 27–40 units below each pupil;
+ * sideways a little less (the far eye is narrow, drawn turned), so the horizontal reach is damped.
+ */
+const GAZE_MAX = 15;
+const GAZE_X = 0.8;
+
+/** The supplied SVG, unchanged in drawing: sized by its box; optionally the feet split from the body, and the eyes rigged. */
+function poseSvg(raw: string, name: string, feet?: number[], face?: FaceDef) {
   const doc = new DOMParser().parseFromString(raw, "image/svg+xml");
   const svg = doc.documentElement;
   ["style", "width", "height", "preserveAspectRatio", "overflow"].forEach((a) => svg.removeAttribute(a));
   svg.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+  const g = svg.querySelector("g")!;
+  const paths = [...g.querySelectorAll(":scope > path")];
+  const el = (tag: string, attrs: Record<string, string>) => {
+    const e = doc.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+  };
+  if (face) {
+    const defs = el("defs", {});
+    svg.insertBefore(defs, svg.firstChild);
+    face.eyes.forEach((E, n) => {
+      const id = `tk-${name}-e${n}`;
+      const clip = el("clipPath", { id: `${id}-white` });
+      clip.appendChild(el("path", { d: paths[E.white].getAttribute("d")! }));
+      defs.appendChild(clip);
+      const eyeG = el("g", { "clip-path": `url(#${id}-white)` });
+      const move = el("g", { class: "tk-pupil" });
+      eyeG.appendChild(move);
+      const pupil = paths[E.pupil];
+      if (E.fused) {
+        const f = E.fused;
+        const sel = el("clipPath", { id: `${id}-sel` });
+        sel.appendChild(el("ellipse", { cx: String(f.cx), cy: String(f.cy), rx: String(f.rx), ry: String(f.ry) }));
+        const mask = el("mask", { id: `${id}-brow`, maskUnits: "userSpaceOnUse", x: "-100", y: "-100", width: "1200", height: "1200" });
+        mask.appendChild(el("rect", { x: "-100", y: "-100", width: "1200", height: "1200", fill: "#fff" }));
+        mask.appendChild(el("ellipse", { cx: String(f.cx), cy: String(f.cy), rx: String(f.rx), ry: String(f.ry), fill: "#000" }));
+        defs.append(sel, mask);
+        const copy = pupil.cloneNode(true) as Element;
+        copy.setAttribute("clip-path", `url(#${id}-sel)`);
+        move.appendChild(copy);
+        pupil.setAttribute("mask", `url(#${id}-brow)`); // the brow stays; the pupil moves
+        pupil.after(eyeG);
+      } else {
+        pupil.before(eyeG);
+        move.appendChild(pupil);
+      }
+      E.highlights.forEach((h) => move.appendChild(paths[h]));
+    });
+    if (face.head) {
+      // the head and face as one group (in drawing order), plus later head pieces in their own group
+      const H = face.head;
+      const start = paths[H.from];
+      const stop = paths[H.to + 1] ?? null;
+      const head = el("g", { class: "tk-head" });
+      start.before(head);
+      let n: ChildNode | null = head.nextSibling;
+      while (n && n !== stop) {
+        const next: ChildNode | null = n.nextSibling;
+        head.appendChild(n);
+        n = next;
+      }
+      H.extra.forEach((i) => {
+        const x = el("g", { class: "tk-head" });
+        paths[i].before(x);
+        x.appendChild(paths[i]);
+      });
+    }
+  }
   if (feet) {
-    const g = svg.querySelector("g")!;
-    const paths = [...g.querySelectorAll(":scope > path")];
-    const body = doc.createElementNS(NS, "g");
-    body.setAttribute("class", "tk-body");
-    const ft = doc.createElementNS(NS, "g");
-    ft.setAttribute("class", "tk-feet");
-    paths.forEach((p, i) => (feet.includes(i) ? ft : body).appendChild(p));
+    const body = el("g", { class: "tk-body" });
+    const ft = el("g", { class: "tk-feet" });
+    const feetEls = new Set(feet.map((i) => paths[i]));
+    [...g.childNodes].forEach((c) => (feetEls.has(c as Element) ? ft : body).appendChild(c));
     g.append(body, ft);
   }
   return new XMLSerializer().serializeToString(svg);
@@ -202,7 +302,10 @@ function poseSvg(raw: string, feet?: number[]) {
 const mod = (a: number, m: number) => ((a % m) + m) % m;
 
 /** Prepared once, when the module loads, so nothing is parsed on the tap into the screen. */
-const SVGS = typeof DOMParser !== "undefined" ? { flying: poseSvg(flyingRaw), pushing: poseSvg(pushingRaw, PUSH_FEET), proud: poseSvg(proudRaw) } : { flying: "", pushing: "", proud: "" };
+const SVGS =
+  typeof DOMParser !== "undefined"
+    ? { flying: poseSvg(flyingRaw, "fly", undefined, FACE.flying), pushing: poseSvg(pushingRaw, "push", PUSH_FEET, FACE.pushing), proud: poseSvg(proudRaw, "proud") }
+    : { flying: "", pushing: "", proud: "" };
 
 export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
   const { reduced, repeatView } = usePrefs();
@@ -266,8 +369,8 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
       const landS = Math.floor((Date.now() + endAt * 1000 - base) / 1000);
       const target = { s: landS * 6, m: landS * 0.1, h: landS / 120 };
       let D = mod(target.m - MINUTE_START, 360);
-      if (D < 50) D += 360; // always a real turn of the hand
-      return { target, D, hand: solveHand(D, Tp) };
+      if (D < 40) D += 360; // always a real turn of the hand
+      return { target, D, hand: solveHand(D, Tp - 0.05) };
     };
     let P = plan(T.release + 1.8);
     P = plan(T.release + P.hand.T);
@@ -378,11 +481,15 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
     // ── the clock's motion: one angle function for the minute hand; the others are geared to it ──
     const F: Pt = { x: 390, y: 486 }; // the pushing pose's feet (the lean pivot), clock units
     const W0: Pt = { x: 558.5, y: 353.1 }; // its wing tip at rest
+    const giveAt = T.release - hand.gap;
     const minuteAt = (t: number) => {
-      if (t <= T.contact) return m0;
-      if (t <= T.release) return m0 + hand.push * ((t - T.contact) / Tp) ** (hand.p + 1);
-      const sN = Math.min(1, (t - T.release) / hand.T);
-      return m0 + hand.push + hand.D2 * (1 - (1 - sN) ** (hand.n + 1));
+      if (t <= giveAt) return m0; // stuck
+      if (t <= T.release) {
+        const u = t - giveAt; // giving way: constant acceleration up to the release speed
+        return m0 + 0.5 * (hand.wr / hand.gap) * u * u;
+      }
+      const c = Math.min(hand.T, t - T.release); // coasting under drag and friction, to rest
+      return m0 + hand.push + ((hand.wr + hand.r) * (1 - Math.exp(-hand.b * c)) - hand.r * hand.b * c) / hand.b;
     };
     /** The lean that puts the wing tip on the minute hand's leading edge, for the hand at θ (deg). */
     const leanFor = (theta: number) => {
@@ -465,9 +572,29 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
     // its legs (about its feet), and straightens as the hand gives and runs; then it follows through ──
     tl.to(push, { scaleY: 0.965, duration: T.release - T.contact - 0.15, ease: "sine.inOut" }, T.contact);
     tl.to(push, { scaleY: 1, duration: 0.3, ease: settle }, T.release - 0.15);
+    // follow-through: a damped spring from the lean, and part of the lunge's speed, at the release back to upright
+    // (no jump in angle or speed: the body carries on a little, sways back, settles)
     const leanAtRelease = leanFor(minuteAt(T.release) % 360) - leanAtContact;
-    tl.to(body, { rotation: leanAtRelease + T.follow.over, svgOrigin: PUSH_PIVOT, duration: T.follow.out, ease: "power2.out" }, T.release);
-    tl.to(body, { rotation: 0, svgOrigin: PUSH_PIVOT, duration: T.follow.back, ease: settle }, T.release + T.follow.out);
+    const leanRate = ((leanFor(minuteAt(T.release) % 360) - leanFor(minuteAt(T.release - 0.01) % 360)) / 0.01) * T.follow.carry;
+    const wn = T.follow.wn;
+    const z = T.follow.zeta;
+    const wd = wn * Math.sqrt(1 - z * z);
+    const Bc = (leanRate + z * wn * leanAtRelease) / wd;
+    const FT = { t: 0 };
+    tl.to(
+      FT,
+      {
+        t: T.follow.dur,
+        duration: T.follow.dur,
+        ease: "none",
+        onUpdate: () => {
+          const t = FT.t;
+          const phi = Math.exp(-z * wn * t) * (leanAtRelease * Math.cos(wd * t) + Bc * Math.sin(wd * t));
+          gsap.set(body, { rotation: t >= T.follow.dur ? 0 : phi, svgOrigin: PUSH_PIVOT });
+        },
+      },
+      T.release,
+    );
 
     // ── D — it lifts off the hand into a hover beside the clock, and watches it run down ──
     const Lf = T.lift;
@@ -505,6 +632,62 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
     const landAt = retAt + T.flight;
     tl.to(proud, { scaleY: 0.97, duration: T.settle * 0.35, ease: "sine.out" }, landAt - 0.02);
     tl.to(proud, { scaleY: 1, duration: T.settle * 0.65, ease: settle }, landAt - 0.02 + T.settle * 0.35);
+    // ── gaze: from the release the bird watches the hand it set going (pupils, and in flight a slight head
+    // tilt); as the clock comes to rest it looks over to its perch at 12 o'clock, and flies there ──
+    const pupils = [...fly.querySelectorAll<SVGGElement>(".tk-pupil"), ...push.querySelectorAll<SVGGElement>(".tk-pupil")];
+    const heads = [...fly.querySelectorAll<SVGGElement>(".tk-head")];
+    const neck = FACE.flying!.head!.neck;
+    const gaze = { x: 0, y: 0, tilt: 0 };
+    const num = (x: unknown) => Number(x) || 0;
+    const eyeAt = (pose: "flying" | "pushing"): Pt => {
+      const L = LAYOUT[pose];
+      const e = FACE[pose]!.eye;
+      return {
+        x: (num(gsap.getProperty(rig, "xPercent")) / 100) * RIG + (L.x + e.x * L.k) * R,
+        y: ((num(gsap.getProperty(rig, "yPercent")) + num(gsap.getProperty(bob, "yPercent"))) / 100) * RIG + (L.y + e.y * L.k) * R,
+      };
+    };
+    const smooth = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+    const G = { t: T.release };
+    let lastT = T.release;
+    tl.to(
+      G,
+      {
+        t: proudCut,
+        duration: proudCut - T.release,
+        ease: "none",
+        onUpdate: () => {
+          const t = G.t;
+          const dt = Math.max(0, t - lastT);
+          lastT = t;
+          const pose = t < Lf.at + 0.06 ? "pushing" : "flying";
+          const eye = eyeAt(pose);
+          // what it looks at: the minute hand's tip while the clock runs, then its perch on the rim
+          const th = (minuteAt(Math.min(t, handsEnd)) * Math.PI) / 180;
+          const w = smooth((t - (handsEnd - 0.3)) / 0.35);
+          const tx = (500 + 380 * Math.sin(th)) * (1 - w) + 500 * w;
+          const ty = (500 - 380 * Math.cos(th)) * (1 - w) + 0 * w;
+          let dx = tx - eye.x;
+          let dy = ty - eye.y;
+          const d = Math.hypot(dx, dy) || 1;
+          dx /= d;
+          dy /= d;
+          // into the bird's own frame (its pitch and hover tilt, and when pushing its lean): the eyes turn, not the bird
+          const turn = (-(num(gsap.getProperty(rig, "rotation")) + num(gsap.getProperty(bob, "rotation")) + (pose === "pushing" ? num(gsap.getProperty(body, "rotation")) : 0)) * Math.PI) / 180;
+          const lx = dx * Math.cos(turn) - dy * Math.sin(turn);
+          const ly = dx * Math.sin(turn) + dy * Math.cos(turn);
+          const k = 1 - Math.exp(-dt / 0.12);
+          gaze.x += (lx * GAZE_MAX * GAZE_X - gaze.x) * k;
+          gaze.y += (ly * GAZE_MAX - gaze.y) * k;
+          // a slight nod toward what it watches (flying pose: its head is a separate group)
+          gaze.tilt += ((pose === "flying" ? Math.max(-1, Math.min(5, ly * 6)) : 0) - gaze.tilt) * k;
+          const tr = `translate(${gaze.x.toFixed(2)} ${gaze.y.toFixed(2)})`;
+          pupils.forEach((p) => p.setAttribute("transform", tr));
+          heads.forEach((h) => h.setAttribute("transform", `rotate(${gaze.tilt.toFixed(2)} ${neck.x} ${neck.y})`));
+        },
+      },
+      T.release,
+    );
     tl.to(el.querySelector(".sc-unit"), { opacity: 1, y: 0, duration: 0.4, ease: arrive }, handsEnd - 0.15);
     if (days) tl.to(el.querySelector(".sc-cmp"), { opacity: 1, y: 0, duration: DURATION.base, ease: settle }, handsEnd);
     tl.set({}, {}, landAt + T.settle);

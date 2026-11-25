@@ -487,6 +487,14 @@ pnpm typecheck
       - **The clock as a mechanism:** the seconds and the count follow the minute hand's progress. The hour hand waits until the bird is off it.
       - **Observe and return:** the bird hovers to watch, then flies back once the clock has settled.
       - **Length:** ≈ 4.6–5.1 s, depending on how far the hand must turn.
+    - **Revision 3 (Nov 25), gaze:**
+      - **What the eyes track:** from the release, the bird's pupils follow the minute hand's tip (direction from the eye to the tip, in the bird's own frame, smoothed). In flight the head also tilts toward it slightly, up to 5°.
+      - **Before the return:** as the clock comes to rest, the gaze moves to the perch at 12 o'clock; on landing it becomes the proud expression.
+      - **How the SVGs are rigged (not redrawn):** each moving pupil is clipped to its own eye white. The near eye's pupil is drawn in one shape with its brow, so a copy is cut round the pupil and the brow keeps its place.
+    - **Revision 4 (Nov 25), friction model:**
+      - **The hand:** held by static friction while the bird presses; gives way with steady acceleration (the bird lunges with it); released at speed; then coasts under drag plus friction (ω' = −b·ω − μ) to rest exactly on the real minute. No power-curve whip; angle and speed are continuous.
+      - **Follow-through:** a damped spring from the release lean.
+      - **Length:** bigger turns coast longer (1.6–2.8 s), so the whole performance is ≈ 5.0–5.9 s.
     - **Shared clock:** same design via `ClockDial`, now shared with `AnalogClock`.
     - **Inspector:** in the Motion Inspector under "Bird-led".
     - **Review images:** `review/bird-led/`.

@@ -294,10 +294,11 @@ export const BIRD_LED_MOTION = {
     ambientLoops: ["liveClock", "backgroundTwinkle"],
     // not yet measured by an audit run; the Motion Inspector shows live values
     measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
-    // revised Nov 25 (physics-inspired): the free run is solved per run to land on the real minute, so the
-    // hands settle at 1.7 + 1.4…2.3 s. Values below: the inspector's fixed wall clock (10:10, a near-full turn):
-    // hands and count land ≈ 3.85; comparison 3.85 + 0.45; the bird's return 3.93 → 4.78, settled ≈ 5.1
-    code: { handoverEnd: SKY_HANDOFF.coverOut, heroAt: 3.85, copyAt: 4.3, settleAt: 5.08, conceptEndAt: 3.85 },
+    // revised Nov 25 (friction model: stuck → gives way → coasts to rest on the real minute): the coast is
+    // 1.6–2.8 s depending on how far the hand must turn, so the hands settle at ≈ 3.5–4.5 s. Values below: the
+    // inspector's fixed wall clock (10:10, a near-full turn, the longest case): hands and count land ≈ 4.5;
+    // comparison 4.5 + 0.45; the bird's return 4.58 → 5.43, settled ≈ 5.73
+    code: { handoverEnd: SKY_HANDOFF.coverOut, heroAt: 4.5, copyAt: 4.95, settleAt: 5.73, conceptEndAt: 4.5 },
     target: { heroAt: [3.1, 3.9], settleAt: 4.8 },
     notes: "Brief (physics-inspired): approach 0–0.8, anticipation/resistance 0.8–1.2, push 1.2–1.7, free momentum 1.7–3.4, return 3.4–4.5, settle to 4.8. The free run's length depends on the time of day (how far the minute hand must turn).",
   },
