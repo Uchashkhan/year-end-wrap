@@ -1,0 +1,28 @@
+/*
+ * 02 Study time — Bird-led Storytelling, "The Timekeeper" (StudyTimekeeper.tsx).
+ * The StudyClock layout (study-clock.css) with room above the clock for the bird
+ * standing on its rim (the proud pose rises 22.7 % of the clock's width above it,
+ * i.e. 25cqw on the 110cqw clock).
+ */
+.slide.tk { --tk-bird: 25cqw; }
+.tk .sc-copy { bottom: calc(var(--sc-clock-show) + var(--tk-bird) + clamp(6px, 1.5cqh, 18px)); }
+
+/* the bird's stage: the clock's resting box (the clock itself rises; the stage does not) */
+.tk-stage {
+  position: absolute;
+  width: var(--sc-clock-w);
+  aspect-ratio: 1;
+  left: calc((100cqw - var(--sc-clock-w)) / 2);
+  top: calc(100cqh - var(--sc-clock-show));
+  pointer-events: none;
+  z-index: 2;
+}
+/* one Figma frame (1000 bird units = 32.4 % of the clock); the poses sit in it at their own boxes */
+.tk-rig { position: absolute; left: 0; top: 0; width: 32.4%; aspect-ratio: 1; will-change: transform; }
+.tk-pose { position: absolute; }
+.tk-pose svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* first paint before the timeline takes over (full motion) */
+.tk.is-pre .sc-clock { transform: translateY(80%); }
+.tk.is-pre .tk-rig { opacity: 0; }
+.tk-bob { position: absolute; inset: 0; }

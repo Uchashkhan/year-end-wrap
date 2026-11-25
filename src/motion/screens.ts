@@ -283,3 +283,22 @@ export const BIRD_MOTION = {
     notes: "Future: the closing message at ≈ 3.0–3.2 s without giving up convincing flight.",
   },
 } satisfies Record<string, ScreenMotion>;
+
+/** Bird-led Storytelling (version 2 experiment): the screens that differ from the original. */
+export const BIRD_LED_MOTION = {
+  study: {
+    label: "Bird-led · 02 The Timekeeper",
+    category: "M1",
+    source: "src/screens/StudyTimekeeper.tsx (TIMEKEEPER)",
+    library: "GSAP (bird rig + clock hands) + Motion (count-up)",
+    ambientLoops: ["liveClock", "backgroundTwinkle"],
+    // not yet measured by an audit run; the Motion Inspector shows live values
+    measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
+    // revised Nov 25 (physics-inspired): the free run is solved per run to land on the real minute, so the
+    // hands settle at 1.7 + 1.4…2.3 s. Values below: the inspector's fixed wall clock (10:10, a near-full turn):
+    // hands and count land ≈ 3.85; comparison 3.85 + 0.45; the bird's return 3.93 → 4.78, settled ≈ 5.1
+    code: { handoverEnd: SKY_HANDOFF.coverOut, heroAt: 3.85, copyAt: 4.3, settleAt: 5.08, conceptEndAt: 3.85 },
+    target: { heroAt: [3.1, 3.9], settleAt: 4.8 },
+    notes: "Brief (physics-inspired): approach 0–0.8, anticipation/resistance 0.8–1.2, push 1.2–1.7, free momentum 1.7–3.4, return 3.4–4.5, settle to 4.8. The free run's length depends on the time of day (how far the minute hand must turn).",
+  },
+} satisfies Record<string, ScreenMotion>;

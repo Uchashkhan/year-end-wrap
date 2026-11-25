@@ -220,13 +220,14 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
       </Section>
 
       <Section title="Versions">
-        <Field label="Opening & closing" hint="Bird Journey: the experimental cover (01) and its sky-flight closing (11).">
+        <Field label="Version" hint="Bird Journey: the bird cover (01) and sky-flight closing (11). Bird-led: the same, and the bird takes part in the screens between (so far 02, The Timekeeper).">
           <Seg
-            label="Opening and closing"
+            label="Wrap version"
             value={settings.journey}
             options={[
               { id: "current", name: "Current" },
               { id: "bird", name: "Bird Journey" },
+              { id: "birdled", name: "Bird-led" },
             ]}
             onChange={(v) => set("journey", v)}
           />

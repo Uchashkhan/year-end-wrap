@@ -15,7 +15,8 @@ import { MarksheetBento } from "./MarksheetBento";
 import { MarksheetV2 } from "./MarksheetV2";
 import { YearTurnsClosing } from "./YearTurnsClosing";
 import { useMarksheetDesign } from "../marksheet/design";
-import { isBirdJourney, useJourney } from "../journey/journeyMode";
+import { isBirdJourney, isBirdLed, useJourney } from "../journey/journeyMode";
+import { StudyTimekeeper } from "./StudyTimekeeper";
 import { ExperimentalBirdJourneyClosingSky } from "../journey/ExperimentalBirdJourneyClosingSky";
 import { ExperimentalBirdJourneyCover } from "../journey/ExperimentalBirdJourneyCover";
 import { useCoverVariant } from "../explore/variant";
@@ -43,7 +44,7 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       return <CoverSwitch slide={slide} {...p} />;
     case "study":
       // Default: the clock (Nov 2026 brief). The M3 count-up screen stays reachable at ?study=geo.
-      return new URLSearchParams(location.search).get("study") === "geo" ? <StudyGeo slide={slide} {...p} /> : <StudyClock slide={slide} {...p} />;
+      return new URLSearchParams(location.search).get("study") === "geo" ? <StudyGeo slide={slide} {...p} /> : <StudySwitch slide={slide} {...p} />;
     case "live":
       // Default: the live-class collection (Nov 2026 brief). The V2 attendance screen stays at ?live=v2.
       return new URLSearchParams(location.search).get("live") === "v2" ? <Attendance slide={slide} {...p} /> : <LiveClass slide={slide} {...p} />;
@@ -123,6 +124,11 @@ export const SLIDE_LABEL: Record<Slide["id"], string> = {
 function MarksheetSwitch(props: ScreenProps<"marksheet">) {
   const d = useMarksheetDesign();
   return d === "current" ? <MarksheetBento {...props} /> : <MarksheetV2 {...props} look={d === "v2a" ? "a" : "b"} />;
+}
+
+function StudySwitch(props: ScreenProps<"study">) {
+  // Bird-led Storytelling (version 2 experiment): "The Timekeeper"; otherwise the approved clock.
+  return isBirdLed(useJourney()) ? <StudyTimekeeper {...props} /> : <StudyClock {...props} />;
 }
 
 function CloseSwitch(props: ScreenProps<"close">) {

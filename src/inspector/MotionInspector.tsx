@@ -12,6 +12,7 @@ import { TEACHER_SLIDE_ENABLED_DEFAULT } from "../data/config";
 import { CATEGORIES } from "../motion/categories";
 import { AMBIENT, type AmbientLoop } from "../motion/ambient";
 import {
+  BIRD_LED_MOTION,
   BIRD_MOTION,
   SCREEN_MOTION,
   type PhaseMarkers,
@@ -37,14 +38,14 @@ import "./inspector.css";
 
 type Mode = "screen" | "transition" | "journey";
 type SlideId = Slide["id"];
-type Journey = "current" | "bird";
+type Journey = "current" | "bird" | "birdled";
 
 interface Entry {
   key: string;
   label: string;
   slide: SlideId;
   journey: Journey;
-  group: "Original" | "Bird Journey" | "Variants";
+  group: "Original" | "Bird Journey" | "Bird-led" | "Variants";
   meta: ScreenMotion | null;
   params?: string;
 }
@@ -88,6 +89,10 @@ const BIRD: Entry[] = [
     meta: BIRD_MOTION.close,
   },
 ];
+/** Bird-led Storytelling (version 2): its own screens so far; every other screen is the original. */
+const BIRD_LED: Entry[] = [
+  { key: "birdled-study", label: BIRD_LED_MOTION.study.label, slide: "study", journey: "birdled", group: "Bird-led", meta: BIRD_LED_MOTION.study },
+];
 const v = (
   key: string,
   label: string,
@@ -121,7 +126,7 @@ const VARIANTS: Entry[] = [
   v("ms-v2a", "10 Marksheet · V2-A Bold", "marksheet", "ms=v2a"),
   v("ms-v2b", "10 Marksheet · V2-B Editorial", "marksheet", "ms=v2b"),
 ];
-const ENTRIES = [...ORIGINAL, ...BIRD, ...VARIANTS];
+const ENTRIES = [...ORIGINAL, ...BIRD, ...BIRD_LED, ...VARIANTS];
 
 /** The personalised result on each screen (the live hero marker); the same elements the audit probe used. */
 function heroSel(
@@ -130,7 +135,7 @@ function heroSel(
   params?: string,
 ): string | null {
   if (params) return null;
-  const bird = journey === "bird";
+  const bird = journey === "bird" || journey === "birdled";
   const m: Partial<Record<SlideId, string>> = {
     cover: bird ? ".bj-head > span" : ".cf-head > span",
     study: ".sc-num",
@@ -425,7 +430,9 @@ export default function MotionInspector() {
         ? VARIANTS
         : entry.group === "Bird Journey"
           ? BIRD
-          : ORIGINAL;
+          : entry.group === "Bird-led"
+            ? BIRD_LED
+            : ORIGINAL;
     const i = list.findIndex((e) => e.key === entry.key);
     const n = list[Math.max(0, Math.min(list.length - 1, i + d))];
     setEntryKey(n.key);
@@ -515,7 +522,7 @@ export default function MotionInspector() {
               role="radiogroup"
               aria-label="Journey version"
             >
-              {(["current", "bird"] as const).map((j) => (
+              {(["current", "bird", "birdled"] as const).map((j) => (
                 <button
                   key={j}
                   type="button"
@@ -524,7 +531,7 @@ export default function MotionInspector() {
                   className={journeyC === j ? "is-on" : ""}
                   onClick={() => setJourneyC(j)}
                 >
-                  {j === "current" ? "Original" : "Bird Journey"}
+                  {j === "current" ? "Original" : j === "bird" ? "Bird Journey" : "Bird-led"}
                 </button>
               ))}
             </div>
@@ -546,7 +553,7 @@ export default function MotionInspector() {
             </ol>
           </div>
         ) : (
-          (["Original", "Bird Journey", "Variants"] as const).map((g) => (
+          (["Original", "Bird Journey", "Bird-led", "Variants"] as const).map((g) => (
             <div key={g} className="mi-group">
               <h3>{g}</h3>
               <ul className="mi-list">

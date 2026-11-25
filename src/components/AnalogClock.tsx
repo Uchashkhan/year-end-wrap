@@ -86,6 +86,15 @@ export function AnalogClock({ still, delay = 0.3, spin = 3.2 }: { still: boolean
     };
   }, [still, delay, spin, sec, min, hour]);
 
+  return <ClockDial sec={sec} min={min} hour={hour} />;
+}
+
+/**
+ * The clock as drawn (face, ticks, three hands, hub), its hands driven by the
+ * given motion values. Shared by AnalogClock and the Bird-led Timekeeper, which
+ * drives the same hands from its own timeline — one clock design.
+ */
+export function ClockDial({ sec, min, hour }: { sec: MotionValue<number>; min: MotionValue<number>; hour: MotionValue<number> }) {
   return (
     <div className="clk" aria-hidden="true">
       <svg className="clk-face" viewBox="0 0 1000 1000">

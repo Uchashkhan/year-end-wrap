@@ -472,6 +472,25 @@ pnpm typecheck
   - **Original / Refined versions:** comparison is ready in `motion/versions.ts`. No refined screen exists yet.
   - **Budgets:** Quiz settle budget set to 3.0 s.
   - **Production:** unchanged. Timings match the baseline, and the inspector is absent from the build.
+- [x] **Version 2 · Bird-led Storytelling (branch `version-2`, Nov 25):**
+  - **The three versions:**
+    - Original (`current`).
+    - Bird Journey (bird on Cover and Closing; `?journey=bird`).
+    - Bird-led (`?journey=birdled`, or the dev panel's Wrap version switch): Bird Journey's Cover and Closing, plus the bird taking part in the screens between.
+  - **Screen 02 "The Timekeeper"** (`screens/StudyTimekeeper.tsx`): the only Bird-led screen so far.
+    - **Assets:** the approved bird SVGs, used as supplied (`journey/timekeeper/`, Figma ymvbwOoxZvLjuM6S23QJ8l 1003:864).
+    - **Sequence:** the bird takes over from the cover's bird (head on head, same size) and flies one curved path down as the clock rises, its body pitching with its direction. It lands on the hour hand at 9, settles back, and pushes the minute hand with its wing (the hand moves with the lean, then runs on). The hours count with the clock (1.0 s). It flies one arc onto the rim and settles in the proud pose at exactly 12 o'clock. The live clock carries on.
+    - **Revision 1 (Nov 25):** poses scaled to one head height and registered on the upper torso; every pose change happens in motion. The final feet contact sits on the clock's axis (±0.04 px) and on the rim (±0.6 px) at all widths.
+    - **Revision 2 (Nov 25), physics-inspired:**
+      - **Approach and contact:** a braking approach, a gather, contact, then resistance and acceleration. While in contact, the bird's lean is solved from the minute hand's actual angle, so the wing tip stays on the hand's edge.
+      - **Release:** the hand leaves the wing at speed and runs on with continuous angular velocity, ω·x^p then ω·(1−s)^n. It decelerates onto the real minute; the solver sets the push to 16–24° and the free run to 1.4–2.3 s.
+      - **The clock as a mechanism:** the seconds and the count follow the minute hand's progress. The hour hand waits until the bird is off it.
+      - **Observe and return:** the bird hovers to watch, then flies back once the clock has settled.
+      - **Length:** ≈ 4.6–5.1 s, depending on how far the hand must turn.
+    - **Shared clock:** same design via `ClockDial`, now shared with `AnalogClock`.
+    - **Inspector:** in the Motion Inspector under "Bird-led".
+    - **Review images:** `review/bird-led/`.
+  - **Every other screen** is the original. Original Wrap and Bird Journey timings are unchanged against `motion-baseline-v0`.
 - [ ] M3 Anchor screens (01, 02, 09) · M4 Remaining screens · M5 Marksheet & export · M6 Motion polish · M7 QA & handoff
 
 ## Needs product clarification
