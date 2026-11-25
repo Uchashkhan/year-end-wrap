@@ -1,4 +1,10 @@
 /**
+ * NOTE (Nov 25, 2026): superseded for new work by the Motion Design System V1
+ * in src/motion/ (tokens, categories, hand-overs, phase markers, timelines).
+ * This file stays as it is for its current consumers (the story nav, Entrance,
+ * CountUp, the legacy screens). Its "Never: idle loops" rule below is replaced
+ * by the allowed ambient list in src/motion/ambient.ts.
+ *
  * Motion hierarchy (PRD §G: "purposeful, never decorative").
  *
  * Every animation in the Wrap belongs to exactly one tier. A tier defines its

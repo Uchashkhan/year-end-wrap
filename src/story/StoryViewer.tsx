@@ -9,7 +9,8 @@ import { MOTION } from "../lib/motion";
 import { coverSurface, useCoverVariant } from "../explore/variant";
 import { isBirdJourney, useJourney } from "../journey/journeyMode";
 import { useMarksheetDesign } from "../marksheet/design";
-import { ANSWER, WATCH, TAKEOVER, DAYLINE, ASSEMBLE, ONWARD, EntryCtx, FLOW, FOCUS, NavCtx, SKY_HANDOFF, type Entry } from "./entry";
+import { EntryCtx, NavCtx, type Entry } from "./entry";
+import { KIND_TIMING, isBespoke, resolveKind } from "../motion/handovers";
 import { StoryBackground } from "./StoryBackground";
 import { COVER_BG, SCREEN_BACKGROUND, bgTransition } from "./background";
 
@@ -37,32 +38,16 @@ interface NavCustom extends Entry {
   d: number;
 }
 const SLIDE_VARIANTS = {
-  enter: (c: NavCustom) =>
-    c.kind === "sky" || c.kind === "flow" || c.kind === "focus" || c.kind === "answer" || c.kind === "watch" || c.kind === "takeover" || c.kind === "dayline" || c.kind === "assemble" || c.kind === "onward" ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D },
+  // Bespoke hand-overs: the incoming slide is not moved (its screen animates itself).
+  enter: (c: NavCustom) => (isBespoke(c.kind) ? { opacity: 1, x: 0 } : c.kind === "fade" ? { opacity: 0, x: 0 } : { opacity: 0, x: c.d * D }),
   center: { opacity: 1, x: 0 },
   exit: (c: NavCustom) =>
-    // A real keyframe (1 → .99) so the exit lasts while the cover runs its own exit.
-    c.kind === "sky"
-      ? { opacity: [1, 0.99], x: 0, transition: { duration: SKY_HANDOFF.coverOut, ease: "linear" as const } }
-      : c.kind === "flow"
-        ? { opacity: [1, 0.99], x: 0, transition: { duration: FLOW.out, ease: "linear" as const } }
-        : c.kind === "focus"
-          ? { opacity: [1, 0.99], x: 0, transition: { duration: FOCUS.out, ease: "linear" as const } }
-        : c.kind === "answer"
-          ? { opacity: [1, 0.99], x: 0, transition: { duration: ANSWER.out, ease: "linear" as const } }
-        : c.kind === "takeover"
-          ? { opacity: [1, 0.99], x: 0, transition: { duration: TAKEOVER.out, ease: "linear" as const } }
-        : c.kind === "watch"
-          ? { opacity: [1, 0.99], x: 0, transition: { duration: WATCH.out, ease: "linear" as const } }
-        : c.kind === "dayline"
-          ? { opacity: [1, 0.99], x: 0, transition: { duration: DAYLINE.out, ease: "linear" as const } }
-        : c.kind === "assemble"
-          ? { opacity: [1, 0.99], x: 0, transition: { duration: ASSEMBLE.out, ease: "linear" as const } }
-        : c.kind === "onward"
-          ? { opacity: [1, 0.99], x: 0, transition: { duration: ONWARD.out, ease: "linear" as const } }
-        : c.kind === "fade"
-          ? { opacity: 0, x: 0 }
-          : { opacity: 0, x: c.d * -D },
+    // A real keyframe (1 → .99) keeps the outgoing slide mounted while its screen runs its own exit.
+    isBespoke(c.kind)
+      ? { opacity: [1, 0.99], x: 0, transition: { duration: KIND_TIMING[c.kind].out, ease: "linear" as const } }
+      : c.kind === "fade"
+        ? { opacity: 0, x: 0 }
+        : { opacity: 0, x: c.d * -D },
 };
 
 /** Slides joined by the bespoke 01 → 02 → 03 hand-overs and in-place cross-fades. */
@@ -109,38 +94,16 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
     const frame = { W: r?.width ?? 0, H: r?.height ?? 0 };
     const step = index === prevIndex.current + 1 && !reduced;
     const bothSky = !!from && onSky(from.id, coverVariant) && onSky(slide.id, coverVariant);
-    const kind: Entry["kind"] =
-      bothSky && step && from.id === "cover" && slide.id === "study"
-        ? "sky"
-        : bothSky && step && from.id === "study" && slide.id === "live"
-          ? "flow"
-          : step && from?.id === "live" && slide.id === "teacher" && onBg("live", coverVariant)
-            ? "focus"
-            : step && from?.id === "teacher" && slide.id === "quiz"
-              ? "answer"
-            : step && from?.id === "quiz" && slide.id === "video"
-              ? "watch"
-            : step && from?.id === "video" && slide.id === "subject"
-              ? "takeover"
-            : step && from?.id === "subject" && slide.id === "peakDay"
-              ? "dayline"
-            : step && from?.id === "learnerType" && slide.id === "marksheet" && marksheetDesign === "current"
-              ? "assemble"
-            : step && from?.id === "marksheet" && slide.id === "close"
-              ? "onward"
-            : bothSky
-              ? "fade"
-              : "normal";
+    // Which hand-over runs: one table (motion/handovers.ts), same rules as before.
+    const kind = resolveKind(from?.id, slide.id, {
+      step,
+      bothSky,
+      coverOnSky: onSky("cover", coverVariant),
+      marksheetCurrent: marksheetDesign === "current",
+    });
     nav.current = { d: index > prevIndex.current ? 1 : -1, kind, frame };
-    if (kind === "sky") lockUntil.current = performance.now() + SKY_HANDOFF.lockMs;
-    if (kind === "flow") lockUntil.current = performance.now() + FLOW.lockMs;
-    if (kind === "focus") lockUntil.current = performance.now() + FOCUS.lockMs;
-    if (kind === "answer") lockUntil.current = performance.now() + ANSWER.lockMs;
-    if (kind === "watch") lockUntil.current = performance.now() + WATCH.lockMs;
-    if (kind === "takeover") lockUntil.current = performance.now() + TAKEOVER.lockMs;
-    if (kind === "dayline") lockUntil.current = performance.now() + DAYLINE.lockMs;
-    if (kind === "assemble") lockUntil.current = performance.now() + ASSEMBLE.lockMs;
-    if (kind === "onward") lockUntil.current = performance.now() + ONWARD.lockMs;
+    const navTiming = KIND_TIMING[kind].navigation;
+    if (isBespoke(kind) && navTiming.mode === "lock") lockUntil.current = performance.now() + navTiming.lockMs;
     prevIndex.current = index;
   }
 

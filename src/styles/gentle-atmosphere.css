@@ -1,17 +1,79 @@
 /*
- * Gentle Atmosphere (Figma 55:38) — see story/background.ts for every value and
- * story/StoryBackground.tsx for usage. The gradient's four colours are registered
- * properties so a variant change interpolates the colours themselves (no layer
- * cross-fade, so no dimming or white flash between variants).
+ * Gentle Atmosphere — see story/background.ts for every value and
+ * story/StoryBackground.tsx for usage. The gradient is the refined 34-stop
+ * ramp (Figma 137:51): each stop's colour and position is a registered property,
+ * so a variant change interpolates the stops themselves (no layer cross-fade, so
+ * no dimming or white flash between variants). Initial values: Signature Blue.
+ * The 34 rules below are generated from GA_GRID (background.ts); keep the count in step.
  */
 @property --ga-0 { syntax: "<color>"; inherits: false; initial-value: #191b80; }
-@property --ga-1 { syntax: "<color>"; inherits: false; initial-value: #3047b8; }
-@property --ga-2 { syntax: "<color>"; inherits: false; initial-value: #729df2; }
-@property --ga-3 { syntax: "<color>"; inherits: false; initial-value: #354cb9; }
-/* Stop positions, registered too, so a variant with its own (Warm Violet: 0/28/49/86) glides there. */
-@property --ga-p1 { syntax: "<percentage>"; inherits: false; initial-value: 35%; }
-@property --ga-p2 { syntax: "<percentage>"; inherits: false; initial-value: 75%; }
-@property --ga-p3 { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+@property --ga-1 { syntax: "<color>"; inherits: false; initial-value: #1b1f85; }
+@property --ga-2 { syntax: "<color>"; inherits: false; initial-value: #1d238a; }
+@property --ga-3 { syntax: "<color>"; inherits: false; initial-value: #1f268f; }
+@property --ga-4 { syntax: "<color>"; inherits: false; initial-value: #202a94; }
+@property --ga-5 { syntax: "<color>"; inherits: false; initial-value: #222d99; }
+@property --ga-6 { syntax: "<color>"; inherits: false; initial-value: #24319e; }
+@property --ga-7 { syntax: "<color>"; inherits: false; initial-value: #2635a3; }
+@property --ga-8 { syntax: "<color>"; inherits: false; initial-value: #2839a8; }
+@property --ga-9 { syntax: "<color>"; inherits: false; initial-value: #2a3dad; }
+@property --ga-10 { syntax: "<color>"; inherits: false; initial-value: #2d41b2; }
+@property --ga-11 { syntax: "<color>"; inherits: false; initial-value: #2f46b7; }
+@property --ga-12 { syntax: "<color>"; inherits: false; initial-value: #3047b8; }
+@property --ga-13 { syntax: "<color>"; inherits: false; initial-value: #334bbc; }
+@property --ga-14 { syntax: "<color>"; inherits: false; initial-value: #3752c1; }
+@property --ga-15 { syntax: "<color>"; inherits: false; initial-value: #3d5ac7; }
+@property --ga-16 { syntax: "<color>"; inherits: false; initial-value: #4362cd; }
+@property --ga-17 { syntax: "<color>"; inherits: false; initial-value: #4a6bd3; }
+@property --ga-18 { syntax: "<color>"; inherits: false; initial-value: #5175d9; }
+@property --ga-19 { syntax: "<color>"; inherits: false; initial-value: #587ddf; }
+@property --ga-20 { syntax: "<color>"; inherits: false; initial-value: #5f86e4; }
+@property --ga-21 { syntax: "<color>"; inherits: false; initial-value: #658de9; }
+@property --ga-22 { syntax: "<color>"; inherits: false; initial-value: #6a94ec; }
+@property --ga-23 { syntax: "<color>"; inherits: false; initial-value: #6e99ef; }
+@property --ga-24 { syntax: "<color>"; inherits: false; initial-value: #719cf1; }
+@property --ga-25 { syntax: "<color>"; inherits: false; initial-value: #729df2; }
+@property --ga-26 { syntax: "<color>"; inherits: false; initial-value: #709bf0; }
+@property --ga-27 { syntax: "<color>"; inherits: false; initial-value: #6b94ec; }
+@property --ga-28 { syntax: "<color>"; inherits: false; initial-value: #648ae5; }
+@property --ga-29 { syntax: "<color>"; inherits: false; initial-value: #5b7fdd; }
+@property --ga-30 { syntax: "<color>"; inherits: false; initial-value: #5171d3; }
+@property --ga-31 { syntax: "<color>"; inherits: false; initial-value: #4764ca; }
+@property --ga-32 { syntax: "<color>"; inherits: false; initial-value: #3d57c1; }
+@property --ga-33 { syntax: "<color>"; inherits: false; initial-value: #354cb9; }
+@property --ga-p0 { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+@property --ga-p1 { syntax: "<percentage>"; inherits: false; initial-value: 3.125%; }
+@property --ga-p2 { syntax: "<percentage>"; inherits: false; initial-value: 6.25%; }
+@property --ga-p3 { syntax: "<percentage>"; inherits: false; initial-value: 9.375%; }
+@property --ga-p4 { syntax: "<percentage>"; inherits: false; initial-value: 12.5%; }
+@property --ga-p5 { syntax: "<percentage>"; inherits: false; initial-value: 15.625%; }
+@property --ga-p6 { syntax: "<percentage>"; inherits: false; initial-value: 18.75%; }
+@property --ga-p7 { syntax: "<percentage>"; inherits: false; initial-value: 21.875%; }
+@property --ga-p8 { syntax: "<percentage>"; inherits: false; initial-value: 25%; }
+@property --ga-p9 { syntax: "<percentage>"; inherits: false; initial-value: 28.125%; }
+@property --ga-p10 { syntax: "<percentage>"; inherits: false; initial-value: 31.25%; }
+@property --ga-p11 { syntax: "<percentage>"; inherits: false; initial-value: 34.375%; }
+@property --ga-p12 { syntax: "<percentage>"; inherits: false; initial-value: 35%; }
+@property --ga-p13 { syntax: "<percentage>"; inherits: false; initial-value: 37.5%; }
+@property --ga-p14 { syntax: "<percentage>"; inherits: false; initial-value: 40.625%; }
+@property --ga-p15 { syntax: "<percentage>"; inherits: false; initial-value: 43.75%; }
+@property --ga-p16 { syntax: "<percentage>"; inherits: false; initial-value: 46.875%; }
+@property --ga-p17 { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
+@property --ga-p18 { syntax: "<percentage>"; inherits: false; initial-value: 53.125%; }
+@property --ga-p19 { syntax: "<percentage>"; inherits: false; initial-value: 56.25%; }
+@property --ga-p20 { syntax: "<percentage>"; inherits: false; initial-value: 59.375%; }
+@property --ga-p21 { syntax: "<percentage>"; inherits: false; initial-value: 62.5%; }
+@property --ga-p22 { syntax: "<percentage>"; inherits: false; initial-value: 65.625%; }
+@property --ga-p23 { syntax: "<percentage>"; inherits: false; initial-value: 68.75%; }
+@property --ga-p24 { syntax: "<percentage>"; inherits: false; initial-value: 71.875%; }
+@property --ga-p25 { syntax: "<percentage>"; inherits: false; initial-value: 75%; }
+@property --ga-p26 { syntax: "<percentage>"; inherits: false; initial-value: 78.125%; }
+@property --ga-p27 { syntax: "<percentage>"; inherits: false; initial-value: 81.25%; }
+@property --ga-p28 { syntax: "<percentage>"; inherits: false; initial-value: 84.375%; }
+@property --ga-p29 { syntax: "<percentage>"; inherits: false; initial-value: 87.5%; }
+@property --ga-p30 { syntax: "<percentage>"; inherits: false; initial-value: 90.625%; }
+@property --ga-p31 { syntax: "<percentage>"; inherits: false; initial-value: 93.75%; }
+@property --ga-p32 { syntax: "<percentage>"; inherits: false; initial-value: 96.875%; }
+@property --ga-p33 { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
 
 .ga {
   position: absolute;
@@ -19,11 +81,43 @@
   overflow: hidden;
   pointer-events: none;
   container-type: inline-size; /* decoration sizes follow this layer's width */
-  /* Figma 55:40 etc.: linear-gradient(180deg, c0 0%, c1 35%, c2 75%, c3 100%); positions per variant */
-  background: linear-gradient(180deg, var(--ga-0) 0%, var(--ga-1) var(--ga-p1), var(--ga-2) var(--ga-p2), var(--ga-3) var(--ga-p3));
-  transition: --ga-0 var(--ga-dur, 0.6s) ease-in-out, --ga-1 var(--ga-dur, 0.6s) ease-in-out,
-    --ga-2 var(--ga-dur, 0.6s) ease-in-out, --ga-3 var(--ga-dur, 0.6s) ease-in-out,
-    --ga-p1 var(--ga-dur, 0.6s) ease-in-out, --ga-p2 var(--ga-dur, 0.6s) ease-in-out, --ga-p3 var(--ga-dur, 0.6s) ease-in-out;
+  /* Figma 137:53 etc.: linear-gradient(180deg, 34 stops); colours and positions per variant */
+  background: linear-gradient(180deg, var(--ga-0) var(--ga-p0), var(--ga-1) var(--ga-p1), var(--ga-2) var(--ga-p2), var(--ga-3) var(--ga-p3), var(--ga-4) var(--ga-p4), var(--ga-5) var(--ga-p5), var(--ga-6) var(--ga-p6), var(--ga-7) var(--ga-p7), var(--ga-8) var(--ga-p8), var(--ga-9) var(--ga-p9), var(--ga-10) var(--ga-p10), var(--ga-11) var(--ga-p11), var(--ga-12) var(--ga-p12), var(--ga-13) var(--ga-p13), var(--ga-14) var(--ga-p14), var(--ga-15) var(--ga-p15), var(--ga-16) var(--ga-p16), var(--ga-17) var(--ga-p17), var(--ga-18) var(--ga-p18), var(--ga-19) var(--ga-p19), var(--ga-20) var(--ga-p20), var(--ga-21) var(--ga-p21), var(--ga-22) var(--ga-p22), var(--ga-23) var(--ga-p23), var(--ga-24) var(--ga-p24), var(--ga-25) var(--ga-p25), var(--ga-26) var(--ga-p26), var(--ga-27) var(--ga-p27), var(--ga-28) var(--ga-p28), var(--ga-29) var(--ga-p29), var(--ga-30) var(--ga-p30), var(--ga-31) var(--ga-p31), var(--ga-32) var(--ga-p32), var(--ga-33) var(--ga-p33));
+  transition:
+    --ga-0 var(--ga-dur, 0.6s) ease-in-out, --ga-p0 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-1 var(--ga-dur, 0.6s) ease-in-out, --ga-p1 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-2 var(--ga-dur, 0.6s) ease-in-out, --ga-p2 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-3 var(--ga-dur, 0.6s) ease-in-out, --ga-p3 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-4 var(--ga-dur, 0.6s) ease-in-out, --ga-p4 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-5 var(--ga-dur, 0.6s) ease-in-out, --ga-p5 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-6 var(--ga-dur, 0.6s) ease-in-out, --ga-p6 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-7 var(--ga-dur, 0.6s) ease-in-out, --ga-p7 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-8 var(--ga-dur, 0.6s) ease-in-out, --ga-p8 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-9 var(--ga-dur, 0.6s) ease-in-out, --ga-p9 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-10 var(--ga-dur, 0.6s) ease-in-out, --ga-p10 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-11 var(--ga-dur, 0.6s) ease-in-out, --ga-p11 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-12 var(--ga-dur, 0.6s) ease-in-out, --ga-p12 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-13 var(--ga-dur, 0.6s) ease-in-out, --ga-p13 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-14 var(--ga-dur, 0.6s) ease-in-out, --ga-p14 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-15 var(--ga-dur, 0.6s) ease-in-out, --ga-p15 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-16 var(--ga-dur, 0.6s) ease-in-out, --ga-p16 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-17 var(--ga-dur, 0.6s) ease-in-out, --ga-p17 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-18 var(--ga-dur, 0.6s) ease-in-out, --ga-p18 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-19 var(--ga-dur, 0.6s) ease-in-out, --ga-p19 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-20 var(--ga-dur, 0.6s) ease-in-out, --ga-p20 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-21 var(--ga-dur, 0.6s) ease-in-out, --ga-p21 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-22 var(--ga-dur, 0.6s) ease-in-out, --ga-p22 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-23 var(--ga-dur, 0.6s) ease-in-out, --ga-p23 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-24 var(--ga-dur, 0.6s) ease-in-out, --ga-p24 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-25 var(--ga-dur, 0.6s) ease-in-out, --ga-p25 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-26 var(--ga-dur, 0.6s) ease-in-out, --ga-p26 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-27 var(--ga-dur, 0.6s) ease-in-out, --ga-p27 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-28 var(--ga-dur, 0.6s) ease-in-out, --ga-p28 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-29 var(--ga-dur, 0.6s) ease-in-out, --ga-p29 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-30 var(--ga-dur, 0.6s) ease-in-out, --ga-p30 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-31 var(--ga-dur, 0.6s) ease-in-out, --ga-p31 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-32 var(--ga-dur, 0.6s) ease-in-out, --ga-p32 var(--ga-dur, 0.6s) ease-in-out,
+    --ga-33 var(--ga-dur, 0.6s) ease-in-out, --ga-p33 var(--ga-dur, 0.6s) ease-in-out;
 }
 /* A variant's own decoration layer (its Figma export, stretched with the frame like the Figma layer). */
 .ga-decor-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity var(--ga-dur, 0.6s) ease-in-out; }

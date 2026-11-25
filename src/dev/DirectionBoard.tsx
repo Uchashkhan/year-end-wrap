@@ -15,7 +15,7 @@ import { renderSlide, SLIDE_LABEL, SURFACE, type Surface } from "../screens/regi
 import { AssetPlaceholder, BadgePill, CapstonePill, Stamp } from "../components/primitives";
 import type { BadgeId } from "../data/compose";
 import { StoryBackground } from "../story/StoryBackground";
-import { BG_STOPS, BG_VARIANTS, SCREEN_BACKGROUND, type BgVariant } from "../story/background";
+import { BG_VARIANTS, SCREEN_BACKGROUND, type BgVariant } from "../story/background";
 import { HomePreview } from "../home/HomePreview";
 
 type Status = "Approved" | "Proposed" | "Experimental" | "Needs clarification";
@@ -171,7 +171,7 @@ export function DirectionBoard() {
           n="0"
           title="Gentle Atmosphere — backgrounds per screen"
           status="Approved"
-          lede="Figma 55:38. Four master backgrounds (vertical gradient, stops 0/35/75/100 %, one star and two particles). Every screen's background is set in one place: story/background.ts → SCREEN_BACKGROUND. Shown: the home banner, the High profile deck and Fresh Start, settled, each on its assigned background. Screens without a final design keep their existing placeholder foreground."
+          lede="Figma 55:38. Four master backgrounds (vertical gradient, refined 34-stop ramp, Figma 137:51; one star and two particles). Every screen's background is set in one place: story/background.ts → SCREEN_BACKGROUND. Shown: the home banner, the High profile deck and Fresh Start, settled, each on its assigned background. Screens without a final design keep their existing placeholder foreground."
         >
           <div className="dir-strip">
             {(Object.keys(BG_VARIANTS) as BgVariant[]).map((v) => (
@@ -181,7 +181,7 @@ export function DirectionBoard() {
                 </div>
                 <figcaption>
                   {BG_VARIANTS[v].name}
-                  <span>{BG_VARIANTS[v].stops.map((c, i) => `${c} ${BG_STOPS[i]}%`).join(" · ")}</span>
+                  <span>{BG_VARIANTS[v].stops.length > 4 ? `${BG_VARIANTS[v].stops.length} stops · Figma ${BG_VARIANTS[v].figma}` : BG_VARIANTS[v].stops.map((c, i) => `${c} ${BG_VARIANTS[v].at[i]}%`).join(" · ")}</span>
                 </figcaption>
               </figure>
             ))}

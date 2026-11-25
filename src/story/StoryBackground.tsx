@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { BG_DECOR, BG_FRAME, BG_STOPS, BG_VARIANTS, STAR_PATH, type BgVariant, type DecorId } from "./background";
+import { BG_DECOR, BG_FRAME, BG_VARIANTS, STAR_PATH, gradientStops, type BgVariant, type DecorId } from "./background";
 import "../styles/gentle-atmosphere.css";
 
 const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(4)}%`;
@@ -9,7 +9,7 @@ const ALL: DecorId[] = ["star", "particle1", "particle2"];
  * Gentle Atmosphere background (Figma 55:38). One element, independent of any
  * foreground: a vertical four-stop gradient plus three decorations.
  *
- * Variant changes interpolate the four gradient colours in place (registered
+ * Variant changes interpolate every gradient stop (colour and position) in place (registered
  * CSS colour properties), so it can go from any variant to any other, mid-way
  * changes continue from where they are, and nothing remounts — the decorations'
  * twinkle never restarts. `transition` is the colour transition length (s).
@@ -37,24 +37,20 @@ export function StoryBackground({
   className?: string;
 }) {
   const v = BG_VARIANTS[variant];
-  const [c0, c1, c2, c3] = v.stops;
-  const [, p1, p2, p3] = v.at ?? BG_STOPS;
-  const style = {
-    "--ga-0": c0,
-    "--ga-1": c1,
-    "--ga-2": c2,
-    "--ga-3": c3,
-    "--ga-p1": `${p1}%`,
-    "--ga-p2": `${p2}%`,
-    "--ga-p3": `${p3}%`,
-    "--ga-dur": `${transition}s`,
-  } as CSSProperties;
+  // One colour and one position property per stop (the refined grid, 34): a variant change
+  // interpolates each stop in place (gentle-atmosphere.css).
+  const g = gradientStops(variant);
+  const style = { "--ga-dur": `${transition}s` } as Record<string, string>;
+  g.colors.forEach((c, i) => {
+    style[`--ga-${i}`] = c;
+    style[`--ga-p${i}`] = `${g.at[i]}%`;
+  });
   // A variant with its own decoration layer shows it in place of the shared
   // star + particles; the two cross-fade with the colours (both stay mounted).
   const own = v.decorSrc;
   const ownSrcs = [...new Set(Object.values(BG_VARIANTS).flatMap((x) => (x.decorSrc ? [x.decorSrc] : [])))];
   return (
-    <div className={`ga ${still ? "ga-still" : ""} ${className}`} data-bg={variant} style={style} aria-hidden="true">
+    <div className={`ga ${still ? "ga-still" : ""} ${className}`} data-bg={variant} style={style as CSSProperties} aria-hidden="true">
       {ownSrcs.map((src) => (
         <img key={src} className="ga-decor-layer" src={src} alt="" draggable={false} style={{ opacity: own === src ? 1 : 0 }} />
       ))}
