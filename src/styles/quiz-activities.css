@@ -5,9 +5,6 @@
  * background of its own (the screen's background shows through).
  */
 .slide.qr {
-  --qr-ink: #16205c;
-  --qr-ink2: #4a4f63;
-  --qr-line: #e6e8f0;
   --qr-mag-d: #a8006a;
   --qr-gold: #ffc93c;
   --qr-gold-d: #c98f00;
@@ -57,6 +54,9 @@
 /* the stage and the quiz cards (.ac-fx, .qz-stage, .qc) */
 .qr-stage { --qw: 136px; position: relative; flex: 1; min-height: 0; margin: 10px 0 12px; }
 .qr-card {
+  --qr-line: #e6e8f0;
+  --qr-ink2: #4a4f63;
+  --qr-ink: #16205c;
   position: absolute;
   left: 50%;
   top: 50%;

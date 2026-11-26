@@ -69,43 +69,80 @@
 .ms3-study .ms3-art { width: 228px; left: 8px; top: 140px; }
 .ms3-study[data-shape="wide"] .ms3-art { left: auto; right: -30px; top: 34px; }
 
-/* ══ live (121:4417) — the hall's front rows, 106 wide at (70, 63.77) ══ */
+/* Small day and night accents sit above the shared blue clock face. */
+.ms3-clock { position: relative; }
+.ms3-clock .clk-hand { will-change: auto; }
+.ms3-clock-celestial { position: absolute; top: -11px; left: 0; width: 100%; }
+
+/* ══ live (121:4417) — Reserved Seat ══ */
 .ms3-live { background: linear-gradient(167.27deg, #191b80 8.49%, #3047b8 91.51%); }
-.ms3-live .ms3-art { width: 122px; left: 61px; top: 75px; }
-.ms3-live[data-shape="tall"] .ms3-art { width: 160px; left: 14px; top: auto; bottom: 10px; }
-.ms3-live[data-shape="wide"] .ms3-art { width: 150px; left: auto; right: 14px; top: 30px; }
+.ms3-live .ms3-art { width: 108px; right: 6px; bottom: 4px; }
+.ms3-live[data-shape="tall"] .ms3-art { width: 152px; right: 14px; bottom: 12px; }
+.ms3-live[data-shape="wide"] .ms3-art { width: 142px; right: 22px; bottom: 8px; }
+.ms3-reservation { position: relative; }
+.ms3-reservation svg { display: block; width: 100%; }
+.ms3-reservation img { position: absolute; width: 26%; top: 0; right: 5%; }
 
-/* ══ quiz (121:4470) — the rails, 112 wide at (94, 38.84) ══ */
+/* ══ quiz (121:4470) — the settled quiz fan ══ */
 .ms3-quiz { background: linear-gradient(192.73deg, #2777cf 8.49%, #15458e 91.51%); }
-.ms3-quiz .ms3-art { width: 128px; left: 88px; top: 48px; }
-.ms3-quiz[data-shape="tall"] .ms3-art { width: 170px; left: 30px; top: auto; bottom: -10px; }
-.ms3-quiz[data-shape="wide"] .ms3-art { width: 140px; left: auto; right: -20px; top: 18px; }
+.ms3-quiz .ms3-art { width: 100px; right: 3px; bottom: 4px; }
+.ms3-art > .ms3-quiz-fan { position: relative; height: 80px; --qw: 49px; }
+.ms3-quiz-fan .qr-card {
+  top: auto;
+  left: 50%;
+  bottom: 9px;
+  margin-top: 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(9, 23, 75, 0.25);
+  padding: 4px;
+  opacity: 1;
+  will-change: auto;
+}
+.ms3-quiz-fan .qr-card:nth-child(1) { transform: translateX(-14px) rotate(-15deg); }
+.ms3-quiz-fan .qr-card:nth-child(2) { transform: translateX(14px) rotate(15deg); }
+.ms3-quiz-fan .qr-sj { gap: 2px; }
+.ms3-quiz-fan .qr-sj i, .ms3-quiz-fan .qr-o i { width: 3px; height: 3px; }
+.ms3-quiz-fan .qr-sj b { width: 12px; height: 2px; background: #dce0ec; border-radius: 1px; }
+.ms3-quiz-fan .qr-q { height: 2px; }
+.ms3-quiz-fan .qr-o { gap: 2px; border-radius: 2px; padding: 0 2px; }
+.ms3-quiz-fan .qr-o i { border-width: 1px; }
+.ms3-quiz-fan .qr-o b { height: 1px; }
+.ms3-quiz[data-shape="tall"] .ms3-art { width: 134px; right: 23px; bottom: 17px; }
+.ms3-quiz[data-shape="tall"] .ms3-quiz-fan { --qw: 70px; height: 108px; }
+.ms3-quiz[data-shape="wide"] .ms3-art { width: 123px; right: 22px; bottom: 8px; }
+.ms3-quiz[data-shape="wide"] .ms3-quiz-fan { --qw: 61px; height: 92px; }
 
-/* ══ video (121:4509) — copy and the 66 player both centred vertically ══ */
+/* ══ video (121:4509) — the optics lesson ══ */
 .ms3-video { background: linear-gradient(190.43deg, #3047b8 8.49%, #191b80 91.51%); }
 .ms3-video .ms3-copy { top: 50%; transform: translateY(-50%); width: 90px; }
 .ms3-video .ms3-num { font-size: 30px; }
 .ms3-video .ms3-num { margin-bottom: -5px; }
 .ms3-video .ms3-label { line-height: 1.4; }
-.ms3-video .ms3-art { width: 70px; left: 104px; top: 50%; transform: translateY(-50%); }
-.ms3-video[data-shape="wide"] .ms3-art { width: 100px; left: auto; right: 24px; }
+.ms3-video .ms3-art { width: 84px; right: 4px; top: 50%; transform: translateY(-50%); }
+.ms3-video[data-shape="wide"] .ms3-art { width: 115px; right: 24px; }
 
-/* ══ subject (121:4530) — Title 18-Bold; the icon 55.8 in a 62 box at (120, 40) ══ */
+/* ══ subject (121:4530) — the personalized story illustration ══ */
 .ms3-subject { background: linear-gradient(169.57deg, #36258d 8.49%, #6051cc 91.51%); }
 .ms3-subject .ms3-copy { top: 12px; width: 112px; }
 .ms3-subject .ms3-num { font-size: 21px; margin-bottom: -4px; }
 .ms3-subject .ms3-label { color: #fff; }
-.ms3-subject .ms3-art { width: 74px; left: 115px; top: 46px; padding: 3.7px; }
+.ms3-subject .ms3-art { width: 58px; right: 7px; bottom: 6px; }
 .ms3-subject[data-shape="wide"] .ms3-copy { width: 200px; }
-.ms3-subject[data-shape="wide"] .ms3-art { left: auto; right: 24px; top: 16px; }
+.ms3-subject[data-shape="wide"] .ms3-art { right: 24px; bottom: 16px; }
 
-/* ══ teacher (121:4547) — the portrait 74 × 93 at right −8, top 11 ══ */
+/* ══ teacher (121:4547) — a localized warm spotlight ══ */
 .ms3-teacher { background: linear-gradient(190.43deg, #6051cc 8.49%, #36258d 91.51%); }
 .ms3-teacher .ms3-copy { top: 12px; width: 108px; }
 .ms3-teacher .ms3-num { font-size: 21px; margin-bottom: 0; }
 .ms3-teacher .ms3-label { line-height: 1.4; color: #fff; }
-.ms3-teacher .ms3-art { width: 88px; height: 110px; right: -10px; top: 10px; }
-.ms3-teacher .ms3-art > img { width: 100%; height: 100%; object-fit: cover; }
+.ms3-teacher .ms3-art {
+  width: 77px;
+  height: 96px;
+  right: 1px;
+  bottom: 0;
+  background: radial-gradient(ellipse 65% 60% at 50% 37%, #ffe3b88c, #ffe3b828 61%, transparent);
+}
+.ms3-teacher .ms3-art > img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
 .ms3-teacher .ms3-art > svg { width: 100%; height: 100%; }
 .ms3-teacher[data-shape="wide"] .ms3-copy { width: 220px; }
 .ms3-teacher[data-shape="wide"] .ms3-art { right: 24px; }
@@ -117,9 +154,19 @@
 .ms3-peak .ms3-copy { width: 84px; }
 .ms3-peak .ms3-num { font-family: "Noto Sans Bengali", var(--f-bn); font-size: 24px; line-height: 34px; margin-bottom: -2px; }
 .ms3-peak .ms3-label { line-height: 1.4; color: #fff; }
-.ms3-peak .ms3-art { width: 78px; }
-.ms3-peak .art-cal { font-size: 4.82px; width: 78px; border-radius: 6.4px; padding: 6px 6px 5.5px; background: rgba(255, 255, 255, 0.12); box-shadow: none; }
-.ms3-peak .art-cal-grid span.is-lit { background: #f9c531; color: #222066; box-shadow: none; }
+.ms3-peak .ms3-art { width: 69px; }
+.ms3-calendar {
+  padding: 4px;
+  border-radius: 7px;
+  border: 1px solid #ffffff52;
+  background: var(--pd-calendar-bg);
+  text-align: center;
+}
+.ms3-calendar-month { font-size: 7px; font-weight: 700; line-height: 1.3; margin-bottom: 2px; }
+.ms3-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; }
+.ms3-calendar-grid span { color: #f5edff; font-size: 5.5px; font-weight: 600; line-height: 8px; }
+.ms3-calendar-grid .ms3-calendar-weekday { color: #d4e6ff; font-size: 4.5px; }
+.ms3-calendar-grid .ms3-calendar-selected { background: var(--pd-yellow); color: var(--pd-selected-ink); border-radius: 2px; }
 .ms3-peak[data-shape="wide"] { gap: 40px; }
 .ms3-peak[data-shape="wide"] .ms3-copy { width: 160px; }
 

@@ -30,15 +30,15 @@
   height: 48px;
   border: 0;
   border-radius: 15px;
-  background: #ffd044;
-  color: #25205e;
+  background: var(--c-magenta);
+  color: #fff;
   font: inherit;
   font-size: 16px;
   font-weight: 800;
-  box-shadow: 0 5px 0 #8f5d19;
+  box-shadow: 0 5px 0 #850058;
   cursor: pointer;
 }
-.ms-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #8f5d19; }
+.ms-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #850058; }
 .ms-secondary { height: 34px; border: 0; background: none; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
 .ms-primary:focus-visible,
 .ms-secondary:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }

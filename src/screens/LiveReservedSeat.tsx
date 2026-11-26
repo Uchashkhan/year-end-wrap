@@ -1,3 +1,4 @@
+import { ChairShapes } from "../components/ReservedSeatChair";
 import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { usePresence } from "motion/react";
 import gsap from "gsap";
@@ -94,19 +95,6 @@ const r3 = (n: number) => Math.round(n * 1000) / 1000;
 const pc = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
 /** Inverse of the cubic in-out (A3's invEio): the time at which eio reaches k. */
 const eioInv = (k: number) => (k < 0.5 ? Math.cbrt(k / 4) : 1 - Math.cbrt(2 * (1 - k)) / 2);
-
-/** The chair, front view (the original screen's chair geometry, with its lip). */
-function ChairShapes({ lip }: { lip?: boolean }) {
-  return (
-    <>
-      <rect x="16" y="0" width="68" height="68" rx="16" />
-      <rect x="8" y="73" width="84" height="21" rx="10.5" />
-      <rect x="17" y="91" width="9" height="41" rx="3" />
-      <rect x="74" y="91" width="9" height="41" rx="3" />
-      {lip && <rect x="24" y="5" width="52" height="4" rx="2" className="lr-lip" />}
-    </>
-  );
-}
 
 export function LiveReservedSeat({ slide }: ScreenProps<"live">) {
   const { reduced, repeatView } = usePrefs();

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useId, useEffect, useRef } from "react";
 import { useAnimate, usePresence } from "motion/react";
 import { COPY } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
@@ -20,6 +20,7 @@ const SOFT = [0.33, 0, 0.2, 1] as const;
  * jacket deepening into the room's violet so the figure rises out of the scene.
  */
 export function Silhouette() {
+  const id = useId();
   const head =
     "M112 122C100 120 92 112 90 100C88 92 87 84 88 76C88 68 88 60 90 54C94 36 108 26 126 26C146 26 160 40 160 60C160 74 156 84 150 92C146 104 136 116 124 121C120 122 116 122 112 122Z";
   return (
@@ -27,49 +28,49 @@ export function Silhouette() {
       <defs>
         {/* Duotone: warm light from above, the room's violet below. User space, so the
             light runs continuously across every shape. */}
-        <linearGradient id="tc-skin" gradientUnits="userSpaceOnUse" x1="0" y1="26" x2="0" y2="122">
+        <linearGradient id={`${id}-skin`} gradientUnits="userSpaceOnUse" x1="0" y1="26" x2="0" y2="122">
           <stop offset="0" stopColor="#ffe3bc" />
           <stop offset="1" stopColor="#d6a3ad" />
         </linearGradient>
-        <linearGradient id="tc-neck" gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="146">
+        <linearGradient id={`${id}-neck`} gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="146">
           <stop offset="0" stopColor="#8f6aa6" />
           <stop offset="1" stopColor="#c294ad" />
         </linearGradient>
-        <linearGradient id="tc-hair" gradientUnits="userSpaceOnUse" x1="0" y1="22" x2="0" y2="92">
+        <linearGradient id={`${id}-hair`} gradientUnits="userSpaceOnUse" x1="0" y1="22" x2="0" y2="92">
           <stop offset="0" stopColor="#d79c80" />
           <stop offset="1" stopColor="#5b4294" />
         </linearGradient>
-        <linearGradient id="tc-jacket" gradientUnits="userSpaceOnUse" x1="0" y1="134" x2="0" y2="300">
+        <linearGradient id={`${id}-jacket`} gradientUnits="userSpaceOnUse" x1="0" y1="134" x2="0" y2="300">
           <stop offset="0" stopColor="#ebc0a2" />
           <stop offset="0.38" stopColor="#9c7cbc" />
           <stop offset="1" stopColor="#4c3ca6" />
         </linearGradient>
-        <linearGradient id="tc-shirt" gradientUnits="userSpaceOnUse" x1="0" y1="132" x2="0" y2="216">
+        <linearGradient id={`${id}-shirt`} gradientUnits="userSpaceOnUse" x1="0" y1="132" x2="0" y2="216">
           <stop offset="0" stopColor="#fbe8d6" />
           <stop offset="1" stopColor="#c7aed3" />
         </linearGradient>
         {/* Light falls on the near side of the face; the far side turns away. */}
-        <radialGradient id="tc-turn" gradientUnits="userSpaceOnUse" cx="104" cy="58" r="64">
+        <radialGradient id={`${id}-turn`} gradientUnits="userSpaceOnUse" cx="104" cy="58" r="64">
           <stop offset="0" stopColor="#fff3dc" stopOpacity="0.55" />
           <stop offset="0.55" stopColor="#fff3dc" stopOpacity="0" />
           <stop offset="1" stopColor="#5b4294" stopOpacity="0.35" />
         </radialGradient>
-        <clipPath id="tc-head-clip">
+        <clipPath id={`${id}-head-clip`}>
           <path d={head} />
         </clipPath>
       </defs>
 
       {/* neck */}
-      <path d="M103 98Q102 124 100 142Q120 153 142 142Q138 124 139 94Z" fill="url(#tc-neck)" />
+      <path d="M103 98Q102 124 100 142Q120 153 142 142Q138 124 139 94Z" fill={`url(#${id}-neck)`} />
       {/* shirt, showing in the jacket's opening */}
-      <path d="M100 134L140 134L120 216Z" fill="url(#tc-shirt)" />
+      <path d="M100 134L140 134L120 216Z" fill={`url(#${id}-shirt)`} />
       {/* jacket */}
       <path
         d="M100 134C86 145 62 151 46 159C30 167 21 183 19 205L14 300H226L221 205C219 183 210 167 194 159C178 151 154 145 140 134L131 150L120 214L109 150Z"
-        fill="url(#tc-jacket)"
+        fill={`url(#${id}-jacket)`}
       />
       {/* open shirt collar */}
-      <path d="M101 132L113 155L103 162L95 141Z M139 132L127 155L137 162L145 141Z" fill="url(#tc-shirt)" />
+      <path d="M101 132L113 155L103 162L95 141Z M139 132L127 155L137 162L145 141Z" fill={`url(#${id}-shirt)`} />
       {/* lapels and pocket, drawn as folds in the cloth */}
       <g fill="none" stroke="#4c3ca6" strokeOpacity="0.4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <path d="M95 142L102 164L92 170L112 212" />
@@ -79,12 +80,12 @@ export function Silhouette() {
       {/* pen in the breast pocket */}
       <path d="M166 203V214" stroke="#ffe9cf" strokeOpacity="0.75" strokeWidth="3" strokeLinecap="round" />
       {/* head: a slight three-quarter turn — brow, cheek and jaw on the near side, skull and ear behind */}
-      <path d={head} fill="url(#tc-skin)" />
-      <rect x="80" y="20" width="90" height="110" fill="url(#tc-turn)" clipPath="url(#tc-head-clip)" />
+      <path d={head} fill={`url(#${id}-skin)`} />
+      <rect x="80" y="20" width="90" height="110" fill={`url(#${id}-turn)`} clipPath={`url(#${id}-head-clip)`} />
       {/* short hair, a clean hairline across the forehead, wrapping the back of the head; then the ear */}
       <path
         d="M87 68C83 42 101 21 128 21C152 21 166 38 165 62C165 77 162 89 157 97C153 95 150 90 149 84C149 76 148 70 145 65C135 59 122 55 110 53C100 53 92 59 87 68Z"
-        fill="url(#tc-hair)"
+        fill={`url(#${id}-hair)`}
       />
       <ellipse cx="152" cy="80" rx="5.5" ry="10" fill="#c99aae" />
     </svg>

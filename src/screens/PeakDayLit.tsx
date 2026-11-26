@@ -1,3 +1,4 @@
+import { calendarMonth } from "../lib/calendar";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { usePresence } from "motion/react";
 import { COPY } from "../data/copy";
@@ -60,11 +61,8 @@ export function PeakDayLit({ slide }: ScreenProps<"peakDay">) {
   const [isPresent, safeToRemove] = usePresence();
   const ctl = useRef<{ stop: () => void; finish: () => void } | null>(null);
 
-  const [y, m, d] = slide.date.split("-").map(Number);
+  const { year: y, month: m, day: d, cells } = calendarMonth(slide.date);
   const monthName = MONTHS[m - 1];
-  const firstWeekday = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
-  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  const cells: (number | null)[] = [...Array.from({ length: firstWeekday }, () => null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   const rows = Math.ceil(cells.length / 7);
   const selChip = m - 1 + 12; // the month, in the second year of chips
 

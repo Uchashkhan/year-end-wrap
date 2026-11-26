@@ -30,7 +30,7 @@ function secondsSinceMidnight(base: number, t: number) {
   return Math.floor((t - base) / 1000);
 }
 
-function Hand({ cls, rotate, children }: { cls: string; rotate: MotionValue<number>; children: React.ReactNode }) {
+function Hand({ cls, rotate, children }: { cls: string; rotate: number | MotionValue<number>; children: React.ReactNode }) {
   return (
     <motion.div className={`clk-hand ${cls}`} style={{ rotate }}>
       <svg viewBox="0 0 1000 1000">{children}</svg>
@@ -111,7 +111,7 @@ export function AnalogClock({
  * given motion values. Shared by AnalogClock and the Bird-led Timekeeper, which
  * drives the same hands from its own timeline — one clock design.
  */
-export function ClockDial({ sec, min, hour }: { sec: MotionValue<number>; min: MotionValue<number>; hour: MotionValue<number> }) {
+export function ClockDial({ sec, min, hour }: { sec: number | MotionValue<number>; min: number | MotionValue<number>; hour: number | MotionValue<number> }) {
   return (
     <div className="clk" aria-hidden="true">
       <svg className="clk-face" viewBox="0 0 1000 1000">

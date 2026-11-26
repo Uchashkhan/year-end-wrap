@@ -1,11 +1,11 @@
+import { QuizActivityCard } from "../components/QuizActivityCard";
 import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
-import { COPY, SUBJECTS } from "../data/copy";
+import { COPY } from "../data/copy";
 import { bn } from "../lib/bangla";
 import { usePrefs } from "../lib/prefs";
 import { BadgePill } from "../components/primitives";
 import { gsapEase } from "../motion/ease";
-import type { SubjectId } from "../data/types";
 import type { ScreenProps } from "./types";
 import "../styles/quiz-activities.css";
 
@@ -29,7 +29,6 @@ import "../styles/quiz-activities.css";
  */
 
 const N = 12;
-const CARD_SUBJECTS: SubjectId[] = ["physics", "chemistry", "math", "biology"]; // the reference's four, in its order
 const END = 5.4; // the reference's clock: everything has settled
 const PANEL_AT = 3.35; // badgeRig(el, 3.35)
 
@@ -278,26 +277,7 @@ export function QuizActivities({ slide, layout = "c3" }: ScreenProps<"quiz"> & {
           </div>
         </div>
         <div className="qr-stage" aria-hidden="true">
-          {Array.from({ length: N }, (_, i) => {
-            const sj = SUBJECTS[CARD_SUBJECTS[i % 4]];
-            const ok = (i * 7 + 1) % 4;
-            return (
-              <div key={i} className="qr-card">
-                <div className="qr-sj">
-                  <i style={{ background: sj.color }} />
-                  {sj.name}
-                </div>
-                <div className="qr-q" />
-                <div className="qr-q qr-q-s" />
-                {[0, 1, 2, 3].map((q) => (
-                  <span key={q} className={`qr-o${q === ok ? " qr-ok" : ""}`}>
-                    <i />
-                    <b style={{ width: `${50 + ((i + q * 3) % 4) * 12}%` }} />
-                  </span>
-                ))}
-              </div>
-            );
-          })}
+          {Array.from({ length: N }, (_, i) => <QuizActivityCard key={i} index={i} />)}
         </div>
         {hasPanel ? (
           <div className="qr-panel">
@@ -367,26 +347,7 @@ function QuizActivitiesRefined({
           )}
         </div>
         <div className="qr-stage" aria-hidden="true">
-          {Array.from({ length: N }, (_, i) => {
-            const sj = SUBJECTS[CARD_SUBJECTS[i % 4]];
-            const ok = (i * 7 + 1) % 4;
-            return (
-              <div key={i} className="qr-card">
-                <div className="qr-sj">
-                  <i style={{ background: sj.color }} />
-                  {sj.name}
-                </div>
-                <div className="qr-q" />
-                <div className="qr-q qr-q-s" />
-                {[0, 1, 2, 3].map((q) => (
-                  <span key={q} className={`qr-o${q === ok ? " qr-ok" : ""}`}>
-                    <i />
-                    <b style={{ width: `${50 + ((i + q * 3) % 4) * 12}%` }} />
-                  </span>
-                ))}
-              </div>
-            );
-          })}
+          {Array.from({ length: N }, (_, i) => <QuizActivityCard key={i} index={i} />)}
         </div>
         {slide.nudge ? (
           <p className="qr-msg qr-msg-text">{COPY.quiz.nudge(slide.nudge.gap, slide.nudge.milestone)}</p>

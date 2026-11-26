@@ -5,7 +5,7 @@ import { MONTHS, bn } from "../lib/bangla";
 import { LearnerBadge } from "../components/LearnerBadge";
 import { SUBJECT_ICON } from "../screens/subjectArt";
 import { Silhouette } from "../screens/TeacherSpotlight";
-import { CalendarArt, ClockArt, HallArt, PlayerArt, RailsArt } from "./art";
+import { BeyondVideoArt, PeakCalendarArt, QuizStackArt, ReservedSeatArt, StudyTimeArt } from "./infographics";
 import { BADGE_ART, type BadgeArtId } from "../data/badgeArt";
 import { BadgeReveal } from "../components/primitives";
 import { tilesOf, useFitWords, type TileId } from "./Bento";
@@ -22,8 +22,7 @@ import "../styles/marksheet-card.css";
  *   video (121:4509)          | subject (121:4530)
  *   teacher (121:4547)        | best day (121:4552)
  *
- * Every illustration is the project's own asset at the Figma size (art.tsx,
- * LearnerBadge, the subject icon, the teacher portrait). The card carries no
+ * The infographic art is shared with the corresponding story screens. The card carries no
  * name, photo, class or school, so the in-app card and the export are one.
  *
  * Class hooks `.bento`, `.bt-id`, `.bn-badge`, `.bn-type` and
@@ -176,7 +175,7 @@ export function MarksheetCard({
     <div key={id} className="bt-slot" data-row={L.rowOf[id]}>
       <section className={`bt ms3-t ms3-${id}`} data-tile={id} data-shape={L.shape[id]} style={{ gridArea: AREA[id] }}>
         <div className="ms3-copy">{copy}</div>
-        {art && <div className="ms3-art">{art}</div>}
+        {art && <div className="ms3-art" aria-hidden="true">{art}</div>}
       </section>
     </div>
   );
@@ -190,10 +189,10 @@ export function MarksheetCard({
   );
 
   const render: Record<TileId, () => ReactNode> = {
-    study: () => card("study", stat(bn(facts.study!.hours), `ঘণ্টা ${ROW.study}`), <ClockArt />),
-    live: () => card("live", stat(`${bn(facts.live!.attended)}টি`, ROW.live), <HallArt aura={false} fromRow={2} />),
-    quiz: () => card("quiz", stat(`${bn(facts.quiz!.count)}টি`, ROW.quiz), <RailsArt />),
-    video: () => card("video", stat(bn(facts.video!.minutes), `মিনিট ${ROW.video}`), <PlayerArt />),
+    study: () => card("study", stat(bn(facts.study!.hours), `ঘণ্টা ${ROW.study}`), <StudyTimeArt />),
+    live: () => card("live", stat(`${bn(facts.live!.attended)}টি`, ROW.live), <ReservedSeatArt />),
+    quiz: () => card("quiz", stat(`${bn(facts.quiz!.count)}টি`, ROW.quiz), <QuizStackArt />),
+    video: () => card("video", stat(bn(facts.video!.minutes), `মিনিট ${ROW.video}`), <BeyondVideoArt />),
     subject: () =>
       card("subject", stat(SUBJECTS[facts.subject!.id].name, COPY.subject.prdHeadline), <img src={SUBJECT_ICON[facts.subject!.id].src} alt="" draggable={false} />),
     teacher: () =>
@@ -205,7 +204,7 @@ export function MarksheetCard({
       ),
     peak: () => {
       const [, m, d] = facts.peak!.date.split("-").map(Number);
-      return card("peak", stat(`${bn(d)} ${MONTHS[m - 1]}`, COPY.peakDay.prdHeadline), <CalendarArt date={facts.peak!.date} />);
+      return card("peak", stat(`${bn(d)} ${MONTHS[m - 1]}`, COPY.peakDay.prdHeadline), <PeakCalendarArt date={facts.peak!.date} />);
     },
   };
 

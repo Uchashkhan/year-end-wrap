@@ -11,8 +11,13 @@
  * The resting frame is pure CSS; the entrance (PeakDayLit.tsx) sets inline
  * styles per frame and clears them when it finishes.
  */
-.slide.pd {
+.slide.pd,
+.ms3-calendar {
   --pd-yellow: #f9c531;
+  --pd-calendar-bg: linear-gradient(160deg, #2d6fcf, #1b4796);
+  --pd-selected-ink: #222066;
+}
+.slide.pd {
   background: transparent;
   color: #fff;
   padding: 0;
@@ -132,7 +137,7 @@
   position: absolute;
   inset: 0;
   border-radius: 28px;
-  background: linear-gradient(160deg, #2d6fcf, #1b4796);
+  background: var(--pd-calendar-bg);
   border: 1px solid #ffffff52;
 }
 /* the card's shadow: its own layer, so the entrance only fades it (no repaint per frame) */
@@ -149,7 +154,7 @@
 .pd-n { position: relative; display: inline-block; line-height: 1.1; letter-spacing: -0.03em; /* = the hero day, so the hand-over matches */ }
 /* the day, lit */
 .pd-fill { position: absolute; inset: 0 3px; border-radius: 9px; background: var(--pd-yellow); box-shadow: 0 4px 16px #ffca3374; }
-.pd-cell.is-sel .pd-n { color: #222066; }
+.pd-cell.is-sel .pd-n { color: var(--pd-selected-ink); }
 
 /* ── the support ── */
 .pd-support { position: absolute; left: 8.2cqw; right: 8.2cqw; bottom: 6cqh; z-index: 12; }

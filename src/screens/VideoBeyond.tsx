@@ -1,3 +1,4 @@
+import { OPTICS_SPECTRUM, OpticsPrism, OpticsProjection } from "../components/OpticsArtwork";
 import { useId, useLayoutEffect, useRef } from "react";
 import { usePresence } from "motion/react";
 import gsap from "gsap";
@@ -19,7 +20,6 @@ import "../styles/video-beyond.css";
 const FRAME = { x: 26, y: 81, w: 308, h: 162, r: 16 };
 const PLAY = { x: 180, y: 161, r: 35 };
 const BAR = { x: 67, y: 228, width: 230 };
-const SPECTRUM = ["#ff8c91", "#ffc07a", "#ffe4a1", "#a4edb3", "#87dfff", "#c0abff"];
 const PLAY_LEFT = [[-7, -10], [1, -5], [1, 5], [-7, 10]];
 const PLAY_RIGHT = [[1, -5], [9, 0], [9, 0], [1, 5]];
 const PAUSE_LEFT = [[-7, -8], [-3, -8], [-3, 8], [-7, 8]];
@@ -37,9 +37,6 @@ function OpticsPlayer() {
       <defs>
         <linearGradient id={`${id}-board`} x1="0" y1="0" x2="1" y2="1">
           <stop stopColor="#15387a" /><stop offset="1" stopColor="#0d2359" />
-        </linearGradient>
-        <linearGradient id={`${id}-glass`} x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#baf2ff" /><stop offset="1" stopColor="#539ddd" />
         </linearGradient>
         <pattern id={`${id}-grid`} width="14" height="14" patternUnits="userSpaceOnUse" x="34" y="90">
           <path d="M0 14V0H14" stroke="#b8ddff" strokeOpacity=".15" fill="none" />
@@ -70,22 +67,11 @@ function OpticsPlayer() {
         <path className="vb-incidence" fill="none" stroke="#e8faff" strokeWidth="2.4" strokeLinecap="round" />
         <circle className="vb-photon" r="2.4" fill="#fff" />
         <g className="vb-rays" fill="none" strokeWidth="2.1" strokeLinecap="round">
-          {SPECTRUM.map((ink) => <path key={ink} stroke={ink} />)}
+          {OPTICS_SPECTRUM.map((ink) => <path key={ink} stroke={ink} />)}
         </g>
-        <g className="vb-prism">
-          <path d="M-33 32-6-36 37 24 18 39Z" fill="#274f9e" stroke="#b3deff" strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M-33 32-6-36 18 39Z" fill={`url(#${id}-glass)`} stroke="#e3f9ff" strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M-6-36 37 24 18 39Z" fill="#5084c7" stroke="#b3deff" strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M-21 24-9-5M-12 30-1 5" stroke="#f3fbff" strokeOpacity=".48" strokeWidth="1.4" strokeLinecap="round" />
-        </g>
+        <OpticsPrism className="vb-prism" />
         <path className="vb-refraction" fill="none" stroke="#fff9db" strokeOpacity=".85" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        <g className="vb-projection">
-          <path d="M-12-27 19-37 18 33-13 44Z" fill="#234688" stroke="#d0ebff" strokeWidth="1.4" strokeLinejoin="round" />
-          {SPECTRUM.map((ink, i) => (
-            <path key={ink} d={`M-11 ${-19 + i * 10} 17 ${-29 + i * 10}`} stroke={ink} strokeWidth="2.1" strokeLinecap="round" />
-          ))}
-          <path d="M19-37 23-33 22 34 18 33Z" fill="#82aad7" />
-        </g>
+        <OpticsProjection className="vb-projection" />
       </g>
       <g className="vb-indicator" fill="#fff">
         <polygon className="vb-icon-l" />
