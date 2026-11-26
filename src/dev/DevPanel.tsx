@@ -8,6 +8,7 @@ import { BADGES, CAPSTONE } from "../data/copy";
 import { SLIDE_LABEL } from "../screens/registry";
 import type { MotionPref } from "../lib/prefs";
 import { COVER_VARIANTS, type CoverVariant } from "../explore/variant";
+import type { MotionProfile } from "../motion/profile";
 import { FACET_KEYS, facetLabel, facetOptions, resolveFacets, type FacetKey, type FacetMap } from "../variants/facets";
 
 export const DEVICES = {
@@ -32,6 +33,10 @@ export interface DevSettings {
   marksheet: MarksheetDesign;
   /** Screen-level effect overrides (variants/facets.tsx); a missing key is "auto" (the journey preset or the default). */
   facets: FacetMap;
+  /** Global motion profile (motion/profile.tsx); the URL ?mprofile= / ?msparks= wins. */
+  motionProfile: MotionProfile;
+  /** Reference profile only: optional one-shot landing sparks. */
+  motionSparks: boolean;
 }
 
 interface Props {
@@ -245,6 +250,23 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
             ))}
           </select>
         </Field>
+      </Section>
+
+      <Section title="Motion profile">
+        <Field label="Motion" hint="Reference: the reference prototype's motion language on the screens moved onto it so far (06 Video, 02 Study time). URL ?mprofile= wins.">
+          <Seg
+            label="Motion profile"
+            value={settings.motionProfile}
+            options={[
+              { id: "original", name: "Original" },
+              { id: "reference", name: "Reference" },
+            ]}
+            onChange={(v) => set("motionProfile", v)}
+          />
+        </Field>
+        {settings.motionProfile === "reference" && (
+          <Toggle title="Landing sparks" hint="One-shot sparks when a hero number lands (Reference only)." checked={settings.motionSparks} onChange={(v) => set("motionSparks", v)} />
+        )}
       </Section>
 
       <Section title="Screen effects">

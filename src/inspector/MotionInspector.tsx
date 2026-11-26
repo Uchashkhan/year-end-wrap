@@ -179,6 +179,11 @@ export default function MotionInspector() {
   const [profileId, setProfileId] = useState("high");
   const [reduced, setReduced] = useState(false);
   const [noProgram, setNoProgram] = useState(false);
+  // global motion profile for the preview frame (motion/profile.tsx); the inspector's own URL can preset it
+  const [mprofile, setMprofile] = useState<"original" | "reference">(() =>
+    new URLSearchParams(location.search).get("mprofile") === "reference" ? "reference" : "original",
+  );
+  const [msparks, setMsparks] = useState(() => new URLSearchParams(location.search).get("msparks") === "1");
   const [speed, setSpeed] = useState(1);
   const [auto, setAuto] = useState(false);
 
@@ -229,11 +234,13 @@ export default function MotionInspector() {
       if (start) q.set("start", start);
       if (reduced) q.set("rm", "1");
       if (noProgram) q.set("noProgram", "1");
+      q.set("mprofile", mprofile);
+      if (mprofile === "reference" && msparks) q.set("msparks", "1");
       if (mode !== "journey" && entry.params)
         for (const [k, val] of new URLSearchParams(entry.params)) q.set(k, val);
       return `/?${q.toString()}`;
     },
-    [profileId, journey, reduced, noProgram, mode, entry.params],
+    [profileId, journey, reduced, noProgram, mode, entry.params, mprofile, msparks],
   );
 
   /** (Re)load the frame and bring it to `target` seconds after this mode's origin; optionally play on. */
@@ -348,7 +355,7 @@ export default function MotionInspector() {
   useEffect(() => {
     void run(0, mode !== "journey");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, entryKey, journeyC, viewport, profileId, reduced, noProgram]);
+  }, [mode, entryKey, journeyC, viewport, profileId, reduced, noProgram, mprofile, msparks]);
 
   // poll the frame (real time; the frame keeps its own clock)
   useEffect(() => {
@@ -685,6 +692,21 @@ export default function MotionInspector() {
               </button>
             </div>
           </div>
+          <div className="mi-field">
+            <span>Profile</span>
+            <div className="mi-seg mi-seg-sm" role="radiogroup" aria-label="Motion profile">
+              {(["original", "reference"] as const).map((p) => (
+                <button key={p} type="button" role="radio" aria-checked={mprofile === p} className={mprofile === p ? "is-on" : ""} onClick={() => setMprofile(p)}>
+                  {p === "original" ? "Original" : "Reference"}
+                </button>
+              ))}
+            </div>
+          </div>
+          {mprofile === "reference" && (
+            <label>
+              <input type="checkbox" checked={msparks} onChange={(e) => setMsparks(e.target.checked)} /> Landing sparks
+            </label>
+          )}
         </header>
 
         <div className="mi-work">

@@ -10,3 +10,7 @@ export * from "./handovers";
 export * from "./screens";
 export * from "./timeline";
 export * from "./useScreenTimeline";
+export * from "./spring";
+export * from "./reference";
+export * from "./profile";
+export * from "./primitives";
