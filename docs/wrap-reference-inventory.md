@@ -128,7 +128,7 @@ shared/          tokens.css (172) · base.css (255) · components.js (531) · fo
 | **home**, **home-tap** | Light home; the banner is the cover at small size | Banner with the waving bird on the road of squares | Tap: the card frame grows while its content is counter-scaled; scene and bird travel to their cover places; the title moves into the story bar; home steps back and dims | Counter-scaled card grow | `renderHome`, `mountCover → grow` (1049–1210) | Medium |
 | **cover** | `--hdrbg` + light rays (conic gradient) + glow | ২০২৬ + a road of squares to the school | ২০২৬ outline → gold fill rising with an edge line (font metrics via `measureText`); **canvas road**: squares start dim, a light travels up and each square pops as it arrives; year lands with confetti | Masked type; travelling light on a canvas road | `renderCover`, `mountCover`, `paintRoad`, `roadOf` (846–897, 1068–1210) | High |
 | **days** | `--hdrbg` | 12-month calendar grid, 187 study days, magenta run | 187 squares fly from a seeded scatter into their cells in date order (canvas, trails, slight curve); each month hands over to crisp SVG; corner brackets; ১৮৭ pulls out of the grid into the headline while counting; the view zooms into August, the run flares, zooms back out | **Particle fly-in to a calendar grid**; dashboard zoom; streak flare | `YEAR` model (749–783), `monthCells`, `monthsGrid` (794–832), `renderDays`, `mountDays`, `paintFly` (1212–1313) | High (needs per-day data) |
-| **hours** | `--hdrbg`; day/night bar with `--wash` / `--deep` fills | School SVG with 24 gold windows; day/night split bar | One smooth count; each window lights and pops as the count passes 6 h; the bar fills (day part, then night) with counting labels and a white marker on the edge | Count-driven reveals; chart fill | `renderHours`, `mountHours` (1319–1382) | High |
+| **hours** | **Day → night sky** (its own layers over the stage): a light day wash with a sun glow cross-fades to a navy → indigo → purple night with cyan and magenta glows; stars twinkle in; the sun sets and a crescent moon rises (details in the note below the table) | City and school SVG with 24 gold windows; day/night split bar | The sky turns from day to night over 0.25–2.8 s on its own timeline. One smooth count; each window lights and pops as the count passes 6 h; the bar fills (day part, then night) with counting labels and a marker | **Day/night sky transition**; count-driven window lights; chart fill | CSS `.hr-sky`, `.hr-day`, `.hr-night`, `.hr-nightfx`, `.hr-sun`, `.hr-moon` (262–281); `renderHours`, `mountHours` (1314–1382); `stars()` (898) | High (the sky works without night % data; only the bar needs it) |
 | **live** | `--hdrbg` | Classroom of 72 seats in perspective (narrowing to the board) | A **glass lens** moves from the back row to the front bench; attended seats light gold as it passes; the count runs with the lit seats. Badge ফার্স্ট বেঞ্চার | Glass focus over a perspective grid | `renderLive`, `mountLive` (1410–1475) | High |
 | **quiz** | `--hdrbg` | 12 quiz cards → stack → fan | Cards fly in from both sides and spring into a stack; the count runs as they land; the top three fan out (most overshoot on top). Badge কুইজ যোদ্ধা and a 148 of 150 bar | Spring stack and fan | `renderQuiz`, `mountQuiz`, `QSUB` (1476–1526) | High |
 | **video** | `--hdrbg` | Two film strips of subject videos | Strips run across; minutes count on the same easing, so number and film stop together; the frame under the gold playhead lights | Count-synced film strip | `frames`, `renderVideo`, `mountVideo` (1527–1568) | High |
@@ -136,6 +136,19 @@ shared/          tokens.css (172) · base.css (255) · components.js (531) · fo
 | **type**, **type-revealed** | `--hdrbg` | Closed door, three evidence chips, emblem | The tap pulls the chips into the door; the door swings open; light slats pull back one after another to show the emblem; নিয়মিত পড়ুয়া lands grapheme by grapheme with a damped spring on the baseline | Slat reveal; elastic grapheme type | `renderType`, `mountType` (1569–1650), `graphemes` (686) | Medium–High |
 | **share**, **share-sheet** | `--hdrbg` | 3 cards (badges, calendar grid, subject) | A fanned stack springs apart; swipe with resistance at the ends; settles on an overshooting spring; tap a side card to centre it | Spring carousel | `renderShare`, `mountShare` (1683–1753) | High |
 | **end** | `--hdrbg` + glows | Road to the 2027 flag | The bird climbs the road in three hops with squash on landing; light pulses travel to the flag with a gold ring on each arrival; the flag waves (6 strips); confetti | Hop with squash; path pulses; flag wave | `flag`, `renderEnd`, `mountEnd`, `climb`, `pulses` (1754–1819) | High |
+
+**C3 hours day/night sky.**
+- **Layers, bottom to top:** day sky; night sky; night effects (56 seeded stars in 3 twinkle layers, plus sparkles); sun; moon; city and school scene with window glow; two copies of the heading (dark ink for day, white for night).
+- **Timing:** CSS animations on elapsed time, frozen or seeked through Web Animations:
+  - sun sets 0.25–1.95 s (accelerating curve);
+  - night sky fades in 0.7–1.9 s;
+  - dark heading fades out and white heading fades in 1.0–1.7 s;
+  - story chrome switches from dark to light at 1.25 s;
+  - stars fade in 1.5–2.5 s;
+  - moon rises with a spring overshoot 1.5–2.8 s, then its halo pulses every 3 s;
+  - far windows light 1.8–2.7 s;
+  - window glow 1.9–3.3 s.
+- **Data:** independent of the student's data; only the day/night split bar (3.35–4.65 s) reads `nightPct`.
 
 **Shared within C3:**
 - **Effects layer:** `FX` canvas for confetti and sparks (977–1034).
