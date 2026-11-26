@@ -35,7 +35,7 @@ export const MS_W = 392;
 
 // ── earned badges (finalized artwork, data/badgeArt.ts) ──
 /** Height of each badge's artwork in the identity tile (card px; ≈ 120 px in the 1080 export). */
-const TAG_ART_H = 44;
+const TAG_ART_H = 47;
 const TAG_GAP = 4;
 /** Story: the earned badges land one after another (s). */
 const TAG_STAGGER = 0.24;
@@ -62,7 +62,7 @@ function tagGrowth(ids: BadgeArtId[]): number {
 }
 const PAD = 12;
 const GAP = 6;
-const ROW_H = { id: 128, box: 126, pair: 104 };
+const ROW_H = { id: 136, box: 126, pair: 104 };
 
 const AREA: Record<TileId, string> = { study: "st", live: "lv", quiz: "qz", video: "vd", subject: "sb", peak: "pk", teacher: "tc" };
 /** How a tile is composed in the space it was given (the Figma state is tall / box). */
@@ -228,7 +228,13 @@ export function MarksheetCard({
  */
 export const EXPORT_FRAME = { w: 1080, h: 1920 };
 export function MarksheetExport({ facts }: { facts: MarksheetFacts }) {
-  const s = (EXPORT_FRAME.w - 2 * 48) / MS_W;
+  const gutter = 48;
+  const titleStack = 48 + 29; // export title line and the gap above the card
+  const cardH = marksheetLayout(facts).height;
+  const s = Math.min(
+    (EXPORT_FRAME.w - 2 * gutter) / MS_W,
+    (EXPORT_FRAME.h - 2 * gutter) / (cardH + titleStack),
+  );
   return (
     <div className="ms3-export" style={{ width: EXPORT_FRAME.w, height: EXPORT_FRAME.h }}>
       <div className="ms3-export-in" style={{ width: MS_W, transform: `scale(${s})` }}>

@@ -5,6 +5,10 @@ import { COPY } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { Button } from "../components/primitives";
 import { useEntry } from "../story/entry";
+import { BIRD_HOVER, flightPose, smooth } from "../motion/birdFlight";
+import { gsapEase } from "../motion/ease";
+import { devRegister, fromGsap } from "../motion/timeline";
+import { Bird3DImage, Bird3DWind, createBird3DEnvironment } from "./Bird3DFlight";
 import type { ScreenProps } from "../screens/types";
 import { BirdRig } from "./BirdCharacter";
 import { createFlight, type Cloud } from "./flight";
@@ -116,7 +120,7 @@ function keepTogether(text: string, word: string) {
  * flying rig and flight system (createFlight). Tap to skip to the settled
  * frame. Reduced motion / repeat view: the settled frame, still.
  */
-export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProps<"close">) {
+export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = false }: ScreenProps<"close"> & { raster?: boolean }) {
   const program = slide.program;
   const { reduced, repeatView } = usePrefs();
   const still = reduced || repeatView;
@@ -138,9 +142,13 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     const C = SKY_CLOSING;
 
     const rig = q(".bj-rig");
-    gsap.set(q(".bj-rest"), { opacity: 0 });
-    const BW = 200.173;
-    const BH = 152.315;
+    if (!raster) gsap.set(q(".bj-rest"), { opacity: 0 });
+    const mascot = raster ? q<HTMLImageElement>(".b3-bird") : null;
+    const BW = raster ? 188 : 200.173;
+    const BH = raster ? BW * 2222 / 2158 : 152.315;
+    if (raster) rig.style.width = `${BW}px`;
+    const environment = raster ? createBird3DEnvironment(el, CLOUDS) : null;
+    environment?.measure({ w: W, h: H, ratio: f });
 
     // ── the settled composition: checkpoint above, bird in the middle, words below ──
     // (measured with the next-step panel's slot collapsed — the ending before it — in every mode)
@@ -153,7 +161,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     const compose = (top: number) => {
       const avail = top - 12 - top0;
       const gh = Math.min(avail * 0.4, ((0.76 * W) * CHECKPOINT.h) / CHECKPOINT.w);
-      const bs = Math.max(0.5, Math.min(0.86, ((avail - gh) * 0.72) / (BH * f))) * f; // the bird's scale
+      const bs = Math.max(raster ? 0.28 : 0.5, Math.min(0.86, ((avail - gh) * 0.72) / (BH * f))) * f; // the bird's scale
       const free = avail - gh - BH * bs;
       return { gh, bird: { x: W / 2 - (BW / 2) * bs, y: top0 + gh + free * 0.55, scale: bs } };
     };
@@ -175,7 +183,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     const below = { ...cruise, y: H + 12 * f };
 
     // ── clouds (the opening's), driven by the flight's speed ──
-    const clouds: Cloud[] = qa<HTMLElement>(".bj-cloud").map((c, i) => {
+    const clouds: Cloud[] = raster ? [] : qa<HTMLElement>(".bj-cloud").map((c, i) => {
       const d = CLOUDS[i];
       c.style.width = `${d.w * f}px`;
       c.style.height = `${d.h * f}px`;
@@ -186,10 +194,48 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     const prof = speedProfile();
     const total = prof.D(1) * C.climb.dur * CLIMB * f * CHECK_DEPTH;
     const checkY0 = checkEnd.y - total;
-    const placeCheck = (u: number) => {
-      const e = prof.D(u) / prof.D(1);
+    const placeCheck = (u: number, e = prof.D(u) / prof.D(1)) => {
       const sc = (0.72 + 0.28 * Math.pow(e, 1.5)) * chk.k;
       check.style.transform = `translate3d(${checkEnd.x.toFixed(1)}px, ${(checkY0 + total * e).toFixed(1)}px, 0) scale(${sc.toFixed(4)})`;
+    };
+
+    const driftSpeed = 0.20;
+    const driftTravel = CLIMB * f * driftSpeed;
+    const climbTravel = H * 2.25 * (1 - driftSpeed);
+    const arrivalTravel = climbTravel + C.climb.dur * driftTravel;
+    const restPose = { ...flightPose(1, f), velocity: driftSpeed };
+    let drift: gsap.core.Tween | null = null;
+    const startDrift = () => {
+      if (!environment || drift) return;
+      drift = gsap.to({}, {
+        duration: 1,
+        repeat: -1,
+        onUpdate(this: gsap.core.Tween) {
+          const elapsed = this.totalTime();
+          const travel = elapsed * driftTravel;
+          const phase = restPose.phase + (travel / climbTravel) * Math.PI * 3.1;
+          environment.paint({ ...restPose, phase }, arrivalTravel + travel);
+        },
+      });
+    };
+
+    const paintRasterFlight = (u: number) => {
+      if (!mascot || !environment) return;
+      const pose = flightPose(u, f, 0.78);
+      const rise = smooth(pose.distance / 0.23);
+      const arrival = smooth((u - 0.62) / 0.38);
+      const centerY = below.y + (cruise.y - below.y) * rise;
+      const scale = cruise.scale + (birdEnd.scale - cruise.scale) * arrival;
+      // Move the bird's center with the camera, then apply the shared banking to the complete image.
+      const x = W / 2 + pose.drift - BW * scale / 2;
+      const y = (centerY + BH * cruise.scale / 2) * (1 - arrival)
+        + (birdEnd.y + BH * birdEnd.scale / 2) * arrival + pose.lift - BH * scale / 2;
+      gsap.set(rig, { x, y, scale });
+      mascot.style.transform = `rotate(${pose.bank}deg) scale(${1 + pose.scale})`;
+      placeCheck(u, pose.distance);
+      const velocity = driftSpeed + pose.velocity * (1 - driftSpeed);
+      const travel = pose.distance * climbTravel + u * C.climb.dur * driftTravel;
+      environment.paint({ ...pose, velocity }, travel);
     };
 
     const lineSpan = q(".bjs-line > span");
@@ -205,13 +251,21 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
       return flight;
     };
 
+    let hover: gsap.core.Tween | null = null;
     const final = () => {
+      if (raster && !still && !drift) {
+        paintRasterFlight(1);
+        startDrift();
+      }
+      if (mascot) mascot.style.removeProperty("transform");
       chk.k = kAfter;
       placeCheck(1);
       gsap.set(rig, after ? after.bird : birdEnd);
       gsap.set(sky, { opacity: 1 });
       gsap.set([lineSpan, actionsEl].filter(Boolean), { clearProps: "transform,opacity" });
+      if (raster && actionsEl) actionsEl.inert = false;
       if (slot && panel) {
+        if (raster) panel.inert = false;
         gsap.set(slot, { height: panelH, marginTop: 0 });
         gsap.set(panel, { yPercent: 0, opacity: 1 });
       }
@@ -220,6 +274,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     if (still) {
       final();
       clouds.forEach((c) => (c.el.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`));
+      environment?.paint(flightPose(1, f), 0);
       return;
     }
 
@@ -230,7 +285,13 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     gsap.set(lineSpan, { yPercent: 150 });
     if (actionsEl) gsap.set(actionsEl, { opacity: 0, y: 18 });
     if (panel) gsap.set(panel, { yPercent: 35, opacity: 0 });
-    fly({ speed: 0.9, amp: 24, trail: 0.7, beats: 0.6, pitch: -4, climb: CLIMB });
+    if (raster) {
+      paintRasterFlight(0);
+      if (actionsEl) actionsEl.inert = true;
+      if (panel) panel.inert = true;
+    } else {
+      fly({ speed: 0.9, amp: 24, trail: 0.7, beats: 0.6, pitch: -4, climb: CLIMB });
+    }
 
     const tl = gsap.timeline({ onComplete: () => finish() });
 
@@ -250,7 +311,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
     // the sky comes up under it
     tl.to(sky, { opacity: 1, duration: C.sky.dur, ease: "sine.inOut" }, C.sky.at);
     // the bird rises into frame, mid-climb
-    tl.to(rig, { y: cruise.y, duration: C.rise.dur, ease: "power2.out" }, C.rise.at);
+    if (!raster) tl.to(rig, { y: cruise.y, duration: C.rise.dur, ease: "power2.out" }, C.rise.at);
 
     // the climb: one progress value → the speed (wingbeat, airflow, clouds) and the checkpoint
     const cl = { u: 0 };
@@ -259,20 +320,26 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
       duration: C.climb.dur,
       ease: "none",
       onUpdate: () => {
-        const v = prof.v(cl.u);
-        if (flight) Object.assign(flight.state, { speed: v, amp: 20 + 4 * v, trail: 0.3 + 0.45 * v, beats: 0.25 + 0.4 * v, pitch: -2 - 3 * v });
-        placeCheck(cl.u);
+        if (raster) {
+          paintRasterFlight(cl.u);
+        } else {
+          const v = prof.v(cl.u);
+          if (flight) Object.assign(flight.state, { speed: v, amp: 20 + 4 * v, trail: 0.3 + 0.45 * v, beats: 0.25 + 0.4 * v, pitch: -2 - 3 * v });
+          placeCheck(cl.u);
+        }
       },
+      onComplete: startDrift,
     }, C.climb.at);
     // into its place below the checkpoint, a little farther in
-    tl.to(rig, { x: birdEnd.x, y: birdEnd.y, scale: birdEnd.scale, duration: C.place.dur, ease: "power2.inOut" }, C.place.at);
+    if (!raster) tl.to(rig, { x: birdEnd.x, y: birdEnd.y, scale: birdEnd.scale, duration: C.place.dur, ease: "power2.inOut" }, C.place.at);
 
     // the closing line, then the actions
-    tl.to(lineSpan, { yPercent: 0, duration: C.line.dur, ease: "expo.out" }, C.line.at);
+    tl.to(lineSpan, { yPercent: 0, duration: C.line.dur, ease: raster ? gsapEase("refPop") : "expo.out" }, C.line.at);
     if (actionsEl) tl.to(actionsEl, { opacity: 1, y: 0, duration: C.actions.dur, ease: "power2.out" }, C.actions.at);
     // the ending is established: the flight settles into its steady beat (and it can't be skipped any more)
     const settle = () => {
       if (flight) Object.assign(flight.state, SETTLED);
+      if (raster && actionsEl) actionsEl.inert = false;
       setPlaying(false);
     };
     tl.call(settle, [], C.end);
@@ -285,42 +352,77 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
       tl.to(panel, { yPercent: 0, opacity: 1, duration: R.dur, ease: "power3.out" }, R.at + 0.06);
       tl.to(rig, { ...after.bird, duration: R.dur, ease: "power3.inOut" }, R.at);
       tl.to(chk, { k: kAfter, duration: R.dur, ease: "power3.inOut", onUpdate: () => placeCheck(1) }, R.at);
+      if (raster) tl.call(() => { panel.inert = false; }, [], R.at + R.dur);
       tl.set({}, {}, C.revealEnd);
     }
 
+    const unregister = raster ? devRegister("11 3D Bird Journey", fromGsap(tl)) : () => {};
     let done = false;
     function finish() {
       if (done) return;
       done = true;
-      tl.progress(1);
-      tl.kill();
+      if (!raster) {
+        tl.progress(1);
+        tl.kill();
+      }
       final();
-      if (flight) Object.assign(flight.state, SETTLED);
-      else fly(SETTLED);
+      if (mascot) {
+        hover?.kill();
+        hover = gsap.to(mascot, {
+          y: -BIRD_HOVER.amplitude,
+          duration: BIRD_HOVER.period / 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+      } else if (flight) {
+        Object.assign(flight.state, SETTLED);
+      } else {
+        fly(SETTLED);
+      }
       setPlaying(false);
     }
     // a tap during the flight skips to the established ending; the reveal still follows on its own
     const skip = () => {
       if (tl.time() >= C.end) return;
       tl.seek(C.end, true);
+      if (raster) {
+        if (!program) {
+          finish();
+          return;
+        }
+        paintRasterFlight(1);
+        startDrift();
+      }
       settle();
     };
+    const stop = () => {
+      unregister();
+      tl.kill();
+      hover?.kill();
+      drift?.kill();
+      drift = null;
+      flight?.stop();
+    };
     ctl.current = {
-      stop: () => {
-        tl.kill();
-        flight?.stop();
-        restoreMarksheet();
+      stop: () => { stop(); restoreMarksheet(); },
+      finish: () => {
+        if (raster && done) {
+          done = false;
+          finish();
+        } else {
+          finish();
+        }
       },
-      finish,
       skip,
     };
     return () => {
-      tl.kill();
-      flight?.stop();
+      stop();
+      if (raster) restoreMarksheet();
     };
     // the entry is fixed for this mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [still]);
+  }, [raster, still]);
 
   const wasLeaving = useRef(false);
   useEffect(() => {
@@ -338,7 +440,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
   }, [isPresent]);
 
   return (
-    <div ref={root} className="slide bj bjc bjs">
+    <div ref={root} className={`slide bj bjc bjs${raster ? " bjs-3d" : ""}`}>
       <p className="bjw-sr">{COPY.close.prdLine}</p>
       <div className="bjs-sky" aria-hidden="true">
         <div className="bj-clouds">
@@ -352,12 +454,17 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions }: ScreenProp
           <SkyCheckpoint year="২০২৭" />
         </div>
       </div>
-      <svg className="bj-air" aria-hidden="true">
-        <path />
-        <path />
-        <path />
-      </svg>
-      <BirdRig />
+      {raster ? (
+        <>
+          <Bird3DWind />
+          <div className="bj-rig b3-rig" aria-hidden="true"><Bird3DImage /></div>
+        </>
+      ) : (
+        <>
+          <svg className="bj-air" aria-hidden="true"><path /><path /><path /></svg>
+          <BirdRig />
+        </>
+      )}
       <div className="bjs-copy">
         <h1 className="bjs-line" aria-hidden="true">
           <span>{keepTogether(COPY.close.prdLine, "২০২৭-এ")}</span>

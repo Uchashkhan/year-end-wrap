@@ -143,7 +143,12 @@
   .vw-slot-player { top: 33cqh; }
   .vw-stat { top: 25cqh; }
   .vw-cmp { top: 80cqh; padding-top: 10px; }
-  .vw-badge { display: none; }
+  .vw:has(.vw-badge) .vw-cmp p { font-size: 14px; }
+}
+
+@container (max-height: 800px) {
+  .vw:has(.vw-badge) .vw-cmp { right: calc(var(--g) + 136px); }
+  .vw-badge { left: auto; right: var(--g); }
 }
 
 /* pre-sequence state (full motion only) */

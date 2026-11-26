@@ -90,7 +90,7 @@
 
 /* bottom: the achievement, below the classroom */
 .la-badge { position: absolute; left: 0; right: 0; bottom: clamp(20px, 3.4cqh, 34px); display: flex; justify-content: center; }
-.la-badge .badge-mark, .la-badge .badge-live { --badge-art-h: 64px; }
+.la-badge .badge-mark, .la-badge .badge-live { --badge-art-h: 70px; }
 
 /* the LIVE dot's gentle pulse, once the class is on (not for reduced motion / repeat view) */
 @media (prefers-reduced-motion: no-preference) {

@@ -42,6 +42,9 @@ export const FACETS = {
   video: {
     design: { label: "Design", options: { original: "The Watchline", beyond: "Beyond the Screen" }, default: "original" },
   },
+  learner: {
+    animation: { label: "Animation", options: { original: "The Big Reveal", shuffle: "Identity Shuffle" }, default: "shuffle" },
+  },
   teacher: {
     design: { label: "Design", options: { original: "Teacher in the Spotlight", cinematic: "Cinematic Spotlight" }, default: "cinematic" },
   },
@@ -68,7 +71,7 @@ export type FacetKey = { [S in FacetScreen]: `${S}.${FacetAxis<S>}` }[FacetScree
 export type FacetMap = Partial<Record<FacetKey, string>>;
 
 /** Dev-panel names of the screens that have facets. */
-export const FACET_SCREEN_LABEL: Record<FacetScreen, string> = { cover: "01 Cover", study: "02 Study time", badge: "Badges (03 · 05 · 06 · 10)", live: "03 Live", teacher: "04 Teacher", quiz: "05 Quiz", video: "06 Video Learning" };
+export const FACET_SCREEN_LABEL: Record<FacetScreen, string> = { cover: "01 Cover", study: "02 Study time", badge: "Badges (03 · 05 · 06 · 10)", live: "03 Live", teacher: "04 Teacher", quiz: "05 Quiz", video: "06 Video Learning", learner: "09 Learner Type" };
 export const facetScreen = (key: FacetKey) => key.split(".")[0] as FacetScreen;
 
 const axisDef = (key: FacetKey) => {

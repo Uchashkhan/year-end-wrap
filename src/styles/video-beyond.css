@@ -1,5 +1,5 @@
 .slide.vb {
-  --vb-badge-height: clamp(62px, 9cqh, 76px);
+  --vb-badge-height: clamp(68px, 9.9cqh, 84px);
   display: grid;
   align-items: center;
   padding: clamp(56px, 10cqh, 86px) 0 clamp(24px, 7cqh, 58px);

@@ -1,9 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
 import { animate, usePresence } from "motion/react";
 import { COPY, LEARNER_TYPES } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { ASSEMBLE, useNav } from "../story/entry";
-import { LearnerBadge } from "../components/LearnerBadge";
+import { LearnerBadge, learnerBadgeSrc, LEARNER_BADGE_ORDER } from "../components/LearnerBadge";
+import { startLearnerShuffle } from "../motion/learnerShuffle";
+import { useImpact } from "../story/impact";
+import { useFacet } from "../variants/facets";
 import type { ScreenProps } from "./types";
 import "../styles/learner-reveal.css";
 
@@ -42,14 +45,30 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
   const { reduced, repeatView } = usePrefs();
   const still = reduced || repeatView;
+  const shuffle = useFacet("learner", "animation") === "shuffle";
+  const shake = useImpact();
+  const shakeRef = useRef(shake);
+  shakeRef.current = shake;
+  const previews = shuffle && !still ? LEARNER_BADGE_ORDER.filter((type) => type !== slide.type) : [];
   const scope = useRef<HTMLDivElement>(null);
   const [isPresent, safeToRemove] = usePresence();
   const ctl = useRef<{ stop: () => void; finish: () => void } | null>(null);
   const t = LEARNER_TYPES[slide.type];
 
+  useLayoutEffect(() => {
+    const root = scope.current;
+    if (!root || still || !shuffle) return;
+    const run = startLearnerShuffle(root, () => shakeRef.current?.(1.15));
+    ctl.current = run;
+    return () => {
+      run.finish();
+      if (ctl.current === run) ctl.current = null;
+    };
+  }, [shuffle, still, slide.type]);
+
   useEffect(() => {
     const root = scope.current;
-    if (!root || still) return;
+    if (!root || still || shuffle) return;
     const q = (s: string) => root.querySelector<HTMLElement>(s)!;
     const u = root.clientWidth / 390; // reference px → frame px
     const badge = q(".lt-badge");
@@ -81,7 +100,7 @@ export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
       // One sweep of the shine across the badge (the reference's on/off step, eased in and out).
       const sw = range(p, 0.55, 0.9);
       shine.style.opacity = (0.55 * Math.sin(Math.PI * sw)).toFixed(3);
-      shine.style.transform = `translateX(${lerp(-160, 180, sw).toFixed(2)}%)`;
+      shine.style.backgroundPositionX = `${lerp(100, 0, sw).toFixed(2)}%`;
     };
     const finish = () => {
       // The resting frame is CSS: clear every inline style the reveal set.
@@ -107,7 +126,7 @@ export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
     const stop = () => cancelAnimationFrame(raf);
     ctl.current = { stop, finish };
     return stop;
-  }, [still]);
+  }, [still, shuffle]);
 
   // Leaving: stop; removal is immediate. Revived before removal (rapid
   // back/forward taps): snap to the final frame — the reveal plays once.
@@ -144,18 +163,29 @@ export function LearnerReveal({ slide, actions }: ScreenProps<"learnerType">) {
   }, [isPresent]);
 
   return (
-    <div ref={scope} className={`slide lt ${still ? "" : "is-pre"}`}>
+    <div ref={scope} className={`slide lt ${shuffle ? "lt-shuffle" : ""} ${still ? "" : "is-pre"}`}>
 
       <div className="lt-header">
         <h2 className="lt-question">{COPY.learnerType.headline}</h2>
         <p className="lt-sub">{COPY.learnerType.prdSetup}</p>
       </div>
 
-      <div className="lt-badge-stage" aria-hidden="true">
+      <div
+        className="lt-badge-stage"
+        aria-hidden="true"
+        style={{ "--lt-badge-mask": `url("${learnerBadgeSrc(slide.type)}")` } as CSSProperties}
+      >
         <div className="lt-badge-shadow" />
-        <div className="lt-badge">
-          <LearnerBadge type={slide.type} />
-          <div className="lt-shine" />
+        <div className="lt-stickers">
+          {previews.map((type) => (
+            <div className="lt-shuffle-item" key={type}>
+              <LearnerBadge type={type} />
+            </div>
+          ))}
+          <div className="lt-badge">
+            <LearnerBadge type={slide.type} />
+            <div className="lt-shine" />
+          </div>
         </div>
       </div>
 

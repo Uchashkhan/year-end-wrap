@@ -70,11 +70,10 @@ export function AssetPlaceholder({ label, w, h, round }: { label: string; w?: nu
 /**
  * An earned badge on a story screen: its finalized artwork (Figma, 26 Nov 2026),
  * which carries the name, in place of the former text pill. Height from
- * `--badge-art-h` (default 72 px, the smallest size at which the drawn name
- * stays readable). `art` is kept for older call sites and no longer changes anything.
+ * `--badge-art-h` (default 80 px). `art` is kept for older call sites and no longer changes anything.
  */
 export function BadgePill({ id, landAt, amplitude }: { id: BadgeId; art?: boolean; landAt?: number; amplitude?: number }) {
-  return <BadgeReveal id={id} height="var(--badge-art-h, 72px)" className="badge-mark" landAt={landAt} amplitude={amplitude} />;
+  return <BadgeReveal id={id} height="var(--badge-art-h, 80px)" className="badge-mark" landAt={landAt} amplitude={amplitude} />;
 }
 
 /**
@@ -140,7 +139,7 @@ export function BadgeArt({
 
 /** Capstone: the one rare sticker — inverted (navy + gold rule) so it never reads as "just another badge". */
 export function CapstonePill({ landAt }: { landAt?: number } = {}) {
-  return <BadgeReveal id="capstone" height="var(--badge-art-h, 72px)" className="badge-mark" landAt={landAt} />;
+  return <BadgeReveal id="capstone" height="var(--badge-art-h, 80px)" className="badge-mark" landAt={landAt} />;
 }
 
 /**

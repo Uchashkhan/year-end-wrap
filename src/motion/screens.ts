@@ -5,6 +5,7 @@ import type { AmbientLoop } from "./ambient";
 import { OFFER_RULE } from "./tokens";
 import { BIRD_COVER } from "./birdCover";
 import { VIDEO_BEYOND } from "./videoBeyond";
+import { LEARNER_SHUFFLE } from "./learnerShuffle";
 
 /**
  * Phase markers per screen, in seconds from the tap that starts the screen
@@ -100,6 +101,35 @@ export const VIDEO_BEYOND_MOTION: ScreenMotion = {
   },
   target: {},
   notes: "The player and count share one playback curve. The optical experiment clears the bezel before the number lands.",
+};
+
+export const LEARNER_BIG_REVEAL_MOTION: ScreenMotion = {
+  label: "09 Learner Type · The Big Reveal",
+  category: "M2",
+  source: "src/screens/LearnerReveal.tsx (DURATION 1.65, progress map)",
+  library: "rAF clock",
+  ambientLoops: ["backgroundTwinkle"],
+  measured: { handoverEnd: 0.35, heroAt: 1.32, copyAt: 1.59, settleAt: 1.72 },
+  // generic T1 page turn; identity 0.79 × 1.65; actions 0.94 × 1.65; clock 1.65
+  code: { handoverEnd: MOTION.nav.duration, heroAt: 0.79 * 1.65, copyAt: 0.94 * 1.65, settleAt: 1.65 },
+  target: { heroAt: [2.2, 2.6], settleAt: 3.0 },
+};
+
+export const LEARNER_SHUFFLE_MOTION: ScreenMotion = {
+  label: "09 Learner Type · Identity Shuffle",
+  category: "M2",
+  source: "src/screens/LearnerReveal.tsx, src/motion/learnerShuffle.ts",
+  library: "GSAP",
+  ambientLoops: ["backgroundTwinkle"],
+  measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
+  code: {
+    handoverEnd: MOTION.nav.duration,
+    heroAt: LEARNER_SHUFFLE.heroAt,
+    copyAt: LEARNER_SHUFFLE.copyAt,
+    settleAt: LEARNER_SHUFFLE.duration,
+  },
+  target: {},
+  notes: "All seven identities pass through the same vertical track. Only the final sticker is the student's result.",
 };
 
 const STAT: TargetMarkers = { heroAt: [1.6, 2.4], settleAt: 2.8 };
@@ -275,17 +305,7 @@ export const SCREEN_MOTION = {
     },
     target: { heroAt: "keep", copyAt: "keep", settleAt: "keep" },
   },
-  learnerType: {
-    label: "09 Learner type",
-    category: "M2",
-    source: "src/screens/LearnerReveal.tsx (DURATION 1.65, progress map)",
-    library: "rAF clock",
-    ambientLoops: ["backgroundTwinkle"],
-    measured: { handoverEnd: 0.35, heroAt: 1.32, copyAt: 1.59, settleAt: 1.72 },
-    // generic T1 page turn; identity 0.79 × 1.65; actions 0.94 × 1.65; clock 1.65
-    code: { handoverEnd: MOTION.nav.duration, heroAt: 0.79 * 1.65, copyAt: 0.94 * 1.65, settleAt: 1.65 },
-    target: EMOTIONAL,
-  },
+  learnerType: LEARNER_SHUFFLE_MOTION,
   marksheet: {
     label: "10 Marksheet",
     category: "M3",
@@ -366,6 +386,16 @@ export const BIRD_MOTION = {
     notes: "Future: the closing message at ≈ 3.0–3.2 s without giving up convincing flight.",
   },
 } satisfies Record<string, ScreenMotion>;
+
+export const BIRD_3D_CLOSE_MOTION: ScreenMotion = {
+  ...BIRD_MOTION.close,
+  label: "11 See You 2027 · 3D Bird Journey",
+  source: "src/journey/ExperimentalBirdJourneyClosingSky.tsx, src/motion/birdFlight.ts",
+  library: "GSAP",
+  ambientLoops: ["birdCoverHover", "birdSkyDrift"],
+  measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
+  notes: "The same 3D flight curve drives the bird, sky, wind, and checkpoint. The recommendation uses the existing closing timing.",
+};
 
 /** Bird-led Storytelling (version 2 experiment): the screens that differ from the original. */
 export const BIRD_LED_MOTION = {

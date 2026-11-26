@@ -1,8 +1,10 @@
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { usePresence } from "motion/react";
 import gsap from "gsap";
 import { usePrefs } from "../lib/prefs";
-import { BIRD_COVER as T, flightAt, smooth } from "../motion/birdCover";
+import { BIRD_COVER as T } from "../motion/birdCover";
+import { BIRD_HOVER, flightPose, smooth } from "../motion/birdFlight";
+import { Bird3DImage, Bird3DWind, createBird3DEnvironment } from "./Bird3DFlight";
 import { gsapEase } from "../motion/ease";
 import { devRegister, fromGsap } from "../motion/timeline";
 import type { ScreenProps } from "../screens/types";
@@ -10,51 +12,7 @@ import { SKY_HANDOFF, useNav } from "../story/entry";
 import { BirdCoverScene, CLOUDS, FINAL_INK, MARKER_INK } from "./BirdCoverScene";
 import "../styles/bird-3d-cover.css";
 
-export const BIRD_3D_IMAGE = "/assets/journey/bird-3d.png";
 const FINAL_MARKER_Y = 0.22;
-const wrap = (n: number, period: number) => ((n % period) + period) % period;
-
-// Lanes carry the wind past the wings, with the fastest lines at the edges.
-const WIND = [
-  { x: 0.09, y: 0.23, depth: 0.45, length: 42, bend: -5, width: 1, opacity: 0.38 },
-  { x: 0.77, y: 0.31, depth: 0.48, length: 46, bend: 5, width: 1, opacity: 0.42 },
-  { x: 0.24, y: 0.08, depth: 0.50, length: 44, bend: -6, width: 1, opacity: 0.36 },
-  { x: 0.93, y: 0.73, depth: 0.53, length: 38, bend: 4, width: 1, opacity: 0.35 },
-  { x: 0.21, y: 0.92, depth: 0.50, length: 37, bend: -5, width: 0.9, opacity: 0.34 },
-  { x: 0.72, y: 0.68, depth: 0.48, length: 42, bend: 5, width: 1, opacity: 0.36 },
-  { x: 0.16, y: 0.52, depth: 0.85, length: 74, bend: -9, width: 1.4, opacity: 0.65 },
-  { x: 0.82, y: 0.47, depth: 0.92, length: 85, bend: 10, width: 1.3, opacity: 0.64 },
-  { x: 0.13, y: 0.85, depth: 0.98, length: 63, bend: -8, width: 1.3, opacity: 0.55 },
-  { x: 0.88, y: 0.12, depth: 0.89, length: 73, bend: 9, width: 1.4, opacity: 0.56 },
-  { x: 0.23, y: 0.38, depth: 1.02, length: 58, bend: -9, width: 1.25, opacity: 0.51 },
-  { x: 0.76, y: 0.84, depth: 1.05, length: 62, bend: 7, width: 1.25, opacity: 0.51 },
-  { x: 0.075, y: 0.66, depth: 1.33, length: 106, bend: -13, width: 1.8, opacity: 0.76 },
-  { x: 0.95, y: 0.37, depth: 1.45, length: 114, bend: 10, width: 1.65, opacity: 0.72 },
-  { x: 0.048, y: 0.12, depth: 1.52, length: 96, bend: -8, width: 1.55, opacity: 0.64 },
-] as const;
-const FOREGROUND_LINES = 3;
-const WIND_PAD = 172;
-
-function Airflow({ foreground }: { foreground?: boolean }) {
-  const gradient = useId();
-  const lines = foreground ? WIND.slice(-FOREGROUND_LINES) : WIND.slice(0, -FOREGROUND_LINES);
-  return (
-    <svg className={`bj-air b3-air ${foreground ? "b3-air-near" : ""}`} aria-hidden="true">
-      <defs>
-        <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-          <stop stopColor="#fff" stopOpacity="0" />
-          <stop offset="0.37" stopColor="#fff" stopOpacity="0.58" />
-          <stop offset="0.72" stopColor="#fff" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0.12" />
-        </linearGradient>
-      </defs>
-      {lines.map((line) => (
-        <path key={line.x} d={`M0 0 Q0 ${line.length * 0.62} ${line.bend} ${line.length}`}
-          strokeWidth={line.width} style={{ stroke: `url(#${gradient})` }} />
-      ))}
-    </svg>
-  );
-}
 
 export function Bird3DCover({ actions }: ScreenProps<"cover">) {
   const { reduced, repeatView } = usePrefs();
@@ -80,9 +38,7 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
     const spans = all(".bj-yr-6 .bj-yr-d");
     const boxes = all(".bj-dg");
     const digits = all(".bj-dgm");
-    const clouds = all(".bj-cloud");
-    const air = all<SVGSVGElement>(".b3-air");
-    const streaks = all<SVGPathElement>(".b3-air path");
+    const environment = createBird3DEnvironment(el, CLOUDS);
     const playhead = { time: 0 };
     const layout = { w: 0, h: 0, x: 0, y: 0, ratio: 1 };
     let years: { x: number; height: number }[] = [];
@@ -91,18 +47,14 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
     const paintFlight = () => {
       const { w, h, x: anchorX, y: anchorY, ratio } = layout;
       const u = Math.min(playhead.time / T.climb, 1);
-      const { distance, velocity } = flightAt(u);
+      const pose = flightPose(u, ratio);
+      const { distance, drift, lift } = pose;
       const entry = 1 - smooth(distance / 0.17);
       const arrival = smooth((u - 0.70) / 0.30);
-      const pace = Math.min(velocity, 1);
-      const phase = distance * Math.PI * 3.1;
-      const inertia = velocity - flightAt(u - 0.045).velocity;
-      const drift = (5.2 * Math.sin(phase + 0.4) + 2 * Math.sin(0.55 * phase)) * pace * ratio;
-      const lift = (-8 * Math.sin(phase + 0.2) + 16 * inertia) * pace * ratio;
       const y = (h * (0.51 + 0.34 * entry) - anchorY) * (1 - arrival) + lift;
       const x = (w / 2 - anchorX) * (1 - arrival) + drift;
-      const bank = (2.7 * Math.sin(phase + 0.65) - 8 * inertia) * pace - 2.4 * entry;
-      const scale = 1 + (0.52 - 0.21 * entry) * (1 - arrival) + 0.023 * pace;
+      const bank = pose.bank - 2.4 * entry;
+      const scale = 1 + (0.52 - 0.21 * entry) * (1 - arrival) + pose.scale;
       mascot.style.transform = `translate3d(${x}px,${y}px,0) rotate(${bank}deg) scale(${scale})`;
 
       const step = h * 0.49;
@@ -114,32 +66,7 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
         marker.style.transform = `translate3d(${years[i].x}px,${cy - years[i].height / 2}px,0)`;
       });
 
-      const travel = distance * h * 2.25;
-      clouds.forEach((cloud, i) => {
-        const spec = CLOUDS[i];
-        if (!spec) {
-          cloud.style.transform = `translate3d(${w / 2 - 286 * ratio}px,${h - 83 * ratio + travel * 1.3}px,0)`;
-          return;
-        }
-        const height = spec.h * ratio;
-        const startY = spec.y / 852 * h;
-        const cloudY = wrap(startY + travel * spec.depth + height, h + height * 2) - height;
-        const cloudX = spec.x * ratio - drift * spec.depth * 0.46;
-        cloud.style.transform = `translate3d(${cloudX}px,${cloudY}px,0)`;
-      });
-
-      const wind = Math.pow(velocity / 1.12, 1.15);
-      streaks.forEach((line, i) => {
-        const spec = WIND[i];
-        const y = wrap(spec.y * h + travel * 1.65 * spec.depth, h + WIND_PAD * 2) - WIND_PAD;
-        const side = Math.sign(spec.x - 0.5);
-        const wake = Math.sin(phase * 1.18 - spec.y * 4 + side * 0.65);
-        const x = w * spec.x + (side * wake * 4.8 * wind - drift * spec.depth * 0.4) * ratio;
-        const envelope = smooth((y + WIND_PAD) / 84) * smooth((h + 20 - y) / 92);
-        const gust = 0.86 + 0.14 * wake;
-        line.style.opacity = String(spec.opacity * envelope * wind * gust);
-        line.style.transform = `translate(${x}px,${y}px) scale(${ratio},${ratio * (0.67 + 0.58 * wind * gust)})`;
-      });
+      environment.paint(pose, distance * h * 2.25);
     };
 
     // Measure only when layout changes. Every animation frame reads the same cached geometry.
@@ -159,13 +86,7 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
         x: years[6].x + span.offsetLeft + span.offsetWidth / 2 - boxes[i].offsetLeft - boxes[i].offsetWidth / 2,
         y: layout.h * FINAL_MARKER_Y - years[6].height / 2 + span.offsetTop + span.offsetHeight / 2 - boxes[i].offsetTop,
       }));
-      air.forEach((layer) => layer.setAttribute("viewBox", `0 0 ${layout.w} ${layout.h}`));
-      clouds.forEach((cloud, i) => {
-        const spec = CLOUDS[i];
-        cloud.style.width = `${(spec?.w ?? 572) * layout.ratio}px`;
-        cloud.style.height = `${(spec?.h ?? 83) * layout.ratio}px`;
-        cloud.style.opacity = String(spec ? 0.42 + spec.depth * 0.48 : 1);
-      });
+      environment.measure(layout);
       paintFlight();
     };
     measure();
@@ -232,7 +153,7 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
     if (focusStart.current) el.querySelector<HTMLButtonElement>(".bj-cta")?.focus();
     focusStart.current = false;
     const hover = gsap.to(mascot, {
-      y: -T.hover.amplitude, duration: T.hover.period / 2,
+      y: -BIRD_HOVER.amplitude, duration: BIRD_HOVER.period / 2,
       ease: "sine.inOut", repeat: -1, yoyo: true,
     });
     return () => { hover.revert(); };
@@ -267,8 +188,8 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
       className="b3"
       flying={flying}
       lockCta
-      bird={<img ref={bird} className="b3-bird" src={BIRD_3D_IMAGE} width={2158} height={2222} alt="" draggable={false} fetchPriority="high" />}
-      air={<><Airflow /><Airflow foreground /></>}
+      bird={<Bird3DImage ref={bird} />}
+      air={<Bird3DWind />}
       onNext={actions.next}
       onSkip={() => finish.current?.()}
     />

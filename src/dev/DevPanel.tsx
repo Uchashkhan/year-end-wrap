@@ -316,6 +316,20 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
         </Field>
       </Section>
 
+      <Section title="Learner Type">
+        <Field label="09 Learner Type · Animation">
+          <Seg
+            label="Learner Type animation"
+            value={settings.facets?.["learner.animation"] === "original" ? "original" : FACETS.learner.animation.default}
+            options={[
+              { id: "original", name: FACETS.learner.animation.options.original },
+              { id: "shuffle", name: FACETS.learner.animation.options.shuffle },
+            ]}
+            onChange={(animation) => set("facets", { ...settings.facets, "learner.animation": animation })}
+          />
+        </Field>
+      </Section>
+
       <Section title="Motion profile">
         <Field label="Motion" hint="Reference: the reference prototype's motion language on the screens moved onto it so far (06 Video, 02 Study time). URL ?mprofile= wins.">
           <Seg

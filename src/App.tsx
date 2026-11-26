@@ -5,10 +5,11 @@ import { MarksheetLab } from "./marksheet/MarksheetLab";
 import { MarksheetDesignCtx, marksheetDesignFromUrl } from "./marksheet/design";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { preload } from "react-dom";
-import { BIRD_3D_IMAGE } from "./journey/Bird3DCover";
+import { LEARNER_BADGE_ORDER, learnerBadgeSrc } from "./components/LearnerBadge";
+import { BIRD_3D_IMAGE } from "./journey/Bird3DFlight";
 import { AnimatePresence, motion } from "motion/react";
 import { composeStory } from "./data/compose";
-import { getProfile } from "./data/profiles";
+import { DEFAULT_PREVIEW_PROFILE_ID, getProfile } from "./data/profiles";
 import { TEACHER_SLIDE_ENABLED_DEFAULT } from "./data/config";
 import { PrefsProvider } from "./lib/prefs";
 import { StoryViewer } from "./story/StoryViewer";
@@ -82,7 +83,7 @@ export default function App() {
 }
 
 function Prototype() {
-  const [profileId, setProfileId] = useState(() => new URLSearchParams(location.search).get("p") ?? "high");
+  const [profileId, setProfileId] = useState(() => new URLSearchParams(location.search).get("p") ?? DEFAULT_PREVIEW_PROFILE_ID);
   const [settings, setSettings] = useState(() => {
     // the marksheet design has no panel switch any more: always the shipped card (V2 only via ?marksheet=)
     // (the inspector's frame never reads the developer's saved settings)
@@ -150,11 +151,15 @@ function Prototype() {
       "cover.design": settings.facets?.["cover.design"],
       "live.design": settings.liveDesign,
       "video.design": settings.facets?.["video.design"],
+      "learner.animation": settings.facets?.["learner.animation"],
       "study.character": settings.studyCharacter,
     }),
     [settings.journey, settings.facets, settings.liveDesign, settings.studyCharacter],
   );
   if (facets["cover.design"] === "bird3d") preload(BIRD_3D_IMAGE, { as: "image" });
+  if (facets["learner.animation"] === "shuffle") {
+    LEARNER_BADGE_ORDER.forEach((type) => preload(learnerBadgeSrc(type), { as: "image" }));
+  }
   // global motion profile (dev only): URL, then the dev panel, then "original"
   const motionProfile = useMemo(
     () => resolveMotionProfile({ profile: settings.motionProfile, sparks: settings.motionSparks }),

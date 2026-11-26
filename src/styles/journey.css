@@ -221,3 +221,8 @@
 .bjs-share { flex: none; width: var(--tap, 48px); min-height: var(--tap, 48px); display: grid; place-items: center; border-radius: var(--radius-md); border: 1.5px solid rgba(255, 255, 255, 0.9); background: transparent; color: #fff; cursor: pointer; transition: transform 0.12s var(--ease-out); }
 .bjs-share:active { transform: scale(0.96); }
 .bjs-share:focus-visible { outline: 3px solid var(--c-gold); outline-offset: 2px; }
+
+.bjs-3d .b3-rig { height: auto; }
+.bjs-3d .b3-bird { display: block; width: 100%; height: auto; }
+.bjs-3d .b3-air-near { z-index: 7; }
+.bjs-3d .btn-primary { background: var(--c-magenta); }

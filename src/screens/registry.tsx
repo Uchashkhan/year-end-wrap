@@ -180,7 +180,10 @@ function StudySwitch(props: ScreenProps<"study">) {
 function CloseSwitch(props: ScreenProps<"close">) {
   // Bird Journey's closing is the sky flight; the original Wrap's is "The Year Turns" (Nov 24).
   // (The previous Closing, EndScreens Close, is kept in the code, unwired.)
-  return isBirdJourney(useJourney()) ? <ExperimentalBirdJourneyClosingSky {...props} /> : <YearTurnsClosing {...props} />;
+  const design = useFacet("cover", "design");
+  const journey = useJourney();
+  if (design === "bird3d") return <ExperimentalBirdJourneyClosingSky key="3d" {...props} raster />;
+  return isBirdJourney(journey) ? <ExperimentalBirdJourneyClosingSky {...props} /> : <YearTurnsClosing {...props} />;
 }
 
 function CoverSwitch(props: ScreenProps<"cover">) {

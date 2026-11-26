@@ -57,7 +57,7 @@ import "../styles/live-reserved.css";
 // ── the stage (stage units; 390 × 420) ──
 const STAGE = { w: 390, h: 336 } as const;
 /** Room under the chair for the Front Bencher sticker (only when it is earned). */
-const STICKER_ROOM = 96;
+const STICKER_ROOM = 106;
 const CHAIR = { w: 100, h: 132 } as const;
 /** The hero chair: front and centre. */
 const HERO = { s: 1.7, cx: 195, bottom: 328 } as const;

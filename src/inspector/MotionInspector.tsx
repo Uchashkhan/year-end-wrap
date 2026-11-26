@@ -6,7 +6,7 @@ import {
   useState,
   type PointerEvent as RPointerEvent,
 } from "react";
-import { PROFILES, getProfile } from "../data/profiles";
+import { DEFAULT_PREVIEW_PROFILE_ID, PROFILES, getProfile } from "../data/profiles";
 import { composeStory, type Slide } from "../data/compose";
 import { TEACHER_SLIDE_ENABLED_DEFAULT } from "../data/config";
 import { CATEGORIES } from "../motion/categories";
@@ -14,7 +14,10 @@ import { AMBIENT, type AmbientLoop } from "../motion/ambient";
 import {
   BIRD_LED_MOTION,
   BIRD_3D_MOTION,
+  BIRD_3D_CLOSE_MOTION,
   VIDEO_BEYOND_MOTION,
+  LEARNER_SHUFFLE_MOTION,
+  LEARNER_BIG_REVEAL_MOTION,
   BIRD_MOTION,
   SCREEN_MOTION,
   type PhaseMarkers,
@@ -67,11 +70,12 @@ const ORDER: SlideId[] = [
 ];
 const ORIGINAL: Entry[] = ORDER.map((id) => ({
   key: id,
-  label: SCREEN_MOTION[id].label,
+  label: id === "learnerType" ? LEARNER_BIG_REVEAL_MOTION.label : SCREEN_MOTION[id].label,
   slide: id,
   journey: "current",
   group: "Original",
-  meta: SCREEN_MOTION[id],
+  meta: id === "learnerType" ? LEARNER_BIG_REVEAL_MOTION : SCREEN_MOTION[id],
+  params: id === "learnerType" ? "learner.animation=original" : undefined,
 }));
 const BIRD: Entry[] = [
   {
@@ -110,6 +114,7 @@ const v = (
   params,
 });
 const VARIANTS: Entry[] = [
+  { ...v("bird-3d-close", BIRD_3D_CLOSE_MOTION.label, "close", "cover.design=bird3d"), meta: BIRD_3D_CLOSE_MOTION },
   { ...v("bird-3d-cover", BIRD_3D_MOTION.label, "cover", "cover.design=bird3d"), meta: BIRD_3D_MOTION },
   v("cover-m3", "01 Cover · M3 geometry", "cover", "cover=m3"),
   v("cover-m2", "01 Cover · M2", "cover", "cover=m2"),
@@ -125,6 +130,7 @@ const VARIANTS: Entry[] = [
   v("video-v2", "06 Video · V2", "video", "video=v2"),
   v("subject-v2", "07 Subject · M1", "subject", "subject=v2"),
   v("peak-v2", "08 Peak day · M1", "peakDay", "peak=v2"),
+  { ...v("learner-shuffle", LEARNER_SHUFFLE_MOTION.label, "learnerType", "learner.animation=shuffle"), meta: LEARNER_SHUFFLE_MOTION },
   v("learner-v2", "09 Learner · M1 stamp", "learnerType", "learner=v2"),
   v("ms-m1", "10 Marksheet · M1 sheet", "marksheet", "marksheet=v2"),
   v("ms-v2a", "10 Marksheet · V2-A Bold", "marksheet", "ms=v2a"),
@@ -138,8 +144,10 @@ function heroSel(
   journey: Journey,
   params?: string,
 ): string | null {
-  if (params === "cover.design=bird3d") return ".b3 .bj-year > span";
+  if (params === "cover.design=bird3d") return slide === "close" ? ".bjs-line > span" : ".b3 .bj-year > span";
   if (params === "video.design=beyond") return ".vb-value";
+  if (params === "learner.animation=shuffle") return ".lt-name";
+  if (params === "learner.animation=original") return ".lt-type";
   if (params) return null;
   const bird = journey === "bird" || journey === "birdled";
   const m: Partial<Record<SlideId, string>> = {
@@ -158,9 +166,11 @@ function heroSel(
   };
   return m[slide] ?? null;
 }
-const offerAt = (slide: SlideId, journey: Journey, program: boolean) =>
+const offerAt = (slide: SlideId, journey: Journey, program: boolean, params?: string) =>
   slide === "close" && program
-    ? ((journey === "bird"
+    ? ((params === "cover.design=bird3d"
+        ? BIRD_3D_CLOSE_MOTION.code.offerStartAt
+        : journey === "bird"
         ? BIRD_MOTION.close.code.offerStartAt
         : SCREEN_MOTION.close.code.offerStartAt) ?? null)
     : null;
@@ -182,7 +192,7 @@ export default function MotionInspector() {
   const [entryKey, setEntryKey] = useState("live");
   const [journeyC, setJourneyC] = useState<Journey>("current");
   const [viewport, setViewport] = useState<ViewportId>("390");
-  const [profileId, setProfileId] = useState("high");
+  const [profileId, setProfileId] = useState<string>(DEFAULT_PREVIEW_PROFILE_ID);
   const [reduced, setReduced] = useState(false);
   const [noProgram, setNoProgram] = useState(false);
   // global motion profile for the preview frame (motion/profile.tsx); the inspector's own URL can preset it
@@ -295,7 +305,7 @@ export default function MotionInspector() {
       api.clock.setSpeed(speed);
       const opts: ObserveOptions = {
         heroSel: heroSel(entry.slide, journey, entry.params),
-        offerAt: offerAt(entry.slide, journey, hasProgram),
+        offerAt: offerAt(entry.slide, journey, hasProgram, entry.params),
       };
       if (mode === "screen") {
         api.observe(opts);

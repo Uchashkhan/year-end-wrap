@@ -52,7 +52,7 @@ const high: WrapRecord = {
     { id: "biology", seconds: 30 * H },
   ],
   peakDay: { date: "2026-03-14", seconds: 5 * H },
-  learnerType: "rhythm",
+  learnerType: "intensity",
 };
 
 export const PROFILES: MockProfile[] = [
@@ -137,7 +137,7 @@ export const PROFILES: MockProfile[] = [
       live: { attended: 91, held: 98 },
       quizzesCompleted: 214,
       videoMinutes: 3380,
-      learnerType: "intensity",
+      learnerType: "rhythm",
     },
   },
   {
@@ -193,5 +193,7 @@ export const PROFILES: MockProfile[] = [
     record: { ...high, status: "generating" },
   },
 ];
+
+export const DEFAULT_PREVIEW_PROFILE_ID = "high";
 
 export const getProfile = (id: string) => PROFILES.find((p) => p.id === id) ?? PROFILES[0];
