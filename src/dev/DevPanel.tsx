@@ -9,7 +9,7 @@ import { SLIDE_LABEL } from "../screens/registry";
 import type { MotionPref } from "../lib/prefs";
 import { COVER_VARIANTS, type CoverVariant } from "../explore/variant";
 import type { MotionProfile } from "../motion/profile";
-import type { FacetMap } from "../variants/facets";
+import { FACETS, type FacetMap } from "../variants/facets";
 
 export const DEVICES = {
   "390x844": { w: 390, h: 844, label: "390×844 · brief reference" },
@@ -39,6 +39,8 @@ export interface DevSettings {
   motionSparks: boolean;
   /** 03 Live: the Front-Row Seat (original) or The Classroom Comes Alive (variants/facets.tsx live.design). */
   liveDesign: "original" | "alive" | "reserved";
+  /** 02 Study: clock only by default, with the Timekeeper kept for comparison. */
+  studyCharacter: "original" | "timekeeper";
 }
 
 interface Props {
@@ -230,7 +232,7 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
       </Section>
 
       <Section title="Versions">
-        <Field label="Version" hint="Bird Journey: the bird cover (01) and sky-flight closing (11). Bird-led: the same, and the bird takes part in the screens between (so far 02, The Timekeeper).">
+        <Field label="Version" hint="Bird Journey and Bird-led use the bird cover (01) and sky-flight closing (11). Choose the Study time animation separately below.">
           <Seg
             label="Wrap version"
             value={settings.journey}
@@ -243,14 +245,45 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
           />
         </Field>
         <Field label="Cover (01)">
-          <select className="dp-select" value={settings.cover} onChange={(e) => set("cover", e.target.value as CoverVariant)}>
+          <select
+            className="dp-select"
+            aria-label="Cover (01)"
+            value={settings.facets?.["cover.design"] ?? settings.cover}
+            onChange={(e) => {
+              const design = e.target.value;
+              const facets = { ...settings.facets };
+              if (design === "svg" || design === "bird3d") {
+                facets["cover.design"] = design;
+                onSettings({ ...settings, facets });
+              } else {
+                delete facets["cover.design"];
+                onSettings({ ...settings, facets, cover: design as CoverVariant });
+              }
+            }}
+          >
             <option value="current">Approved Figma cover (current)</option>
+            <option value="svg">{FACETS.cover.design.options.svg}</option>
+            <option value="bird3d">{FACETS.cover.design.options.bird3d}</option>
             {COVER_VARIANTS.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.name}
               </option>
             ))}
           </select>
+        </Field>
+      </Section>
+
+      <Section title="Study time">
+        <Field label="02 Study · Animation" hint="Both use the day/night sky. URL ?study.character= wins.">
+          <Seg
+            label="Study time animation"
+            value={settings.studyCharacter}
+            options={[
+              { id: "original", name: "Clock only" },
+              { id: "timekeeper", name: "Timekeeper (bird)" },
+            ]}
+            onChange={(v) => set("studyCharacter", v)}
+          />
         </Field>
       </Section>
 
@@ -265,6 +298,20 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
               { id: "reserved", name: "Reserved Seat" },
             ]}
             onChange={(v) => set("liveDesign", v)}
+          />
+        </Field>
+      </Section>
+
+      <Section title="Video Learning">
+        <Field label="06 Video · Design">
+          <Seg
+            label="Video design"
+            value={settings.facets?.["video.design"] === "beyond" ? "beyond" : "original"}
+            options={[
+              { id: "original", name: FACETS.video.design.options.original },
+              { id: "beyond", name: FACETS.video.design.options.beyond },
+            ]}
+            onChange={(design) => set("facets", { ...settings.facets, "video.design": design })}
           />
         </Field>
       </Section>

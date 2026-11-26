@@ -7,6 +7,7 @@ import { StudyClock } from "./StudyClock";
 import { LiveClass } from "./LiveClass";
 import { TeacherSpotlight } from "./TeacherSpotlight";
 import { QuizRecap } from "./QuizRecap";
+import { VideoBeyond } from "./VideoBeyond";
 import { VideoWatchline } from "./VideoWatchline";
 import { SubjectTakeover } from "./SubjectTakeover";
 import { PeakDayLit } from "./PeakDayLit";
@@ -26,6 +27,7 @@ import { LiveReservedSeat } from "./LiveReservedSeat";
 import { SkyProgressCtx, createSkyProgress } from "./studySky/progress";
 import { StudyTimekeeper } from "./StudyTimekeeper";
 import { ExperimentalBirdJourneyClosingSky } from "../journey/ExperimentalBirdJourneyClosingSky";
+import { Bird3DCover } from "../journey/Bird3DCover";
 import { ExperimentalBirdJourneyCover } from "../journey/ExperimentalBirdJourneyCover";
 import { useCoverVariant } from "../explore/variant";
 import { CoverTypographic } from "../explore/CoverTypographic";
@@ -64,7 +66,7 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       return new URLSearchParams(location.search).get("quiz") === "v2" ? <Quiz slide={slide} {...p} /> : <QuizSwitch slide={slide} {...p} />;
     case "video":
       // Default: "The Watchline" (Nov 2026 brief + V3 reference). The V2 stat screen stays at ?video=v2.
-      return new URLSearchParams(location.search).get("video") === "v2" ? <Video slide={slide} {...p} /> : <VideoWatchline slide={slide} {...p} />;
+      return new URLSearchParams(location.search).get("video") === "v2" ? <Video slide={slide} {...p} /> : <VideoSwitch slide={slide} {...p} />;
     case "subject":
       // Default: "Subject Takes Over" (Nov 22 prototype). The M1 placeholder stays at ?subject=v2.
       return new URLSearchParams(location.search).get("subject") === "v2" ? <Subject slide={slide} {...p} /> : <SubjectTakeover slide={slide} {...p} />;
@@ -154,6 +156,10 @@ function QuizSwitch(props: ScreenProps<"quiz">) {
   return <QuizRecap {...props} />;
 }
 
+function VideoSwitch(props: ScreenProps<"video">) {
+  return useFacet("video", "design") === "beyond" ? <VideoBeyond {...props} /> : <VideoWatchline {...props} />;
+}
+
 function StudySwitch(props: ScreenProps<"study">) {
   // Two independent facets (variants/facets.tsx): the character choreography (the approved clock, or "The
   // Timekeeper", Bird-led's preset) and the background effect (none, or the day/night sky). The character
@@ -179,8 +185,10 @@ function CloseSwitch(props: ScreenProps<"close">) {
 
 function CoverSwitch(props: ScreenProps<"cover">) {
   const v = useCoverVariant();
-  // Dev-only comparison: the experimental Bird Journey cover (the approved cover is untouched).
-  if (isBirdJourney(useJourney())) return <ExperimentalBirdJourneyCover {...props} />;
+  const design = useFacet("cover", "design");
+  const journey = useJourney();
+  if (design === "bird3d") return <Bird3DCover {...props} />;
+  if (design === "svg" || isBirdJourney(journey)) return <ExperimentalBirdJourneyCover {...props} />;
   const C = v === "current" ? CoverFigma : v === "m3" ? CoverGeo : v === "m2" ? Cover : v === "u" ? CoverUnfolded : v === "a" ? CoverTypographic : v === "b" ? CoverGeometry : v === "c" ? CoverEditorial : CoverGeo;
   return <C {...props} />;
 }

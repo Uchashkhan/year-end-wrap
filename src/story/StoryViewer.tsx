@@ -14,7 +14,7 @@ import { EntryCtx, NavCtx, type Entry } from "./entry";
 import { ImpactProvider, createShake } from "./impact";
 import { KIND_TIMING, isBespoke, resolveKind } from "../motion/handovers";
 import { StoryBackground } from "./StoryBackground";
-import { COVER_BG, SCREEN_BACKGROUND, bgTransition } from "./background";
+import { SCREEN_BACKGROUND, bgTransition } from "./background";
 
 const TAP_BACK_ZONE = 0.3; // left 30% = back (Stories convention)
 const SWIPE_X = 48;
@@ -78,12 +78,13 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
   const teacherDesign = useFacet("teacher", "design");
   const liveDesign = useFacet("live", "design");
   const chosenCover = useCoverVariant();
-  // Bird Journey (dev-only): its own cover, so the approved cover's hand-over is not used.
-  const coverVariant = isBirdJourney(journey) ? "bird" : chosenCover;
+  const coverDesign = useFacet("cover", "design");
+  const birdCover = coverDesign !== "legacy" || isBirdJourney(journey);
+  const coverVariant = birdCover ? "bird" : chosenCover;
   const slides = plan.slides;
   const slide = slides[index];
   // Chrome tone only: a light-ground cover exploration needs dark progress/close.
-  const surface = slide.id === "cover" ? (isBirdJourney(journey) ? "cover" : coverSurface(chosenCover)) : SURFACE[slide.id];
+  const surface = slide.id === "cover" ? (birdCover ? "cover" : coverSurface(chosenCover)) : SURFACE[slide.id];
   const last = slides.length - 1;
 
   // Direction + entry kind are derived from the index change itself, so taps,
@@ -222,7 +223,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
 
       {/* Persistent background: never unmounts while the story is open, so its twinkle never restarts. */}
       <div className="story-bg">
-        <StoryBackground variant={isBirdJourney(journey) && slide.id === "cover" ? COVER_BG : SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
+        <StoryBackground variant={SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
       </div>
 
       <ImpactProvider value={reduced ? null : impact.current.shake}>

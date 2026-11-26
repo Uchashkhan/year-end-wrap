@@ -3,6 +3,8 @@ import { MOTION } from "../lib/motion";
 import type { MotionCategory } from "./categories";
 import type { AmbientLoop } from "./ambient";
 import { OFFER_RULE } from "./tokens";
+import { BIRD_COVER } from "./birdCover";
+import { VIDEO_BEYOND } from "./videoBeyond";
 
 /**
  * Phase markers per screen, in seconds from the tap that starts the screen
@@ -65,6 +67,40 @@ export interface ScreenMotion {
   /** Global motion profiles other than "original" (motion/profile.tsx), for screens moved onto the primitives. */
   profiles?: { reference?: { measured: PhaseMarkers; source: string; notes: string } };
 }
+
+export const BIRD_3D_MOTION: ScreenMotion = {
+  label: "01 Cover · 3D Bird Journey",
+  category: "M4",
+  source: "src/journey/Bird3DCover.tsx, src/motion/birdCover.ts",
+  library: "GSAP",
+  ambientLoops: ["backgroundTwinkle", "birdCoverHover"],
+  measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
+  code: {
+    handoverEnd: null,
+    heroAt: BIRD_COVER.year.at + BIRD_COVER.year.duration,
+    copyAt: BIRD_COVER.support.at + BIRD_COVER.support.duration,
+    settleAt: BIRD_COVER.end,
+  },
+  target: {},
+  notes: "One flight curve drives the bird, year track, cloud parallax and wind. Only the bird's subtle hover continues after the CTA settles.",
+};
+
+export const VIDEO_BEYOND_MOTION: ScreenMotion = {
+  label: "06 Video · Beyond the Screen",
+  category: "M1",
+  source: "src/screens/VideoBeyond.tsx, src/motion/videoBeyond.ts",
+  library: "GSAP",
+  ambientLoops: ["backgroundTwinkle", "videoLessonLight"],
+  measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
+  code: {
+    handoverEnd: WATCH.out,
+    heroAt: VIDEO_BEYOND.land,
+    copyAt: VIDEO_BEYOND.comparison + 0.42,
+    settleAt: VIDEO_BEYOND.end,
+  },
+  target: {},
+  notes: "The player and count share one playback curve. The optical experiment clears the bezel before the number lands.",
+};
 
 const STAT: TargetMarkers = { heroAt: [1.6, 2.4], settleAt: 2.8 };
 const EMOTIONAL: TargetMarkers = { heroAt: [2.2, 2.6], settleAt: 3.0 };
@@ -147,11 +183,10 @@ export const SCREEN_MOTION = {
         label: "04 Teacher — Cinematic Spotlight (teacher.design = cinematic)",
         source: "src/screens/TeacherCinematic.tsx (one GSAP timeline + paint), focusHandoff.ts (03's side only)",
         library: "GSAP",
-        // from Screen 03 (FOCUS): dim 0.3, silhouette 0.85–1.35 then held, search 2.3–3.25, found 3.25 (+0.9 spring),
-        // the silhouette opens 3.3–4.6, name 4.4 → ≈ 5.0, breath from 5.3
-        code: { handoverEnd: FOCUS.out, heroAt: 5.0, copyAt: 5.0, settleAt: 5.3 },
+        // Focus hand-over: spotlight starts at 1.29 s. Direct entry starts it at 0.49 s.
+        code: { handoverEnd: FOCUS.out, heroAt: 3.64, copyAt: 3.94, settleAt: 4.34 },
         notes:
-          "Timing exception (M2 target: hero 2.2–2.6, settle 3.0): the silhouette hold (≈ 0.9 s, approved Nov 26), the search and the discovery are the story here; the name completes ≈ 5.0 s. Tap lock unchanged (FOCUS.lockMs 1.9 s). The 04 → 05 Answer hand-over needs the original teacher (its figure and light), so with Cinematic Spotlight it uses the standard transition.",
+          "Timings describe the Focus hand-over from the original Live screen. Direct entry and standard transitions start the spotlight 0.8 s earlier. The 04 → 05 Answer hand-over still uses the standard transition with Cinematic Spotlight.",
       },
     },
   },

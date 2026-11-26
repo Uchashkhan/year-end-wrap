@@ -4,6 +4,8 @@ import { BentoLab } from "./marksheet/BentoLab";
 import { MarksheetLab } from "./marksheet/MarksheetLab";
 import { MarksheetDesignCtx, marksheetDesignFromUrl } from "./marksheet/design";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { preload } from "react-dom";
+import { BIRD_3D_IMAGE } from "./journey/Bird3DCover";
 import { AnimatePresence, motion } from "motion/react";
 import { composeStory } from "./data/compose";
 import { getProfile } from "./data/profiles";
@@ -39,6 +41,7 @@ const DEFAULTS: DevSettings = {
   motionProfile: "original",
   motionSparks: false,
   liveDesign: "original",
+  studyCharacter: "original",
   marksheet: "current",
 };
 
@@ -141,8 +144,17 @@ function Prototype() {
   };
 
   // screen-level effect variations: URL, then dev overrides, then the journey's preset, then the default
-  // screen-level choices are final (variants/facets.tsx defaults); stored overrides from the former panel switches are ignored
-  const facets = useMemo(() => resolveFacets(settings.journey, { "live.design": settings.liveDesign }), [settings.journey, settings.liveDesign]);
+  // Only the requested comparisons override the screen defaults.
+  const facets = useMemo(
+    () => resolveFacets(settings.journey, {
+      "cover.design": settings.facets?.["cover.design"],
+      "live.design": settings.liveDesign,
+      "video.design": settings.facets?.["video.design"],
+      "study.character": settings.studyCharacter,
+    }),
+    [settings.journey, settings.facets, settings.liveDesign, settings.studyCharacter],
+  );
+  if (facets["cover.design"] === "bird3d") preload(BIRD_3D_IMAGE, { as: "image" });
   // global motion profile (dev only): URL, then the dev panel, then "original"
   const motionProfile = useMemo(
     () => resolveMotionProfile({ profile: settings.motionProfile, sparks: settings.motionSparks }),

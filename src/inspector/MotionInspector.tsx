@@ -13,6 +13,8 @@ import { CATEGORIES } from "../motion/categories";
 import { AMBIENT, type AmbientLoop } from "../motion/ambient";
 import {
   BIRD_LED_MOTION,
+  BIRD_3D_MOTION,
+  VIDEO_BEYOND_MOTION,
   BIRD_MOTION,
   SCREEN_MOTION,
   type PhaseMarkers,
@@ -108,6 +110,7 @@ const v = (
   params,
 });
 const VARIANTS: Entry[] = [
+  { ...v("bird-3d-cover", BIRD_3D_MOTION.label, "cover", "cover.design=bird3d"), meta: BIRD_3D_MOTION },
   v("cover-m3", "01 Cover · M3 geometry", "cover", "cover=m3"),
   v("cover-m2", "01 Cover · M2", "cover", "cover=m2"),
   v("cover-u", "01 Cover · Unfolded", "cover", "cover=u"),
@@ -118,6 +121,7 @@ const VARIANTS: Entry[] = [
   v("live-v2", "03 Live · V2 attendance", "live", "live=v2"),
   v("teacher-v2", "04 Teacher · M1", "teacher", "teacher=v2"),
   v("quiz-v2", "05 Quiz · V2", "quiz", "quiz=v2"),
+  { ...v("video-beyond", VIDEO_BEYOND_MOTION.label, "video", "video.design=beyond"), meta: VIDEO_BEYOND_MOTION },
   v("video-v2", "06 Video · V2", "video", "video=v2"),
   v("subject-v2", "07 Subject · M1", "subject", "subject=v2"),
   v("peak-v2", "08 Peak day · M1", "peakDay", "peak=v2"),
@@ -134,6 +138,8 @@ function heroSel(
   journey: Journey,
   params?: string,
 ): string | null {
+  if (params === "cover.design=bird3d") return ".b3 .bj-year > span";
+  if (params === "video.design=beyond") return ".vb-value";
   if (params) return null;
   const bird = journey === "bird" || journey === "birdled";
   const m: Partial<Record<SlideId, string>> = {

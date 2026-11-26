@@ -17,15 +17,18 @@ import type { JourneyMode } from "../journey/journeyMode";
  *
  * Add an axis only when an experiment needs it (no speculative switches).
  *
- * Final (26 Nov 2026, chosen in the dev panel): Study Time = Timekeeper with the
+ * Final (26 Nov 2026, chosen in the dev panel): Study Time = clock only with the
  * day/night sky; badges = impact landing; Teacher = Cinematic Spotlight; Quiz =
  * Quiz Activities A (centered). These are the defaults and the dev panel no
- * longer offers the axes; the other components stay in the code, unwired from
- * the panel (the URL can still reach them for review).
+ * longer offers the finalized axes. Study's character and Live's design remain
+ * available in the panel for requested comparisons; URLs can reach all axes.
  */
 export const FACETS = {
+  cover: {
+    design: { label: "Design", options: { legacy: "Wrap cover", svg: "SVG Bird Journey", bird3d: "3D Bird Journey" }, default: "legacy" },
+  },
   study: {
-    character: { label: "Character", options: { original: "Original clock", timekeeper: "Timekeeper (bird)" }, default: "timekeeper" },
+    character: { label: "Character", options: { original: "Original clock", timekeeper: "Timekeeper (bird)" }, default: "original" },
     sky: { label: "Background", options: { original: "Original", daynight: "Day / night (reference C3)" }, default: "daynight" },
   },
   badge: {
@@ -35,6 +38,9 @@ export const FACETS = {
   },
   live: {
     design: { label: "Design", options: { original: "The Front-Row Seat", alive: "The Classroom Comes Alive", reserved: "The Reserved Seat" }, default: "original" },
+  },
+  video: {
+    design: { label: "Design", options: { original: "The Watchline", beyond: "Beyond the Screen" }, default: "original" },
   },
   teacher: {
     design: { label: "Design", options: { original: "Teacher in the Spotlight", cinematic: "Cinematic Spotlight" }, default: "cinematic" },
@@ -62,7 +68,7 @@ export type FacetKey = { [S in FacetScreen]: `${S}.${FacetAxis<S>}` }[FacetScree
 export type FacetMap = Partial<Record<FacetKey, string>>;
 
 /** Dev-panel names of the screens that have facets. */
-export const FACET_SCREEN_LABEL: Record<FacetScreen, string> = { study: "02 Study time", badge: "Badges (03 · 05 · 06 · 10)", live: "03 Live", teacher: "04 Teacher", quiz: "05 Quiz" };
+export const FACET_SCREEN_LABEL: Record<FacetScreen, string> = { cover: "01 Cover", study: "02 Study time", badge: "Badges (03 · 05 · 06 · 10)", live: "03 Live", teacher: "04 Teacher", quiz: "05 Quiz", video: "06 Video Learning" };
 export const facetScreen = (key: FacetKey) => key.split(".")[0] as FacetScreen;
 
 const axisDef = (key: FacetKey) => {
