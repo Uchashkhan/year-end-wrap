@@ -161,7 +161,7 @@ export function QuizRecap({ slide }: ScreenProps<"quiz">) {
           <p className="qa-note qa-nudge qa-fade">{COPY.quiz.nudge(slide.nudge.gap, slide.nudge.milestone)}</p>
         ) : slide.badge ? (
           <div className="qa-note qa-fade">
-            <BadgePill id={slide.badge} />
+            <BadgePill id={slide.badge} landAt={at(ANSWER.note.at)} />
           </div>
         ) : null}
       </div>

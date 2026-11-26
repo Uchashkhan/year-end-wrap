@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { useAnimate, usePresence, type AnimationPlaybackControls } from "motion/react";
+import { animate as animateValue, useAnimate, usePresence, type AnimationPlaybackControls } from "motion/react";
 import { COPY } from "../data/copy";
 import { bn } from "../lib/bangla";
 import { usePrefs } from "../lib/prefs";
 import { sequence, type Step } from "../lib/sequence";
-import { AnalogClock } from "../components/AnalogClock";
+import { AnalogClock, SPIN_EASE } from "../components/AnalogClock";
+import { useSkyProgress } from "./studySky/progress";
+import { useMotionProfile } from "../motion/profile";
+import { coupledCount, createLanding, textIn } from "../motion/primitives";
+import { RELATION, TEXT } from "../motion/reference";
 import { CountUp } from "../components/CountUp";
 import { FLOW, SKY_HANDOFF, useEntry, useNav } from "../story/entry";
 import { statSize } from "./statSize";
@@ -57,9 +61,58 @@ export function StudyClock({ slide }: ScreenProps<"study">) {
   const nav = useNav();
   const [isPresent, safeToRemove] = usePresence();
   const entrance = useRef<AnimationPlaybackControls | undefined>(undefined);
+  const sky = useSkyProgress();
+  // Reference Motion (dev profile): the count is the clock's spin; the number lands when the hands land
+  const { profile, sparks } = useMotionProfile();
+  const reference = profile === "reference" && !still;
+  const spinTo = useRef<((p: number) => void) | undefined>(undefined);
+
+  // the passage of time for a background effect (study.sky): the hands' spin, 0 → 1 (none when no effect listens)
+  useEffect(() => {
+    if (!sky) return;
+    if (still) {
+      sky.set(1);
+      return;
+    }
+    const c = animateValue(0, 1, { duration: 3.2, delay: countAt, ease: SPIN_EASE, onUpdate: (v) => sky.set(v) });
+    return () => c.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sky, still]);
 
   useEffect(() => {
-    if (still) return;
+    if (still || !reference) return;
+    const root = scope.current;
+    if (!root) return;
+    const SPIN = 3.2;
+    const land = countAt + SPIN + RELATION.landAfterDriver;
+    const lead = textIn("kicker");
+    const unit = textIn("line");
+    const cap = textIn("caption");
+    const steps: Step[] = [
+      [".sc-clock", { y: ["80%", "0%"] }, { duration: 0.6, ease: OUT, at: t0 }],
+      [".sc-lead", lead.keyframes, { ...lead.options, at: t0 + 0.1 }],
+      [".sc-num", { opacity: [0, 1], y: [16, 0] }, { duration: 0.45, ease: OUT, at: countAt }],
+      [".sc-unit", unit.keyframes, { ...unit.options, at: countAt + TEXT.up.after }],
+      [".sc-cmp", cap.keyframes, { ...cap.options, at: land + RELATION.captionAfterLand }],
+    ];
+    const c = sequence(root, animate, steps);
+    entrance.current = c;
+    spinTo.current = coupledCount(root.querySelector<HTMLElement>(".sc-num .countup-live"), slide.hours);
+    const hero = root.querySelector<HTMLElement>(".sc-num");
+    const landing = hero ? createLanding(hero, { origin: "50% 75%", sparks, canvasHost: root, seed: 31, fit: root }) : null;
+    const l = landing ? animateValue(0, 1.2, { delay: land, duration: 1.2, ease: "linear", onUpdate: (a) => landing.paint(a) }) : null;
+    return () => {
+      c?.stop();
+      l?.stop();
+      landing?.dispose();
+      spinTo.current = undefined;
+    };
+    // entry is fixed for this mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [still, reference, animate, scope]);
+
+  useEffect(() => {
+    if (still || reference) return;
     const steps: Step[] = [
       [".sc-clock", { y: ["80%", "0%"] }, { duration: 0.6, ease: OUT, at: t0 }],
       [".sc-lead", { opacity: [0, 1], y: [12, 0] }, { duration: 0.5, ease: OUT, at: t0 + 0.1 }],
@@ -76,7 +129,7 @@ export function StudyClock({ slide }: ScreenProps<"study">) {
     };
     // entry is fixed for this mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [still, animate, scope]);
+  }, [still, reference, animate, scope]);
 
   // ── exit to Screen 03 ──
   useEffect(() => {
@@ -113,7 +166,7 @@ export function StudyClock({ slide }: ScreenProps<"study">) {
           </span>
           <span className="sc-stat" aria-hidden="true">
             <span className="sc-num" style={statSize(slide.hours)}>
-              <CountUp to={slide.hours} run={counting} duration={COUNT} />
+              <CountUp to={slide.hours} run={counting} duration={COUNT} driven={reference} />
             </span>
             <span className="sc-unit">{COPY.study.unit}</span>
           </span>
@@ -121,7 +174,7 @@ export function StudyClock({ slide }: ScreenProps<"study">) {
         {days && <p className="sc-cmp">{COPY.study.comparison(days)}</p>}
       </div>
       <div className="sc-clock">
-        <AnalogClock still={still} delay={countAt} spin={3.2} />
+        <AnalogClock still={still} delay={countAt} spin={3.2} onSpin={reference ? (p) => spinTo.current?.(p) : undefined} />
       </div>
     </div>
   );

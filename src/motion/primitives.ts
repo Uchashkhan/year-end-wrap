@@ -15,8 +15,9 @@ import { settleTime, springEase, type Spring } from "./spring";
  * hero number the landing.
  */
 
-type Keyframes = Record<string, unknown[]>;
-type Options = { duration: number; ease: unknown };
+type Keyframes = Record<string, (number | string)[]>;
+type Bez = [number, number, number, number];
+type Options = { duration: number; ease: Bez | ((p: number) => number) | "linear" };
 
 /**
  * Text entrance by role (C3 .up / .fade):
@@ -25,10 +26,10 @@ type Options = { duration: number; ease: unknown };
  * `fromY` replaces the 22 px rise for text that rises through a mask (e.g. "140%").
  */
 export function textIn(role: "kicker" | "line" | "caption", fromY?: string | number): { keyframes: Keyframes; options: Options } {
-  if (role === "caption") return { keyframes: { opacity: [0, 1] }, options: { duration: TEXT.fade.dur, ease: [...TEXT.fade.ease] } };
+  if (role === "caption") return { keyframes: { opacity: [0, 1] }, options: { duration: TEXT.fade.dur, ease: [...TEXT.fade.ease] as Bez } };
   return {
     keyframes: { opacity: [0, 1], y: [fromY ?? TEXT.up.y, 0], scale: [TEXT.up.scale, 1] },
-    options: { duration: TEXT.up.dur, ease: [...TEXT.up.ease] },
+    options: { duration: TEXT.up.dur, ease: [...TEXT.up.ease] as Bez },
   };
 }
 
@@ -64,9 +65,35 @@ export function coupledCount(el: HTMLElement | null, to: number, fmt: (n: number
  */
 export function createLanding(
   hero: HTMLElement,
-  opts: { origin?: string; sparks?: boolean; canvasHost?: HTMLElement | null; seed?: number } = {},
+  opts: {
+    origin?: string;
+    sparks?: boolean;
+    canvasHost?: HTMLElement | null;
+    seed?: number;
+    /**
+     * Keep the swelling number inside these bounds (e.g. the screen), 8 px clear.
+     * A row too wide for the reference's 16 % swell gets a proportionally smaller
+     * swell (same curve and timing) and a growth origin set by the room on each side.
+     */
+    fit?: HTMLElement | null;
+  } = {},
 ): { paint: (a: number) => void; dispose: () => void } {
-  const origin = opts.origin ?? "50% 75%";
+  let origin = opts.origin ?? "50% 75%";
+  let amp = 1;
+  if (opts.fit) {
+    const b = opts.fit.getBoundingClientRect();
+    const kids = [...hero.children].map((c) => c.getBoundingClientRect()).filter((r) => r.width > 0);
+    const hr = hero.getBoundingClientRect();
+    const l = Math.min(...kids.map((r) => r.left), hr.right);
+    const r = Math.max(...kids.map((r) => r.right), hr.left);
+    const w = Math.max(1, r - l);
+    const roomL = Math.max(0, l - b.left - 8);
+    const roomR = Math.max(0, b.right - 8 - r);
+    const peak = LAND.scale[1][1] - 1; // 0.16
+    amp = Math.min(1, (roomL + roomR) / (peak * w));
+    const ox = l - hr.left + (roomL + roomR > 0 ? (w * roomL) / (roomL + roomR) : w / 2);
+    origin = `${((ox / Math.max(1, hr.width)) * 100).toFixed(2)}% ${origin.split(" ")[1] ?? "75%"}`;
+  }
   const prev = { origin: hero.style.transformOrigin, iso: hero.style.isolation, pos: hero.style.position, tf: hero.style.transform };
   hero.style.transformOrigin = origin;
   hero.style.isolation = "isolate";
@@ -150,7 +177,7 @@ export function createLanding(
   const r3 = (n: number) => Math.round(n * 1000) / 1000;
   return {
     paint(a) {
-      hero.style.transform = a < 0 || a >= LAND.end ? "" : `scale(${r3(kf(LAND.scale, a))})`;
+      hero.style.transform = a < 0 || a >= LAND.end ? "" : `scale(${r3(1 + (kf(LAND.scale, a) - 1) * amp)})`;
       glow.style.opacity = String(a < 0 ? 0 : r3(kf(LAND.glow.opacity, a) * LAND.glowPeak));
       glow.style.transform = `scale(${r3(a < 0 ? LAND.glow.scaleFrom : LAND.glow.scaleFrom + (LAND.glow.scaleTo - LAND.glow.scaleFrom) * eo(a))})`;
       paintSparks?.(a);

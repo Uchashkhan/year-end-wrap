@@ -1,0 +1,161 @@
+/*
+ * 04 Teacher — "Cinematic Spotlight" (TeacherCinematic.tsx). Over the shared
+ * Soft Violet background (this slide is transparent; every light is a soft,
+ * translucent layer over it).
+ * Composition: the portrait rises from the bottom edge (as the original); the
+ * framing line and the name sit just above the head (copy anchored to the
+ * head, ≈ 22 px clear), so name, light and teacher read as one group; the beam
+ * falls from a source at the top edge through the name onto the shoulders.
+ * Layer order: dim veil → source glow → beam → backlight → teacher → vignette → copy.
+ */
+.slide.cs {
+  --cs-fig-w: 84cqw;                         /* the neutral bust (240 × 300) */
+  --cs-head: 0.07;                           /* head top, share of the art's height */
+  --cs-fig-h: calc(var(--cs-fig-w) * 1.25);  /* 4:5 art */
+  --cs-light: 255, 220, 160;
+  /* the title block's top: the framing heading; the name follows it */
+  --cs-title-top: clamp(88px, 12cqh, 116px);
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+.slide.cs:has(.cs-figure-portrait) { --cs-fig-w: 96cqw; --cs-head: 0.089; }
+.slide.cs:has(.cs-figure-photo) { --cs-fig-w: 84cqw; --cs-head: 0.2; }
+
+/* the room: a dim veil over the violet (stronger toward the floor), lifting into a vignette once the teacher is found */
+.cs-dim,
+.cs-vig { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+.cs-dim { background: linear-gradient(180deg, rgba(14, 9, 58, 0.4) 0%, rgba(14, 9, 58, 0.5) 60%, rgba(14, 9, 58, 0.6) 100%); }
+.cs-vig { background: radial-gradient(ellipse 78% 62% at 50% 64%, rgba(14, 9, 58, 0) 42%, rgba(14, 9, 58, 0.42) 100%); }
+
+/* the source: warm diffusion at the top edge where the light enters */
+.cs-source {
+  position: absolute;
+  left: 50%;
+  top: -12cqh;
+  width: 84cqw;
+  height: 30cqh;
+  margin-left: -42cqw;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--cs-light), 0.42), rgba(var(--cs-light), 0.12) 55%, rgba(var(--cs-light), 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the beam: hangs from the source and swings about it; ends at the shoulders */
+.cs-beam {
+  position: absolute;
+  left: 50%;
+  top: -3cqh;
+  width: 100cqw;
+  margin-left: -50cqw;
+  height: calc(100cqh - var(--cs-fig-h) * 0.5 + 3cqh);
+  transform-origin: 50% 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.cs-beam > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* the backlight: where the light lands, warm behind head and shoulders */
+.cs-glow {
+  position: absolute;
+  left: 50%;
+  width: calc(var(--cs-fig-w) * 0.95);
+  height: calc(var(--cs-fig-w) * 0.95);
+  margin-left: calc(var(--cs-fig-w) * -0.475);
+  top: calc(100cqh - var(--cs-fig-h) * 0.98);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--cs-light), 0.36), rgba(var(--cs-light), 0.12) 58%, rgba(var(--cs-light), 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the teacher */
+.cs-figure {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--cs-fig-w);
+  margin-left: calc(var(--cs-fig-w) / -2);
+  transform-origin: 50% 100%;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.cs-art { will-change: filter; }
+.cs-figure:not(.cs-figure-photo) .cs-art {
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0, #000 72%, transparent 100%);
+}
+/* the silhouette: the same illustration cut from its own alpha (mask), in the room's dark purple, with a faint
+   back-light on its edge; the light opens it through a soft radial hole (--cs-hole, set every frame) */
+.cs-sil {
+  position: absolute;
+  inset: 0;
+  background: #170d3f;
+  filter: drop-shadow(0 -1px 4px rgba(255, 214, 150, 0.16));
+  -webkit-mask-image: var(--cs-sil-src), linear-gradient(180deg, #000 0, #000 72%, transparent 100%), var(--cs-hole, linear-gradient(#000, #000));
+  mask-image: var(--cs-sil-src), linear-gradient(180deg, #000 0, #000 72%, transparent 100%), var(--cs-hole, linear-gradient(#000, #000));
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  pointer-events: none;
+}
+.cs-figure-photo .cs-sil { border-radius: 50%; }
+/* the neutral bust (no image to mask with): the same drawing, darkened */
+.cs-sil-svg { background: none; -webkit-mask-image: linear-gradient(180deg, #000 0, #000 72%, transparent 100%), var(--cs-hole, linear-gradient(#000, #000)); mask-image: linear-gradient(180deg, #000 0, #000 72%, transparent 100%), var(--cs-hole, linear-gradient(#000, #000)); }
+.cs-sil-svg .tc-silhouette { display: block; width: 100%; height: auto; filter: brightness(0.14) saturate(0.6); }
+.cs-art .tc-silhouette,
+.cs-portrait { display: block; width: 100%; height: auto; }
+.cs-portrait { aspect-ratio: 4 / 5; }
+.cs-figure-photo { bottom: auto; top: calc(100cqh - var(--cs-fig-h) * 0.85); width: calc(var(--cs-fig-w) * 0.66); margin-left: calc(var(--cs-fig-w) * -0.33); }
+.cs-photo { display: block; width: 100%; aspect-ratio: 1; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 4px var(--ds-warning-500); }
+
+/* the name: top-aligned under the heading, the page's title block (both centred on one axis) */
+.cs-copy {
+  position: absolute;
+  left: var(--gutter, 24px);
+  right: var(--gutter, 24px);
+  top: calc(var(--cs-title-top) + 34px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+/* the framing heading: the page title, at the top (as the original screen) */
+.cs-framing {
+  position: absolute;
+  left: var(--gutter, 24px);
+  right: var(--gutter, 24px);
+  top: var(--cs-title-top);
+  margin: 0;
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.84);
+}
+.cs-name {
+  margin: 0;
+  font: inherit;
+  font-size: clamp(40px, 12.4cqw, 54px);
+  line-height: 1.25;
+  font-weight: 700;
+  color: #fff8ea;
+  text-wrap: balance;
+}
+.cs-gr { display: inline-block; white-space: pre; transform-origin: 50% 85%; will-change: transform, opacity; }
+
+@container (max-height: 720px) {
+  .slide.cs { --cs-fig-w: 70cqw; }
+  .slide.cs:has(.cs-figure-portrait) { --cs-fig-w: 80cqw; }
+  .slide.cs { --cs-title-top: 72px; }
+  .cs-framing { font-size: 17px; }
+}
+
+.cs.is-pre .cs-framing { opacity: 0; }

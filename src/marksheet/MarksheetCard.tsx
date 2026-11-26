@@ -1,11 +1,13 @@
 import { useRef, type CSSProperties, type ReactNode } from "react";
-import { BADGES, CAPSTONE, COPY, LEARNER_TYPES, SUBJECTS } from "../data/copy";
+import { COPY, LEARNER_TYPES, SUBJECTS } from "../data/copy";
 import type { MarksheetFacts, MarksheetOwner } from "../data/compose";
 import { MONTHS, bn } from "../lib/bangla";
 import { LearnerBadge } from "../components/LearnerBadge";
 import { SUBJECT_ICON } from "../screens/subjectArt";
 import { Silhouette } from "../screens/TeacherSpotlight";
 import { CalendarArt, ClockArt, HallArt, PlayerArt, RailsArt } from "./art";
+import { BADGE_ART, type BadgeArtId } from "../data/badgeArt";
+import { BadgeReveal } from "../components/primitives";
 import { tilesOf, useFitWords, type TileId } from "./Bento";
 import "../styles/marksheet-card.css";
 
@@ -30,6 +32,34 @@ import "../styles/marksheet-card.css";
 // Enlarged from the Figma frame to use the screen (Nov 24): the 385 card →
 // 392 (10 px side margins), every row taller, type and art up in proportion.
 export const MS_W = 392;
+
+// ── earned badges (finalized artwork, data/badgeArt.ts) ──
+/** Height of each badge's artwork in the identity tile (card px; ≈ 120 px in the 1080 export). */
+const TAG_ART_H = 44;
+const TAG_GAP = 4;
+/** Story: the earned badges land one after another (s). */
+const TAG_STAGGER = 0.24;
+/** The type column's width in card px (identity tile minus the learner badge), where the badges wrap. */
+const TAG_COL_W = 221;
+/** One line of the former text chips (the identity row was sized for it). */
+const TAG_TEXT_LINE = 22;
+function earnedArt(f: MarksheetFacts): BadgeArtId[] {
+  return [...(f.capstone ? (["capstone"] as const) : []), ...f.badges];
+}
+/** Extra identity height for the badge lines (greedy wrap at the art's own widths). */
+function tagGrowth(ids: BadgeArtId[]): number {
+  if (!ids.length) return 0;
+  let lines = 1;
+  let x = 0;
+  for (const id of ids) {
+    const w = (BADGE_ART[id].width / BADGE_ART[id].height) * TAG_ART_H;
+    if (x > 0 && x + TAG_GAP + w > TAG_COL_W) {
+      lines++;
+      x = w;
+    } else x += (x > 0 ? TAG_GAP : 0) + w;
+  }
+  return lines * TAG_ART_H + (lines - 1) * TAG_GAP - TAG_TEXT_LINE;
+}
 const PAD = 12;
 const GAP = 6;
 const ROW_H = { id: 128, box: 126, pair: 104 };
@@ -82,9 +112,8 @@ export function marksheetLayout(facts: MarksheetFacts) {
     }
   }
 
-  // more than three earned tags wrap to a second line: the identity grows by that line
-  const nTags = facts.badges.length + (facts.capstone ? 1 : 0);
-  const all = [{ cells: ["id", "id"], h: ROW_H.id + (nTags > 3 ? 24 : 0) }, ...rows];
+  // the earned badges' artwork wraps under the type; the identity grows by the lines beyond one text line
+  const all = [{ cells: ["id", "id"], h: ROW_H.id + tagGrowth(earnedArt(facts)) }, ...rows];
   const height = 2 * PAD + all.reduce((a, r) => a + r.h, 0) + GAP * (all.length - 1);
   return {
     tiles,
@@ -96,14 +125,26 @@ export function marksheetLayout(facts: MarksheetFacts) {
   };
 }
 
-export function MarksheetCard({ facts, className = "", style }: { facts: MarksheetFacts; owner?: MarksheetOwner | null; className?: string; style?: CSSProperties }) {
+export function MarksheetCard({
+  facts,
+  className = "",
+  style,
+  badgesLandAt,
+}: {
+  facts: MarksheetFacts;
+  owner?: MarksheetOwner | null;
+  className?: string;
+  style?: CSSProperties;
+  /** Story only: when the first earned badge lands (s from mount); the rest follow one by one. The export omits it (static art). */
+  badgesLandAt?: number;
+}) {
   const L = marksheetLayout(facts);
   const ref = useRef<HTMLDivElement>(null);
   useFitWords(ref, `ms3|${L.tiles.join()}|${facts.type.id}`);
   const ROW = COPY.marksheet.rows;
   const type = LEARNER_TYPES[facts.type.id];
 
-  const tags = [...(facts.capstone ? [{ id: "cap", name: CAPSTONE.name }] : []), ...facts.badges.map((b) => ({ id: b, name: BADGES[b].name }))];
+  const tags = earnedArt(facts);
   const identity = (
     <section className={`bt bt-id ms3-id ${facts.type.assigned ? "" : "is-plain"}`} data-tile="id" style={{ gridArea: "id" }}>
       {facts.type.assigned && (
@@ -119,10 +160,10 @@ export function MarksheetCard({ facts, className = "", style }: { facts: Markshe
           </p>
         </div>
         {tags.length > 0 && (
-          <ul className="ms3-tags" data-count={tags.length}>
-            {tags.map((t) => (
-              <li key={t.id} className={t.id === "cap" ? "is-cap" : ""}>
-                {t.name}
+          <ul className="ms3-tags ms3-tags-art" data-count={tags.length} aria-label={tags.map((t) => BADGE_ART[t].name).join(", ")}>
+            {tags.map((t, i) => (
+              <li key={t}>
+                <BadgeReveal id={t} height={TAG_ART_H} decorative landAt={badgesLandAt == null ? undefined : badgesLandAt + i * TAG_STAGGER} amplitude={2} />
               </li>
             ))}
           </ul>

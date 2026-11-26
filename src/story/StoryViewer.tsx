@@ -9,7 +9,9 @@ import { MOTION } from "../lib/motion";
 import { coverSurface, useCoverVariant } from "../explore/variant";
 import { isBirdJourney, useJourney } from "../journey/journeyMode";
 import { useMarksheetDesign } from "../marksheet/design";
+import { useFacet } from "../variants/facets";
 import { EntryCtx, NavCtx, type Entry } from "./entry";
+import { ImpactProvider, createShake } from "./impact";
 import { KIND_TIMING, isBespoke, resolveKind } from "../motion/handovers";
 import { StoryBackground } from "./StoryBackground";
 import { COVER_BG, SCREEN_BACKGROUND, bgTransition } from "./background";
@@ -72,6 +74,8 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
   const journey = useJourney();
   // Marksheet V2 (dev comparison) is static for now: 09 → 10 is an ordinary step, not the badge assembly.
   const marksheetDesign = useMarksheetDesign();
+  const quizDesign = useFacet("quiz", "design");
+  const teacherDesign = useFacet("teacher", "design");
   const chosenCover = useCoverVariant();
   // Bird Journey (dev-only): its own cover, so the approved cover's hand-over is not used.
   const coverVariant = isBirdJourney(journey) ? "bird" : chosenCover;
@@ -84,6 +88,10 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
   // Direction + entry kind are derived from the index change itself, so taps,
   // keys, swipes and dev-panel jumps all get the same transition logic.
   const frameRef = useRef<HTMLDivElement>(null);
+  // badge landings shake the background and screen layers (story/impact.tsx); stopped when the story closes
+  const impact = useRef<ReturnType<typeof createShake> | null>(null);
+  if (!impact.current) impact.current = createShake(frameRef);
+  useEffect(() => () => impact.current?.kill(), []);
   const prevIndex = useRef(index);
   const nav = useRef<NavCustom>({ d: 1, kind: "normal", frame: { W: 0, H: 0 } });
   // Taps during the bespoke transition are ignored, so transitions never overlap.
@@ -100,6 +108,8 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
       bothSky,
       coverOnSky: onSky("cover", coverVariant),
       marksheetCurrent: marksheetDesign === "current",
+      quizParade: quizDesign === "original",
+      teacherOriginal: teacherDesign === "original",
     });
     nav.current = { d: index > prevIndex.current ? 1 : -1, kind, frame };
     const navTiming = KIND_TIMING[kind].navigation;
@@ -213,6 +223,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
         <StoryBackground variant={isBirdJourney(journey) && slide.id === "cover" ? COVER_BG : SCREEN_BACKGROUND[slide.id]} transition={bgTransition(nav.current.kind, reduced)} still={reduced} />
       </div>
 
+      <ImpactProvider value={reduced ? null : impact.current.shake}>
       <NavCtx.Provider value={nav.current}>
       <AnimatePresence initial={false} custom={nav.current} mode="popLayout">
         <motion.div
@@ -231,6 +242,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
         </motion.div>
       </AnimatePresence>
       </NavCtx.Provider>
+      </ImpactProvider>
     </div>
   );
 }

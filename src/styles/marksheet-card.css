@@ -52,6 +52,12 @@
 .ms3-tags[data-count="4"],
 .ms3-tags[data-count="5"] { gap: 4px 5px; }
 .ms3:has(.ms3-tags[data-count="4"], .ms3-tags[data-count="5"]) .ms3-type { gap: 6px; }
+/* earned badges as their finalized artwork (MarksheetCard TAG_ART_H / TAG_GAP) */
+.ms3-tags-art,
+.ms3-tags-art[data-count="4"],
+.ms3-tags-art[data-count="5"] { gap: 4px; }
+.ms3-tags-art li { padding: 0; background: none; box-shadow: none; border-radius: 0; line-height: 0; }
+.ms3-tags-art .badge-art { display: block; }
 .ms3-id.is-plain { padding-left: 20px; }
 .ms3-id.is-plain .ms3-type { width: auto; flex: 1; }
 

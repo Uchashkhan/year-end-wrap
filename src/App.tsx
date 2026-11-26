@@ -140,7 +140,8 @@ function Prototype() {
   };
 
   // screen-level effect variations: URL, then dev overrides, then the journey's preset, then the default
-  const facets = useMemo(() => resolveFacets(settings.journey, settings.facets), [settings.journey, settings.facets]);
+  // screen-level choices are final (variants/facets.tsx defaults); stored overrides from the former panel switches are ignored
+  const facets = useMemo(() => resolveFacets(settings.journey, {}), [settings.journey]);
   // global motion profile (dev only): URL, then the dev panel, then "original"
   const motionProfile = useMemo(
     () => resolveMotionProfile({ profile: settings.motionProfile, sparks: settings.motionSparks }),

@@ -16,11 +16,38 @@ import type { JourneyMode } from "../journey/journeyMode";
  * now a preset over these axes — it behaves as it did before.
  *
  * Add an axis only when an experiment needs it (no speculative switches).
+ *
+ * Final (26 Nov 2026, chosen in the dev panel): Study Time = Timekeeper with the
+ * day/night sky; badges = impact landing; Teacher = Cinematic Spotlight; Quiz =
+ * Quiz Activities A (centered). These are the defaults and the dev panel no
+ * longer offers the axes; the other components stay in the code, unwired from
+ * the panel (the URL can still reach them for review).
  */
 export const FACETS = {
   study: {
-    character: { label: "Character", options: { original: "Original clock", timekeeper: "Timekeeper (bird)" }, default: "original" },
-    sky: { label: "Background", options: { original: "Original" }, default: "original" },
+    character: { label: "Character", options: { original: "Original clock", timekeeper: "Timekeeper (bird)" }, default: "timekeeper" },
+    sky: { label: "Background", options: { original: "Original", daynight: "Day / night (reference C3)" }, default: "daynight" },
+  },
+  badge: {
+    // every screen that shows an earned badge (03, 05, 06, 10): the impact landing + artwork micro-animation,
+    // or the original reveal (the static artwork in its container's existing fade)
+    reveal: { label: "Reveal", options: { impact: "Impact landing", original: "Original" }, default: "impact" },
+  },
+  teacher: {
+    design: { label: "Design", options: { original: "Teacher in the Spotlight", cinematic: "Cinematic Spotlight" }, default: "cinematic" },
+  },
+  quiz: {
+    design: {
+      label: "Design",
+      options: {
+        original: "The Answer Parade",
+        reference: "Quiz Activities (reference C3)",
+        centered: "Quiz Activities · A Centered",
+        editorial: "Quiz Activities · B Editorial",
+      },
+      // chosen 26 Nov 2026: Quiz Activities A (centered) is the Quiz screen; the others stay selectable
+      default: "centered",
+    },
   },
 } as const;
 
@@ -30,6 +57,10 @@ export type FacetAxis<S extends FacetScreen> = keyof Facets[S] & string;
 /** "study.character" … */
 export type FacetKey = { [S in FacetScreen]: `${S}.${FacetAxis<S>}` }[FacetScreen];
 export type FacetMap = Partial<Record<FacetKey, string>>;
+
+/** Dev-panel names of the screens that have facets. */
+export const FACET_SCREEN_LABEL: Record<FacetScreen, string> = { study: "02 Study time", badge: "Badges (03 · 05 · 06 · 10)", teacher: "04 Teacher", quiz: "05 Quiz" };
+export const facetScreen = (key: FacetKey) => key.split(".")[0] as FacetScreen;
 
 const axisDef = (key: FacetKey) => {
   const [s, a] = key.split(".") as [FacetScreen, string];

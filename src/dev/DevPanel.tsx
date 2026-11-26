@@ -9,7 +9,7 @@ import { SLIDE_LABEL } from "../screens/registry";
 import type { MotionPref } from "../lib/prefs";
 import { COVER_VARIANTS, type CoverVariant } from "../explore/variant";
 import type { MotionProfile } from "../motion/profile";
-import { FACET_KEYS, facetLabel, facetOptions, resolveFacets, type FacetKey, type FacetMap } from "../variants/facets";
+import type { FacetMap } from "../variants/facets";
 
 export const DEVICES = {
   "390x844": { w: 390, h: 844, label: "390×844 · brief reference" },
@@ -269,28 +269,6 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
         )}
       </Section>
 
-      <Section title="Screen effects">
-        {FACET_KEYS.map((k) => {
-          const resolved = resolveFacets(settings.journey, settings.facets)[k];
-          const opts = facetOptions(k);
-          const setFacet = (v: string) => {
-            const next = { ...settings.facets };
-            if (v === "auto") delete next[k as FacetKey];
-            else next[k as FacetKey] = v;
-            set("facets", next);
-          };
-          return (
-            <Field key={k} label={`02 Study time · ${facetLabel(k)}`} hint={settings.facets[k] ? "Set here (URL ?" + k + "= wins)." : `Auto: ${opts[resolved as keyof typeof opts] ?? resolved} (from the Wrap version).`}>
-              <Seg
-                label={`${k}`}
-                value={settings.facets[k] ?? "auto"}
-                options={[{ id: "auto", name: "Auto" }, ...Object.entries(opts).map(([id, name]) => ({ id, name: String(name).replace(/ \(.*\)$/, "") }))]}
-                onChange={setFacet}
-              />
-            </Field>
-          );
-        })}
-      </Section>
 
       <Section title="Preview">
         <Field label="Device" hint={DEVICES[settings.device].label.split(" · ")[1]}>

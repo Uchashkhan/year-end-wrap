@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useAnimate, usePresence } from "motion/react";
+import { motionValue, useAnimate, usePresence } from "motion/react";
 import { COPY } from "../data/copy";
 import { bn } from "../lib/bangla";
 import { usePrefs } from "../lib/prefs";
@@ -7,7 +7,10 @@ import { CountUp } from "../components/CountUp";
 import { BadgePill } from "../components/primitives";
 import { TAKEOVER, WATCH, useEntry, useNav } from "../story/entry";
 import { VideoCard } from "./VideoPlayer";
-import { watchSequence } from "./watchHandoff";
+import { LAND_SPAN, watchCountModel, watchSequence } from "./watchHandoff";
+import { useMotionProfile } from "../motion/profile";
+import { coupledCount, createLanding } from "../motion/primitives";
+import { RELATION } from "../motion/reference";
 import type { ScreenProps } from "./types";
 import "../styles/video-watchline.css";
 import { devRegister, fromMotion } from "../motion/timeline";
@@ -56,16 +59,38 @@ export function VideoWatchline({ slide }: ScreenProps<"video">) {
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const [isPresent, safeToRemove] = usePresence();
   const ctlRef = useRef<{ stop: () => void } | null>(null);
+  // Reference Motion (dev profile): the minutes are driven by the tiles; the number lands
+  const { profile, sparks } = useMotionProfile();
+  const reference = profile === "reference";
+  // Reference only: a screen called back while it was leaving (rapid back → forward) restarts its entrance
+  // instead of staying frozen where the exit stopped it. (Original keeps its behaviour.)
+  const [entryN, setEntryN] = useState(0);
+  const leaving = useRef(false);
 
   useEffect(() => {
     if (still) return;
     const root = scope.current;
     if (!root) return;
     const from = fromQuiz ? root.closest(".story")?.querySelector<HTMLElement>(".slide.qa") ?? null : null;
-    const segs = watchSequence(root, { from, shift });
+    let refParts: { count: ReturnType<typeof motionValue<number>>; land: ReturnType<typeof motionValue<number>> } | undefined;
+    const disposers: (() => void)[] = [];
+    if (reference) {
+      const model = watchCountModel(shift);
+      const write = coupledCount(root.querySelector<HTMLElement>(".vw-num .countup-live"), slide.minutes);
+      const count = motionValue(0);
+      const land = motionValue(-1);
+      disposers.push(count.on("change", (v) => write(model.progressAt(model.from + v * (model.to - model.from)))));
+      const hero = root.querySelector<HTMLElement>(".vw-stat");
+      if (hero) {
+        const landing = createLanding(hero, { origin: "0% 75%", sparks, canvasHost: root, seed: 61, fit: root });
+        disposers.push(land.on("change", (a) => landing.paint(a >= LAND_SPAN ? LAND_SPAN : a)), () => landing.dispose());
+      }
+      refParts = { count, land };
+    }
+    const segs = watchSequence(root, { from, shift, reference: refParts });
     const c = segs.length ? (animate as unknown as (seq: unknown) => { stop: () => void; pause: () => void; time: number })(segs) : null;
     ctlRef.current = c;
-    const t = window.setTimeout(() => setCounting(true), Math.max(0, WATCH.to3.stat.at + shift) * 1000);
+    const t = reference ? 0 : window.setTimeout(() => setCounting(true), Math.max(0, WATCH.to3.stat.at + shift) * 1000);
     // Dev review only: ?freeze=<s> holds the sequence at that moment.
     const freeze = import.meta.env.DEV ? Number(new URLSearchParams(location.search).get("freeze") ?? NaN) : NaN;
     if (c && !Number.isNaN(freeze)) {
@@ -78,17 +103,23 @@ export function VideoWatchline({ slide }: ScreenProps<"video">) {
       unregister();
       c?.stop();
       clearTimeout(t);
+      disposers.forEach((d) => d());
     };
     // entry is fixed for this mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [still, animate, scope]);
+  }, [still, animate, scope, entryN]);
 
   // Leaving: stop the sequence. To Screen 07 ("Subject Takes Over") everything
   // but the yellow watchline clears — 07 carries the line on as its underbar;
   // any other exit is immediate.
   const nav = useNav();
   useEffect(() => {
-    if (isPresent) return;
+    if (isPresent) {
+      if (leaving.current && reference) setEntryN((n) => n + 1);
+      leaving.current = false;
+      return;
+    }
+    leaving.current = true;
     ctlRef.current?.stop();
     if (nav.kind !== "takeover" || !scope.current) {
       safeToRemove?.();
@@ -139,7 +170,7 @@ export function VideoWatchline({ slide }: ScreenProps<"video">) {
       <div className="vw-stat" aria-hidden="true">
         <span className="vw-mask">
           <span className="vw-num">
-            <CountUp to={slide.minutes} run={counting} duration={WATCH.to3.stat.count} />
+            <CountUp to={slide.minutes} run={counting} duration={WATCH.to3.stat.count} driven={reference && !still} />
           </span>
         </span>
         <span className="vw-mask">
@@ -171,7 +202,11 @@ export function VideoWatchline({ slide }: ScreenProps<"video">) {
       )}
       {slide.badge && (
         <div className="vw-badge">
-          <BadgePill id={slide.badge} />
+          {/* lands as its container appears: original cmp + 0.1; Reference Motion: landing + 0.5 */}
+          <BadgePill
+            id={slide.badge}
+            landAt={reference ? watchCountModel(shift).land + RELATION.panelAfterLand : Math.max(0, WATCH.to3.cmp.at + 0.1 + shift)}
+          />
         </div>
       )}
     </div>

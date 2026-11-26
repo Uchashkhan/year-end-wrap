@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { animate, motion, useMotionValue, type AnimationPlaybackControls, type MotionValue } from "motion/react";
 import "../styles/analog-clock.css";
 
@@ -23,7 +23,7 @@ import "../styles/analog-clock.css";
 
 const TRAVEL = { s: 1800, m: 720, h: 60 } as const;
 /** Gentle start, long deceleration. */
-const SPIN_EASE = [0.45, 0, 0.12, 1] as const;
+export const SPIN_EASE = [0.45, 0, 0.12, 1] as const;
 const TICK = { duration: 0.16, ease: [0.25, 0.9, 0.3, 1] as const };
 
 function secondsSinceMidnight(base: number, t: number) {
@@ -38,7 +38,20 @@ function Hand({ cls, rotate, children }: { cls: string; rotate: MotionValue<numb
   );
 }
 
-export function AnalogClock({ still, delay = 0.3, spin = 3.2 }: { still: boolean; delay?: number; spin?: number }) {
+export function AnalogClock({
+  still,
+  delay = 0.3,
+  spin = 3.2,
+  onSpin,
+}: {
+  still: boolean;
+  delay?: number;
+  spin?: number;
+  /** Reference Motion: the spin's progress 0 → 1, read from the minute hand itself (drives the count). */
+  onSpin?: (p: number) => void;
+}) {
+  const onSpinRef = useRef(onSpin);
+  onSpinRef.current = onSpin;
   const sec = useMotionValue(0);
   const min = useMotionValue(0);
   const hour = useMotionValue(0);
@@ -77,12 +90,16 @@ export function AnalogClock({ still, delay = 0.3, spin = 3.2 }: { still: boolean
     hour.set(to.h - TRAVEL.h);
     const opts = { duration: spin, delay, ease: SPIN_EASE };
     anims.push(animate(sec, to.s, opts), animate(min, to.m, opts), animate(hour, to.h, opts));
+    // the spin's progress, from the minute hand's own rotation (only when someone listens)
+    const m0 = to.m - TRAVEL.m;
+    const offSpin = min.on("change", (v) => onSpinRef.current?.(Math.max(0, Math.min(1, (v - m0) / TRAVEL.m))));
     // First live tick on the next whole second after landing.
     timer = window.setTimeout(tick, landAt - Date.now() + (1000 - (landAt % 1000)));
 
     return () => {
       clearTimeout(timer);
       anims.forEach((a) => a.stop());
+      offSpin();
     };
   }, [still, delay, spin, sec, min, hour]);
 

@@ -68,6 +68,14 @@ export const SPECIAL_EASE = {
   figureSettle: [0.25, 0.6, 0.3, 1],
   /** 03: the hall receding ("wrap-recede"). */
   recede: [0.45, 0, 0.2, 1],
+  /** 02 day/night: the sun setting (reference C3 .hr-sun, accelerating). */
+  celestialSet: [0.5, 0, 0.7, 1],
+  /** 02 day/night: the moon rising with an overshoot (reference C3 --pop). */
+  celestialRise: [0.34, 1.56, 0.64, 1],
+  /** 05 Quiz Activities (reference C3): text rising in (.up), its --pop curve. */
+  refPop: [0.34, 1.56, 0.64, 1],
+  /** Reference (C3 --ease): a caption's soft fade. */
+  refSoft: [0.2, 0.8, 0.2, 1],
   /** 05: quiz rows ("wrap-quiz-*"). */
   quizLeave: [0.5, 0, 0.75, 0.4],
   quizArrive: [0.2, 0.8, 0.3, 1],

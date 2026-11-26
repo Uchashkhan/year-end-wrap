@@ -1,0 +1,153 @@
+/*
+ * 05 Quiz — "Quiz Activities" (QuizActivities.tsx). The reference prototype's
+ * Journey quiz foreground (C3 .ac-wrap, .kick, .hn, .ac-line, .ac-fx,
+ * .qz-stage, .qc, .ac-bd), at its sizes and colours; our typeface; no
+ * background of its own (the screen's background shows through).
+ */
+.slide.qr {
+  --qr-ink: #16205c;
+  --qr-ink2: #4a4f63;
+  --qr-line: #e6e8f0;
+  --qr-mag-d: #a8006a;
+  --qr-gold: #ffc93c;
+  --qr-gold-d: #c98f00;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #fff;
+}
+.qr-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.qr-wrap { position: absolute; left: 20px; right: 20px; top: 104px; bottom: 88px; display: flex; flex-direction: column; }
+.qr-up { opacity: 0; will-change: transform, opacity; }
+
+/* acHead: kick, the number with its unit, the line (here PRD: headline; "এই বছর / [X] টি কুইজ / শেষ করেছ") */
+.qr-kick { margin: 0 0 8px; font-size: 18px; font-weight: 600; line-height: 1.35; color: rgba(255, 255, 255, 0.86); }
+.qr-head { display: flex; flex-direction: column; }
+.qr-lead { font-size: 20px; font-weight: 700; line-height: 1.35; }
+.qr-nw { align-self: flex-start; }
+.qr-hn { position: relative; display: inline-flex; align-items: baseline; gap: 3px; margin-top: -2px; transform-origin: 0 75%; isolation: isolate; will-change: transform; }
+.qr-v {
+  position: relative;
+  font-size: var(--qr-hs, 96px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -1px;
+  color: #fff;
+  text-shadow: 0 6px 0 var(--qr-mag-d), 0 16px 30px rgba(8, 12, 48, 0.4);
+  white-space: nowrap;
+}
+.qr-t { display: inline-block; text-align: right; }
+.qr-g { position: absolute; left: 0; top: 0; color: var(--qr-gold); text-shadow: 0 6px 0 var(--qr-gold-d); opacity: 0; }
+.qr-u { font-size: 30px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+.qr-fl {
+  position: absolute;
+  left: 32%;
+  top: 55%;
+  width: 240px;
+  height: 240px;
+  margin: -120px 0 0 -120px;
+  border-radius: 50%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 201, 60, 0.9), rgba(255, 201, 60, 0.35) 45%, rgba(255, 201, 60, 0));
+  opacity: 0;
+}
+.qr-line { font-size: 20px; font-weight: 700; line-height: 1.35; margin-top: -2px; }
+
+/* the stage and the quiz cards (.ac-fx, .qz-stage, .qc) */
+.qr-stage { --qw: 136px; position: relative; flex: 1; min-height: 0; margin: 10px 0 12px; }
+.qr-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--qw);
+  height: calc(var(--qw) * 1.2);
+  margin: calc(var(--qw) * -0.6) 0 0 calc(var(--qw) / -2);
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--qr-line);
+  box-shadow: 0 10px 22px rgba(8, 12, 48, 0.28);
+  padding: 10px 10px 8px;
+  color: var(--qr-ink);
+  transform-origin: 50% 100%;
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--qw) * 0.035);
+  will-change: transform, opacity;
+}
+.qr-sj { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; line-height: 1.3; color: var(--qr-ink2); white-space: nowrap; }
+.qr-sj i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.qr-q { height: 6px; border-radius: 3px; background: #dce0ec; flex: none; }
+.qr-q-s { width: 64%; }
+.qr-o { display: flex; align-items: center; gap: 6px; flex: 1; max-height: 20px; border-radius: 7px; border: 1px solid var(--qr-line); padding: 0 6px; }
+.qr-o i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #c5cadb; flex: none; }
+.qr-o b { flex: none; height: 4px; border-radius: 2px; background: #e6e8f0; }
+.qr-o.qr-ok { border-color: #16a34a; background: #eaf8ef; }
+.qr-o.qr-ok i { background: #16a34a; border-color: #16a34a; }
+
+/* the panel (.ac-bd), holding only our PRD nudge or the earned badge */
+.qr-panel {
+  position: relative;
+  flex: none;
+  min-height: 128px;
+  border-radius: 22px;
+  /* the reference's glass (white 8 %) reads on its dark stage; our Quiz background is light at the foot,
+     so the glass is a deep navy tint instead (contrast for the white text) */
+  background: rgba(16, 32, 92, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  padding: 12px 16px 14px;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  will-change: transform, opacity;
+}
+.qr-panel-in { will-change: transform; }
+.qr-nudge { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.35; color: rgba(255, 255, 255, 0.92); }
+
+.qr-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* ══ Refined layouts A (centered) and B (editorial) — QuizActivitiesRefined ══
+   Our Quiz type system (the Answer Parade's): headline 26/700, lead 19/600,
+   the yellow numeral with its flat navy edge, the ending 25/700. One statement
+   block; the stack sized into the room below it; the nudge as plain text. */
+.qr-refined .qr-wrap {
+  left: var(--gutter, 24px);
+  right: var(--gutter, 24px);
+  top: clamp(84px, 11cqh, 108px);
+  bottom: clamp(24px, 4cqh, 40px);
+}
+.qr-title { margin: 0; font: inherit; font-size: 26px; line-height: 1.4; font-weight: 700; color: #fff; text-wrap: balance; }
+.qr-statement { margin-top: clamp(16px, 2.6cqh, 26px); display: flex; flex-direction: column; }
+.qr-refined .qr-lead { font-size: 19px; line-height: 1.4; font-weight: 600; color: rgba(255, 255, 255, 0.9); }
+.qr-refined .qr-hn { gap: 0; }
+.qr-refined .qr-v {
+  font-size: var(--qr-hs);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ds-warning-500);
+  text-shadow: 0 0.045em 0 rgba(10, 27, 104, 0.55);
+}
+.qr-tail { font-size: min(6cqw, 25px); line-height: 1.3; font-weight: 700; color: #fff; white-space: nowrap; }
+.qr-refined .qr-stage { margin: clamp(10px, 2cqh, 20px) 0 0; }
+.qr-refined .qr-card { box-shadow: 0 6px 16px rgba(8, 12, 48, 0.2); }
+.qr-msg { margin: clamp(6px, 1.4cqh, 14px) 0 0; }
+/* the nudge sits on the background's light lower band: set in its deep navy (≈ 9:1 there; white is ≈ 1.8:1) */
+.qr-msg-text { font-size: 17px; line-height: 1.45; font-weight: 700; color: #0f1f59; opacity: 0; }
+
+/* A — centered */
+.qr-centered .qr-title,
+.qr-centered .qr-msg { text-align: center; }
+.qr-centered .qr-statement { align-items: center; text-align: center; }
+.qr-centered .qr-hn { transform-origin: 50% 75%; }
+.qr-centered .qr-tail { margin-top: 2px; }
+.qr-centered .qr-msg-badge { display: flex; justify-content: center; }
+
+/* B — editorial */
+.qr-editorial .qr-statement { align-items: flex-start; }
+.qr-editorial .qr-figure { display: flex; align-items: flex-end; gap: 3cqw; }
+.qr-editorial .qr-hn { transform-origin: 0 75%; }
+.qr-editorial .qr-tail { display: flex; flex-direction: column; padding-bottom: calc(var(--qr-hs) * 0.16); }

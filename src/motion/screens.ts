@@ -60,6 +60,10 @@ export interface ScreenMotion {
   code: PhaseMarkers;
   target: TargetMarkers;
   notes?: string;
+  /** Screen-facet designs of this screen that run their own choreography (dev only; variants/facets.tsx). */
+  variants?: Record<string, { label: string; source: string; library: string; code: PhaseMarkers; notes: string }>;
+  /** Global motion profiles other than "original" (motion/profile.tsx), for screens moved onto the primitives. */
+  profiles?: { reference?: { measured: PhaseMarkers; source: string; notes: string } };
 }
 
 const STAT: TargetMarkers = { heroAt: [1.6, 2.4], settleAt: 2.8 };
@@ -96,6 +100,15 @@ export const SCREEN_MOTION = {
       settleAt: SKY_HANDOFF.revealAt + 0.3 + 1.4 * 0.75 + 0.15 + 0.45,
       conceptEndAt: SKY_HANDOFF.revealAt + 0.3 + 3.2,
     },
+    profiles: {
+      reference: {
+        // probe, 26 Nov 2026, 390 × 844, from the cover (?mprofile=reference)
+        measured: { handoverEnd: 0.73, heroAt: 3.6, copyAt: 4.85, settleAt: 4.85 },
+        source: "src/screens/StudyClock.tsx (reference branch), AnalogClock onSpin, motion/primitives.ts",
+        notes:
+          "Timing exception (approved Nov 26: the reference's natural duration over the 2.8 s target). The count is the clock's spin (3.2 s, SPIN_EASE, read from the minute hand), so the number is readable when the hands land (≈ 3.6 s); landing 0.76 s; the comparison follows the landing by 0.4 s (C3 hours). Original clock only; the Timekeeper is unchanged. Tap lock unchanged.",
+      },
+    },
     target: STAT,
     notes: "Clock hands land at t0 + 0.3 + 3.2 ≈ 3.78 s (code); counted as the concept, not the settle.",
   },
@@ -129,6 +142,18 @@ export const SCREEN_MOTION = {
       settleAt: FOCUS.name.at + FOCUS.name.dur,
     },
     target: EMOTIONAL,
+    variants: {
+      cinematic: {
+        label: "04 Teacher — Cinematic Spotlight (teacher.design = cinematic)",
+        source: "src/screens/TeacherCinematic.tsx (one GSAP timeline + paint), focusHandoff.ts (03's side only)",
+        library: "GSAP",
+        // from Screen 03 (FOCUS): dim 0.3, silhouette 0.85–1.35 then held, search 2.3–3.25, found 3.25 (+0.9 spring),
+        // the silhouette opens 3.3–4.6, name 4.4 → ≈ 5.0, breath from 5.3
+        code: { handoverEnd: FOCUS.out, heroAt: 5.0, copyAt: 5.0, settleAt: 5.3 },
+        notes:
+          "Timing exception (M2 target: hero 2.2–2.6, settle 3.0): the silhouette hold (≈ 0.9 s, approved Nov 26), the search and the discovery are the story here; the name completes ≈ 5.0 s. Tap lock unchanged (FOCUS.lockMs 1.9 s). The 04 → 05 Answer hand-over needs the original teacher (its figure and light), so with Cinematic Spotlight it uses the standard transition.",
+      },
+    },
   },
   quiz: {
     label: "05 Quiz",
@@ -144,7 +169,21 @@ export const SCREEN_MOTION = {
       settleAt: ANSWER.note.at + ANSWER.note.dur,
     },
     target: { heroAt: 2.6, settleAt: 3.0 },
-    notes: "M1's extended exception (decided Nov 25): hero ≈ 2.6 s, settle within 3.0 s.",
+    notes:
+      "M1's extended exception (decided Nov 25): hero ≈ 2.6 s, settle within 3.0 s. From 26 Nov 2026 the Quiz screen is Quiz Activities A (centered, quiz.design default; src/screens/QuizActivities.tsx, the reference's C3 clock: number lands 2.61 s, settles 5.4 s — see variants.reference); these markers describe the Answer Parade, still selectable.",
+    variants: {
+      reference: {
+        label: "05 Quiz — Quiz Activities (reference C3, quiz.design = reference)",
+        source: "src/screens/QuizActivities.tsx (port of the reference's C3 mountQuiz / landFx / badgeRig)",
+        library: "GSAP (one clock driving the reference's closed-form springs) + canvas",
+        // from the screen's start (standard transition: 04 → 05 and 05 → 06 have no hand-over here)
+        // the 12th card starts at 0.55 + 11 × 0.16 = 2.31 s; the count lands at 2.61 s (LAND); the top three
+        // fan from 2.86 s; the panel (nudge / badge) rises at 3.35 s; the springs are within a pixel by 5.4 s
+        code: { handoverEnd: MOTION.nav.duration, heroAt: 2.61, copyAt: 3.35 + 0.6, settleAt: 5.4 },
+        notes:
+          "Timing exception (Nov 26 brief: reference fidelity over the budget): the reference's own clock is kept — hero 2.61 s (inside M1's 2.6 s within a frame), settle 5.4 s (over the 3.0 s target: the fan's low-damping springs, ζ .32, ring out). Not to be re-timed to the budget.",
+      },
+    },
   },
   video: {
     label: "06 Video",
@@ -158,6 +197,15 @@ export const SCREEN_MOTION = {
       heroAt: WATCH.to3.stat.at + WATCH.to3.stat.count,
       copyAt: WATCH.to3.cmp.at + WATCH.to3.cmp.dur,
       settleAt: WATCH.to3.cmp.at + WATCH.to3.cmp.dur,
+    },
+    profiles: {
+      reference: {
+        // probe, 26 Nov 2026, 390 × 844, from Screen 05 (?mprofile=reference)
+        measured: { handoverEnd: 0.49, heroAt: 4.0, copyAt: 4.42, settleAt: 4.42 },
+        source: "src/screens/VideoWatchline.tsx + watchHandoff.ts (reference branch), motion/primitives.ts",
+        notes:
+          "Timing exception (approved Nov 26). The minutes are the four lesson cards folding into the year's tiles (their own times and curves), ending ≈ 3.17 s; the number lands + 0.05 s (C3 video); the comparison follows + 0.4 s, the badge rises + 0.5 s on the panel spring. Wide row: the swell is scaled to stay 8 px inside the screen (≈ 1.12 at 390 px). Tap lock unchanged (150 ms).",
+      },
     },
     target: STAT,
   },

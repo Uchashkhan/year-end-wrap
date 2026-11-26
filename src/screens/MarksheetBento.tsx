@@ -161,7 +161,8 @@ export function MarksheetBento({ slide, actions }: ScreenProps<"marksheet">) {
           <>
           <h2 className="ms-title">{COPY.marksheet.title}</h2>
           <div className="ms-card" style={{ width: MS_W * s, height: cardH * s, borderRadius: 15 * s }}>
-            <MarksheetCard facts={f} style={{ transform: `scale(${s})`, transformOrigin: "0 0" }} />
+            {/* the earned badges land once the identity's words have settled (ASSEMBLE.words), one by one */}
+            <MarksheetCard facts={f} style={{ transform: `scale(${s})`, transformOrigin: "0 0" }} badgesLandAt={ASSEMBLE.words.at + ASSEMBLE.words.dur} />
           </div>
           </>
         )}

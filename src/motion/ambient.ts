@@ -14,6 +14,7 @@ export const AMBIENT = {
   coverDigitFloat: { where: "01 Cover, Bird cover", essential: false, note: "two sine axes per digit, periods 6.4–9.7 s" },
   coverArrowNudge: { where: "01 Cover, Bird cover", essential: false, note: "1.1 s nudge, 0.7 s rest; subtle" },
   backgroundTwinkle: { where: "every screen (StoryBackground)", essential: false, note: "star + two particles, 4.6 / 5.4 / 6.2 s" },
+  teacherBeamBreath: { where: "04 Teacher · Cinematic Spotlight", essential: false, note: "the beam's intensity breathes 1 ↔ 0.93 over 3.2 s once settled; reduced motion: none" },
   liveClock: { where: "02 Study time", essential: true, note: "ticks once a second; reduced motion: steps without a tween" },
   birdIdle: { where: "Bird cover", essential: false, note: "the resting bird's idle movement" },
   birdFlight: { where: "Bird closing", essential: false, note: "wingbeat, airflow and clouds" },

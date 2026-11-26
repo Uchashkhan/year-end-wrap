@@ -1,0 +1,100 @@
+/*
+ * Study Time day/night sky (StudySky.tsx). Adapted from the reference's C3 hours
+ * screen layers (.hr-day / .hr-night / .hr-nightfx / .hr-sun / .hr-moon), recoloured
+ * to the Wrap: day is the screen's Ocean Blue (the persistent background shows
+ * through), dusk is our violet with a warm horizon, night is the reference's
+ * navy → indigo → purple with its cyan and magenta glows, softened.
+ * The horizon is the clock's rim (study-clock.css: a 110cqw clock showing its top
+ * 66cqw, 58cqw on short screens).
+ *
+ * Sun and moon: the reference's geometry (390-wide phone; 1cqw = 3.9px there),
+ * measured from the horizon instead of the screen top. Reference: sun 76px,
+ * centre 74.3% across, its centre 169px above the school roof it sets behind;
+ * moon 84px, centre 85.6% across, 249px above and 44px right of the sun's start,
+ * kept clear of the story bar (110px from the top). Our horizon at the sun's
+ * centre is the clock's rim at 74.3%: 5.64cqw below the clock's top.
+ */
+.ssk {
+  --ssk-show: 66cqw;
+  --ssk-horizon: calc(100cqh - var(--ssk-show));
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+@container (max-height: 720px) {
+  .ssk { --ssk-show: 58cqw; }
+}
+.ssk-layer { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+
+/* day: the setting sun's warm light over the Ocean Blue (reference .hr-day sun glow, gentler) */
+.ssk-sunglow {
+  opacity: 1;
+  background: radial-gradient(circle at 74.26% calc(var(--ssk-horizon) - 37.69cqw), rgba(255, 201, 60, 0.26), rgba(255, 201, 60, 0) 34%);
+}
+/* dusk: the day deepening to violet, rose at the horizon */
+.ssk-dusk {
+  background: linear-gradient(180deg, #1c3a8c 0%, #3a42ab 36%, #6a4cb6 62%, #a65a9f 82%, #b8638f 100%);
+}
+.ssk-horizon {
+  background: radial-gradient(ellipse 80% 22% at 66% var(--ssk-horizon), rgba(255, 158, 92, 0.42), rgba(255, 158, 92, 0) 100%);
+}
+/* night: the reference's night sky (navy → indigo → purple; a cyan glow up right, a magenta one low left) */
+.ssk-night {
+  background:
+    radial-gradient(circle at 86% 10%, rgba(0, 200, 255, 0.22), rgba(0, 200, 255, 0) 40%),
+    radial-gradient(circle at 8% 92%, rgba(226, 0, 141, 0.28), rgba(226, 0, 141, 0) 48%),
+    linear-gradient(180deg, #0f1f59 0%, #1e2b99 48%, #3a1c9c 100%);
+}
+
+/* stars: three layers that twinkle in turn (reference .twk), each star appearing on its own */
+.ssk-stars { position: absolute; inset: 0; }
+.ssk-twk { position: absolute; inset: 0; animation: ssk-twk 3s ease-in-out infinite alternate; }
+.ssk-twk-1 { animation-delay: -1s; }
+.ssk-twk-2 { animation-delay: -2s; }
+@keyframes ssk-twk { from { opacity: 1; } to { opacity: 0.55; } }
+.ssk-star { position: absolute; border-radius: 50%; background: #fff; opacity: 0; transform: translate(-50%, -50%); }
+
+/* the sun: the reference's gold disc (76px, one halo ring), warming as it sets; behind the clock */
+.ssk-sun {
+  --warm: 0;
+  position: absolute;
+  left: calc(74.26cqw - 9.745cqw);
+  top: calc(var(--ssk-horizon) - 37.69cqw - 9.745cqw);
+  width: 19.49cqw;
+  height: 19.49cqw;
+  will-change: transform, opacity;
+}
+.ssk-sun-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, #fff6d6, #ffc93c 55%, #f5a300);
+  box-shadow: 0 0 0 4.1cqw rgba(255, 201, 60, 0.16);
+}
+.ssk-sun-disc::after {
+  /* the sunset tint */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, #ffd9a8, #ff9a5a 55%, #e8664a);
+  opacity: var(--warm);
+}
+
+/* the moon: the reference crescent and halo (84px), up and to the right of the sun's start */
+.ssk-moon {
+  position: absolute;
+  left: calc(85.64cqw - 10.77cqw);
+  top: max(28.2cqw, calc(var(--ssk-horizon) - 37.69cqw - 63.85cqw - 10.77cqw));
+  width: 21.54cqw;
+  height: 21.54cqw;
+  overflow: visible;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.ssk-still .ssk-twk { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ssk-twk { animation: none; }
+}

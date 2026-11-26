@@ -17,6 +17,11 @@ import { YearTurnsClosing } from "./YearTurnsClosing";
 import { useMarksheetDesign } from "../marksheet/design";
 import { isBirdJourney, useJourney } from "../journey/journeyMode";
 import { useFacet } from "../variants/facets";
+import { useMemo } from "react";
+import { StudySky } from "./studySky/StudySky";
+import { QuizActivities } from "./QuizActivities";
+import { TeacherCinematic } from "./TeacherCinematic";
+import { SkyProgressCtx, createSkyProgress } from "./studySky/progress";
 import { StudyTimekeeper } from "./StudyTimekeeper";
 import { ExperimentalBirdJourneyClosingSky } from "../journey/ExperimentalBirdJourneyClosingSky";
 import { ExperimentalBirdJourneyCover } from "../journey/ExperimentalBirdJourneyCover";
@@ -51,10 +56,10 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       return new URLSearchParams(location.search).get("live") === "v2" ? <Attendance slide={slide} {...p} /> : <LiveClass slide={slide} {...p} />;
     case "teacher":
       // Default: "Teacher in the Spotlight" (Nov 2026 brief). The M1 placeholder stays at ?teacher=v2.
-      return new URLSearchParams(location.search).get("teacher") === "v2" ? <Teacher slide={slide} {...p} /> : <TeacherSpotlight slide={slide} {...p} />;
+      return new URLSearchParams(location.search).get("teacher") === "v2" ? <Teacher slide={slide} {...p} /> : <TeacherSwitch slide={slide} {...p} />;
     case "quiz":
       // Default: "The Answer Parade — One Last Question" (Nov 2026 brief). The V2 stat screen stays at ?quiz=v2.
-      return new URLSearchParams(location.search).get("quiz") === "v2" ? <Quiz slide={slide} {...p} /> : <QuizRecap slide={slide} {...p} />;
+      return new URLSearchParams(location.search).get("quiz") === "v2" ? <Quiz slide={slide} {...p} /> : <QuizSwitch slide={slide} {...p} />;
     case "video":
       // Default: "The Watchline" (Nov 2026 brief + V3 reference). The V2 stat screen stays at ?video=v2.
       return new URLSearchParams(location.search).get("video") === "v2" ? <Video slide={slide} {...p} /> : <VideoWatchline slide={slide} {...p} />;
@@ -127,10 +132,34 @@ function MarksheetSwitch(props: ScreenProps<"marksheet">) {
   return d === "current" ? <MarksheetBento {...props} /> : <MarksheetV2 {...props} look={d === "v2a" ? "a" : "b"} />;
 }
 
+function TeacherSwitch(props: ScreenProps<"teacher">) {
+  // Screen facet teacher.design (variants/facets.tsx): the approved "Teacher in the Spotlight", or "Cinematic Spotlight".
+  return useFacet("teacher", "design") === "cinematic" ? <TeacherCinematic {...props} /> : <TeacherSpotlight {...props} />;
+}
+
+function QuizSwitch(props: ScreenProps<"quiz">) {
+  // Screen facet quiz.design (variants/facets.tsx): "The Answer Parade", or the reference's "Quiz Activities".
+  const design = useFacet("quiz", "design");
+  if (design === "reference") return <QuizActivities {...props} />;
+  if (design === "centered" || design === "editorial") return <QuizActivities {...props} layout={design} />;
+  return <QuizRecap {...props} />;
+}
+
 function StudySwitch(props: ScreenProps<"study">) {
-  // Character choreography is a screen facet (variants/facets.tsx): the approved clock, or "The Timekeeper"
-  // (the Bird-led journey's preset; selectable on its own from the URL or the dev panel).
-  return useFacet("study", "character") === "timekeeper" ? <StudyTimekeeper {...props} /> : <StudyClock {...props} />;
+  // Two independent facets (variants/facets.tsx): the character choreography (the approved clock, or "The
+  // Timekeeper", Bird-led's preset) and the background effect (none, or the day/night sky). The character
+  // publishes the passage of time; the background follows it — any character with any background.
+  const character = useFacet("study", "character");
+  const sky = useFacet("study", "sky");
+  const progress = useMemo(() => (sky === "daynight" ? createSkyProgress() : null), [sky]);
+  const screen = character === "timekeeper" ? <StudyTimekeeper {...props} /> : <StudyClock {...props} />;
+  if (!progress) return screen;
+  return (
+    <SkyProgressCtx.Provider value={progress}>
+      <StudySky progress={progress} />
+      {screen}
+    </SkyProgressCtx.Provider>
+  );
 }
 
 function CloseSwitch(props: ScreenProps<"close">) {

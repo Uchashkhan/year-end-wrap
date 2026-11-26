@@ -10,6 +10,7 @@ import { DURATION } from "../motion/tokens";
 import { gsapEase } from "../motion/ease";
 import { devRegister, fromGsap } from "../motion/timeline";
 import { statSize } from "./statSize";
+import { useSkyProgress } from "./studySky/progress";
 import type { ScreenProps } from "./types";
 import flyingRaw from "../journey/timekeeper/bird-flying.svg?raw";
 import pushingRaw from "../journey/timekeeper/bird-pushing.svg?raw";
@@ -320,6 +321,7 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
   const min = useMotionValue(0);
   const hour = useMotionValue(0);
   const svgs = SVGS;
+  const sky = useSkyProgress();
 
   // ── the live clock (after the entrance, and in the still frame) ──
   const ticks = useRef(0);
@@ -386,6 +388,7 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
       gsap.set(clockBox, { yPercent: 0 });
       gsap.set(el.querySelectorAll(".sc-lead, .sc-num, .sc-unit, .sc-cmp"), { opacity: 1, y: 0 });
       counter.textContent = bn(slide.hours);
+      sky?.set(1);
       el.classList.remove("is-pre");
     };
     if (still) {
@@ -531,8 +534,9 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
           sec.set(s0 + sD * prog);
           // the hour hand stays put while the bird stands on it; then it follows the minute hand in
           hour.set(t <= liftDone ? h0 : h0 + hD * Math.pow((m - mLift) / (mEnd - mLift), 1.25));
-          // the hours count with the clock
+          // the hours count with the clock; a background effect follows the same progress
           counter.textContent = bn(Math.round(slide.hours * Math.min(1, Math.max(0, prog))));
+          sky?.set(prog);
           // in contact, the bird's lean is the hand's: the wing tip stays on the hand's edge
           if (t > T.contact && t <= T.release) {
             leanNow = leanFor(m % 360) - leanAtContact;

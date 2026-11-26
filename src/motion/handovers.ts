@@ -20,7 +20,7 @@ export interface Handover {
   from: ScreenId;
   to: ScreenId;
   /** Extra condition the step needs (besides: forward one step, full motion). */
-  requires?: "coverOnSky" | "marksheetCurrent";
+  requires?: Requirement | Requirement[];
 }
 
 export interface KindTiming {
@@ -40,8 +40,8 @@ export const HANDOVERS: readonly Handover[] = [
   { kind: "sky", from: "cover", to: "study", requires: "coverOnSky" },
   { kind: "flow", from: "study", to: "live" },
   { kind: "focus", from: "live", to: "teacher" },
-  { kind: "answer", from: "teacher", to: "quiz" },
-  { kind: "watch", from: "quiz", to: "video" },
+  { kind: "answer", from: "teacher", to: "quiz", requires: ["quizParade", "teacherOriginal"] },
+  { kind: "watch", from: "quiz", to: "video", requires: "quizParade" },
   { kind: "takeover", from: "video", to: "subject" },
   { kind: "dayline", from: "subject", to: "peakDay" },
   { kind: "assemble", from: "learnerType", to: "marksheet", requires: "marksheetCurrent" },
@@ -78,13 +78,19 @@ export interface StepContext {
   coverOnSky: boolean;
   /** Screen 10 is the shipped card (the V2 explorations have no assembly). */
   marksheetCurrent: boolean;
+  /** Screen 05 is The Answer Parade (04 → 05 and 05 → 06 hand its answer rows and underline over); its
+   *  reference design ("Quiz Activities") has none, so those steps use the standard transition. */
+  quizParade: boolean;
+  /** Screen 04 is "Teacher in the Spotlight" (04 → 05 takes over its figure and light); its Cinematic Spotlight has its own light. */
+  teacherOriginal: boolean;
 }
+type Requirement = "coverOnSky" | "marksheetCurrent" | "quizParade" | "teacherOriginal";
 
 /** Which hand-over a navigation runs (same rules StoryViewer used inline before). */
 export function resolveKind(from: ScreenId | undefined, to: ScreenId, ctx: StepContext): HandoverKind {
   if (from && ctx.step) {
     const h = HANDOVERS.find((x) => x.from === from && x.to === to);
-    const ok = h && (!h.requires || (h.requires === "coverOnSky" ? ctx.coverOnSky : ctx.marksheetCurrent));
+    const ok = h && (!h.requires || ([] as Requirement[]).concat(h.requires).every((r) => ctx[r]));
     if (h && ok) return h.kind;
   }
   return ctx.bothSky ? "fade" : "normal";

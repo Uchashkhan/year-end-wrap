@@ -9,7 +9,18 @@ import { MOTION } from "../lib/motion";
  * Reduced motion / repeat view → final value immediately.
  * Width is reserved with the final value so layout never shifts while counting.
  */
-export function CountUp({ to, run, duration = MOTION.content.countUp }: { to: number; run: boolean; duration?: number }) {
+export function CountUp({
+  to,
+  run,
+  duration = MOTION.content.countUp,
+  driven = false,
+}: {
+  to: number;
+  run: boolean;
+  duration?: number;
+  /** Reference Motion: the count is written by the screen from its visual (motion/primitives.ts coupledCount); no timer here. */
+  driven?: boolean;
+}) {
   const { reduced, repeatView } = usePrefs();
   const instant = reduced || repeatView;
   const [v, setV] = useState(instant ? to : 0);
@@ -20,7 +31,7 @@ export function CountUp({ to, run, duration = MOTION.content.countUp }: { to: nu
       setV(to);
       return;
     }
-    if (!run || done.current) return;
+    if (driven || !run || done.current) return;
     const c = animate(0, to, {
       duration,
       ease: [0.16, 1, 0.3, 1],
@@ -28,7 +39,7 @@ export function CountUp({ to, run, duration = MOTION.content.countUp }: { to: nu
       onComplete: () => (done.current = true),
     });
     return () => c.stop();
-  }, [run, to, instant, duration]);
+  }, [run, to, instant, duration, driven]);
 
   return (
     <span className="countup">

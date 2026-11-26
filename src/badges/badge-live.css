@@ -1,0 +1,3 @@
+/* BadgeLive: the inline badge artwork fills its box at the art's own aspect ratio. */
+.badge-live { display: inline-block; vertical-align: middle; line-height: 0; will-change: transform, opacity; }
+.badge-live > svg { display: block; width: 100%; height: 100%; overflow: visible; }

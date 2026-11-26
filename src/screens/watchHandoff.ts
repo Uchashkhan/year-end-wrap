@@ -1,5 +1,9 @@
 import gsap from "gsap";
+import type { MotionValue } from "motion/react";
 import { WATCH } from "../story/entry";
+import { easeFn } from "../motion/ease";
+import { panelIn, textIn } from "../motion/primitives";
+import { RELATION } from "../motion/reference";
 
 /**
  * Screen 05 → 06 and Screen 06's three states ("The Watchline", V3 reference)
@@ -66,8 +70,42 @@ function boxIn(el: HTMLElement, root: HTMLElement) {
   return { x, y, w: el.offsetWidth, h: el.offsetHeight, cx: x + el.offsetWidth / 2, cy: y + el.offsetHeight / 2 };
 }
 
-export function watchSequence(root: HTMLElement, opts: { from: HTMLElement | null; shift: number }): Seg[] {
+/**
+ * Reference Motion (profile "reference", motion/profile.tsx): the same sequence
+ * with the reference's motion language on top —
+ *   - the minutes are driven by the visual: the count is the cards folding into
+ *     the year's four playback tiles (their own timings and curves), so the
+ *     number accelerates, decelerates and stops with them
+ *   - the number lands just after the last tile (+ 0.05 s, C3 video)
+ *   - the heading rises with the reference's text rise; the comparison follows
+ *     the landing as a caption (+ 0.4 s), the badge rises on a spring (+ 0.5 s)
+ * `count` and `land` are motion values driven by this sequence (one clock).
+ */
+export interface WatchReference {
+  /** 0 → 1 over the count window; the screen turns it into the minutes (see countProgress). */
+  count: MotionValue<number>;
+  /** Seconds since landing, 0 → LAND_SPAN. */
+  land: MotionValue<number>;
+}
+export const LAND_SPAN = 1.2;
+
+/** The count window and the composite tile progress at a time in it (Reference Motion). */
+export function watchCountModel(shift: number) {
+  const at = (t: number) => Math.max(0, t + shift);
+  const t3 = WATCH.to3;
+  const glide = easeFn("glide");
+  const arrive = easeFn("quizArrive");
+  const tiles: { t: number; d: number; e: (p: number) => number }[] = [0, 1, 2].map((i) => ({ t: at(t3.units.at + i * t3.units.step), d: t3.units.dur as number, e: glide }));
+  tiles.push({ t: at(t3.tile4), d: 0.35, e: arrive });
+  const from = tiles[0].t;
+  const to = Math.max(...tiles.map((x) => x.t + x.d));
+  const progressAt = (time: number) => tiles.reduce((s, x) => s + x.e(Math.max(0, Math.min(1, (time - x.t) / x.d))), 0) / tiles.length;
+  return { from, to, land: to + RELATION.landAfterDriver, progressAt };
+}
+
+export function watchSequence(root: HTMLElement, opts: { from: HTMLElement | null; shift: number; reference?: WatchReference }): Seg[] {
   const { from, shift } = opts;
+  const ref = opts.reference;
   const at = (t: number) => Math.max(0, t + shift);
   const q = (s: string) => root.querySelector<HTMLElement>(s);
   const qa = (s: string) => [...root.querySelectorAll<HTMLElement>(s)];
@@ -224,7 +262,10 @@ export function watchSequence(root: HTMLElement, opts: { from: HTMLElement | nul
   set(c2, { ...looks[2].card, box: { ...U[2], x: U[2].x + 0.3 * W } }, 0);
   const s1 = WATCH.s1;
   // The PRD heading "ভিডিও দেখে শিখেছ" leads from the first state and stays.
-  add(q(".vw-head > span"), { y: ["140%", "0%"] }, at(s1.head), 0.45);
+  if (ref) {
+    const h = textIn("kicker", "140%");
+    add(q(".vw-head > span"), h.keyframes, at(s1.head), h.options.duration, h.options.ease);
+  } else add(q(".vw-head > span"), { y: ["140%", "0%"] }, at(s1.head), 0.45);
   morph(c0, { ...p0, box: { ...P, y: P.y + 18 }, opacity: 0 }, p0, at(s1.player.at), s1.player.dur, ARRIVE);
 
   // ═════ 01 → 02 accumulate ═════
@@ -260,8 +301,20 @@ export function watchSequence(root: HTMLElement, opts: { from: HTMLElement | nul
   add(tiles[3], { opacity: [0, 1], x: [24, 0] }, at(t3.tile4), 0.35, ARRIVE);
   // The shared line rises to become the year's watchline.
   add(line, { y: [lineDy, 0] }, at(t3.line.at), t3.line.dur, GLIDE);
-  fadeIn(q(".vw-cmp"), at(t3.cmp.at), t3.cmp.dur);
-  fadeIn(q(".vw-badge"), at(t3.cmp.at + 0.1), t3.cmp.dur);
+  if (ref) {
+    // the minutes follow the tiles; then the landing; then the support, relative to the landing
+    const m = watchCountModel(shift);
+    segs.push([ref.count as unknown as Element, [0, 1] as never, { at: m.from, duration: m.to - m.from, ease: "linear" }]);
+    segs.push([ref.land as unknown as Element, [0, LAND_SPAN] as never, { at: m.land, duration: LAND_SPAN, ease: "linear" }]);
+    const cap = textIn("caption");
+    add(q(".vw-cmp"), cap.keyframes, m.land + RELATION.captionAfterLand, cap.options.duration, cap.options.ease);
+    const pnl = panelIn();
+    add(q(".vw-badge"), pnl.show.keyframes, m.land + RELATION.panelAfterLand, pnl.show.options.duration, "linear");
+    add(q(".vw-badge"), pnl.rise.keyframes, m.land + RELATION.panelAfterLand, pnl.rise.options.duration, pnl.rise.options.ease);
+  } else {
+    fadeIn(q(".vw-cmp"), at(t3.cmp.at), t3.cmp.dur);
+    fadeIn(q(".vw-badge"), at(t3.cmp.at + 0.1), t3.cmp.dur);
+  }
   // The heading and the minutes rise through their masks.
   const st = t3.stat;
   // The PRD heading has been up since state 01 (below).

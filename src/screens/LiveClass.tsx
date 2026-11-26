@@ -219,7 +219,8 @@ export function LiveClass({ slide }: ScreenProps<"live">) {
           </span>
           <div className="fr-meta">
             {slide.held > 0 && <p className="fr-held">{COPY.live.held(slide.held)}</p>}
-            {slide.badge && <BadgePill id={slide.badge} />}
+            {/* the badge lands as its line appears (FLOW.stat + 0.22) */}
+            {slide.badge && <BadgePill id={slide.badge} landAt={at(FLOW.stat.at + 0.22)} />}
           </div>
         </div>
       </div>
