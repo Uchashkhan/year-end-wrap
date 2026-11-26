@@ -37,11 +37,10 @@ const DEFAULTS: DevSettings = {
   autoAdvance: false,
   device: "390x844",
   cover: "current",
-  journey: "current",
-  facets: {},
+  journey: "birdled",
+  facets: { "cover.design": "bird3d" },
   motionProfile: "original",
   motionSparks: false,
-  liveDesign: "original",
   studyCharacter: "original",
   marksheet: "current",
 };
@@ -149,12 +148,9 @@ function Prototype() {
   const facets = useMemo(
     () => resolveFacets(settings.journey, {
       "cover.design": settings.facets?.["cover.design"],
-      "live.design": settings.liveDesign,
-      "video.design": settings.facets?.["video.design"],
-      "learner.animation": settings.facets?.["learner.animation"],
       "study.character": settings.studyCharacter,
     }),
-    [settings.journey, settings.facets, settings.liveDesign, settings.studyCharacter],
+    [settings.journey, settings.facets, settings.studyCharacter],
   );
   if (facets["cover.design"] === "bird3d") {
     const stillBird = FRAME?.reduced || settings.repeatView || settings.motion === "reduce"

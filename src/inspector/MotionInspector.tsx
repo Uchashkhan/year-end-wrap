@@ -16,6 +16,9 @@ import {
   BIRD_3D_MOTION,
   BIRD_3D_CLOSE_MOTION,
   VIDEO_BEYOND_MOTION,
+  VIDEO_WATCHLINE_MOTION,
+  LIVE_FRONT_ROW_MOTION,
+  LIVE_RESERVED_MOTION,
   LEARNER_SHUFFLE_MOTION,
   LEARNER_BIG_REVEAL_MOTION,
   BIRD_MOTION,
@@ -68,15 +71,17 @@ const ORDER: SlideId[] = [
   "marksheet",
   "close",
 ];
-const ORIGINAL: Entry[] = ORDER.map((id) => ({
-  key: id,
-  label: id === "learnerType" ? LEARNER_BIG_REVEAL_MOTION.label : SCREEN_MOTION[id].label,
-  slide: id,
-  journey: "current",
-  group: "Original",
-  meta: id === "learnerType" ? LEARNER_BIG_REVEAL_MOTION : SCREEN_MOTION[id],
-  params: id === "learnerType" ? "learner.animation=original" : undefined,
-}));
+const ORIGINAL_SCREENS: Partial<Record<SlideId, { meta: ScreenMotion; params: string }>> = {
+  live: { meta: LIVE_FRONT_ROW_MOTION, params: "live.design=original" },
+  video: { meta: VIDEO_WATCHLINE_MOTION, params: "video.design=original" },
+  learnerType: { meta: LEARNER_BIG_REVEAL_MOTION, params: "learner.animation=original" },
+};
+
+const ORIGINAL: Entry[] = ORDER.map((id) => {
+  const original = ORIGINAL_SCREENS[id];
+  const meta = original?.meta ?? SCREEN_MOTION[id];
+  return { key: id, label: meta.label, slide: id, journey: "current", group: "Original", meta, params: original?.params };
+});
 const BIRD: Entry[] = [
   {
     key: "bird-cover",
@@ -123,6 +128,7 @@ const VARIANTS: Entry[] = [
   v("cover-b", "01 Cover · B Geometry", "cover", "cover=b"),
   v("cover-c", "01 Cover · C Editorial", "cover", "cover=c"),
   v("study-geo", "02 Study · M3 count-up", "study", "study=geo"),
+  { ...v("live-reserved", LIVE_RESERVED_MOTION.label, "live", "live.design=reserved"), meta: LIVE_RESERVED_MOTION },
   v("live-v2", "03 Live · V2 attendance", "live", "live=v2"),
   v("teacher-v2", "04 Teacher · M1", "teacher", "teacher=v2"),
   v("quiz-v2", "05 Quiz · V2", "quiz", "quiz=v2"),
@@ -145,6 +151,9 @@ function heroSel(
   params?: string,
 ): string | null {
   if (params === "cover.design=bird3d") return slide === "close" ? ".bjs-line > span" : ".b3 .bj-year > span";
+  if (params === "live.design=original") return ".fr-num-mask > span";
+  if (params === "video.design=original") return ".vw-num";
+  if (params === "live.design=reserved") return ".lr-num";
   if (params === "video.design=beyond") return ".vb-value";
   if (params === "learner.animation=shuffle") return ".lt-name";
   if (params === "learner.animation=original") return ".lt-type";
@@ -153,10 +162,10 @@ function heroSel(
   const m: Partial<Record<SlideId, string>> = {
     cover: bird ? ".bj-head > span" : ".cf-head > span",
     study: ".sc-num",
-    live: ".fr-num-mask > span",
+    live: ".lr-num",
     teacher: ".tc-name > span",
     quiz: ".qa-num",
-    video: ".vw-num",
+    video: ".vb-value",
     subject: ".sb-name",
     peakDay: ".pd-day",
     learnerType: ".lt-type",

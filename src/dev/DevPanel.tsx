@@ -37,8 +37,6 @@ export interface DevSettings {
   motionProfile: MotionProfile;
   /** Reference profile only: optional one-shot landing sparks. */
   motionSparks: boolean;
-  /** 03 Live: the Front-Row Seat (original) or The Classroom Comes Alive (variants/facets.tsx live.design). */
-  liveDesign: "original" | "alive" | "reserved";
   /** 02 Study: clock only by default, with the Timekeeper kept for comparison. */
   studyCharacter: "original" | "timekeeper";
 }
@@ -248,17 +246,12 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
           <select
             className="dp-select"
             aria-label="Cover (01)"
-            value={settings.facets?.["cover.design"] ?? settings.cover}
+            value={settings.facets?.["cover.design"] === "legacy" ? settings.cover : settings.facets?.["cover.design"] ?? FACETS.cover.design.default}
             onChange={(e) => {
               const design = e.target.value;
               const facets = { ...settings.facets };
-              if (design === "svg" || design === "bird3d") {
-                facets["cover.design"] = design;
-                onSettings({ ...settings, facets });
-              } else {
-                delete facets["cover.design"];
-                onSettings({ ...settings, facets, cover: design as CoverVariant });
-              }
+              facets["cover.design"] = design === "current" || COVER_VARIANTS.some((variant) => variant.id === design) ? "legacy" : design;
+              onSettings({ ...settings, facets, cover: design as CoverVariant });
             }}
           >
             <option value="current">Approved Figma cover (current)</option>
@@ -287,51 +280,8 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
         </Field>
       </Section>
 
-      <Section title="Live classes">
-        <Field label="03 Live · Design" hint="The Classroom Comes Alive: a classroom with the attendance lit seat by seat. URL ?live.design= wins.">
-          <Seg
-            label="Live design"
-            value={settings.liveDesign}
-            options={[
-              { id: "original", name: "Front-Row Seat" },
-              { id: "alive", name: "Classroom Comes Alive" },
-              { id: "reserved", name: "Reserved Seat" },
-            ]}
-            onChange={(v) => set("liveDesign", v)}
-          />
-        </Field>
-      </Section>
-
-      <Section title="Video Learning">
-        <Field label="06 Video · Design">
-          <Seg
-            label="Video design"
-            value={settings.facets?.["video.design"] === "beyond" ? "beyond" : "original"}
-            options={[
-              { id: "original", name: FACETS.video.design.options.original },
-              { id: "beyond", name: FACETS.video.design.options.beyond },
-            ]}
-            onChange={(design) => set("facets", { ...settings.facets, "video.design": design })}
-          />
-        </Field>
-      </Section>
-
-      <Section title="Learner Type">
-        <Field label="09 Learner Type · Animation">
-          <Seg
-            label="Learner Type animation"
-            value={settings.facets?.["learner.animation"] === "original" ? "original" : FACETS.learner.animation.default}
-            options={[
-              { id: "original", name: FACETS.learner.animation.options.original },
-              { id: "shuffle", name: FACETS.learner.animation.options.shuffle },
-            ]}
-            onChange={(animation) => set("facets", { ...settings.facets, "learner.animation": animation })}
-          />
-        </Field>
-      </Section>
-
       <Section title="Motion profile">
-        <Field label="Motion" hint="Reference: the reference prototype's motion language on the screens moved onto it so far (06 Video, 02 Study time). URL ?mprofile= wins.">
+        <Field label="Motion" hint="Reference: the reference prototype's motion language on the screens moved onto it so far (02 Study time and The Watchline review). URL ?mprofile= wins.">
           <Seg
             label="Motion profile"
             value={settings.motionProfile}

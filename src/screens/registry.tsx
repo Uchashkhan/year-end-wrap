@@ -65,7 +65,7 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       // Default: "The Answer Parade — One Last Question" (Nov 2026 brief). The V2 stat screen stays at ?quiz=v2.
       return new URLSearchParams(location.search).get("quiz") === "v2" ? <Quiz slide={slide} {...p} /> : <QuizSwitch slide={slide} {...p} />;
     case "video":
-      // Default: "The Watchline" (Nov 2026 brief + V3 reference). The V2 stat screen stays at ?video=v2.
+      // The V2 stat screen stays at ?video=v2.
       return new URLSearchParams(location.search).get("video") === "v2" ? <Video slide={slide} {...p} /> : <VideoSwitch slide={slide} {...p} />;
     case "subject":
       // Default: "Subject Takes Over" (Nov 22 prototype). The M1 placeholder stays at ?subject=v2.
@@ -74,7 +74,7 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       // Default: "The Day That Lit Up" (Nov 23 prototype). The M1 placeholder stays at ?peak=v2.
       return new URLSearchParams(location.search).get("peak") === "v2" ? <PeakDay slide={slide} {...p} /> : <PeakDayLit slide={slide} {...p} />;
     case "learnerType":
-      // Default: "The Big Reveal", Option A (Nov 23 prototype). The M1 screen stays at ?learner=v2.
+      // The M1 screen stays at ?learner=v2.
       return new URLSearchParams(location.search).get("learner") === "v2" ? <LearnerType slide={slide} {...p} /> : <LearnerReveal slide={slide} {...p} />;
     case "marksheet":
       // Default: the Bento marksheet (Nov 23). The M1 sheet stays at ?marksheet=v2.

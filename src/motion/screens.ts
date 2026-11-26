@@ -136,6 +136,59 @@ const STAT: TargetMarkers = { heroAt: [1.6, 2.4], settleAt: 2.8 };
 const EMOTIONAL: TargetMarkers = { heroAt: [2.2, 2.6], settleAt: 3.0 };
 const OFFER = { offerStartAt: "copySettle+1.2", offerSettleAt: "copySettle+1.95" } as const; // OFFER_RULE: +1.2, then 0.75
 
+export const LIVE_FRONT_ROW_MOTION: ScreenMotion = {
+  label: "03 Live · The Front-Row Seat",
+  category: "M1",
+  reference: true,
+  source: "src/screens/LiveClass.tsx, heroHandoff.ts (FLOW)",
+  library: "GSAP + Motion",
+  ambientLoops: ["backgroundTwinkle"],
+  measured: { handoverEnd: 0.57, heroAt: 1.71, copyAt: 1.92, settleAt: 1.97 },
+  code: {
+    handoverEnd: FLOW.out,
+    heroAt: FLOW.stat.at + FLOW.stat.count,
+    copyAt: FLOW.stat.at + 0.22 + 0.45,
+    settleAt: Math.max(FLOW.halo.out + 0.45, FLOW.stat.at + 0.22 + 0.45),
+  },
+  target: { heroAt: "keep", copyAt: "keep", settleAt: "keep" },
+};
+
+export const VIDEO_WATCHLINE_MOTION: ScreenMotion = {
+  label: "06 Video · The Watchline",
+  category: "M1",
+  source: "src/screens/VideoWatchline.tsx, watchHandoff.ts (WATCH)",
+  library: "Motion",
+  ambientLoops: ["backgroundTwinkle"],
+  measured: { handoverEnd: 0.49, heroAt: 3.14, copyAt: 3.24, settleAt: 3.24 },
+  code: {
+    handoverEnd: WATCH.out,
+    heroAt: WATCH.to3.stat.at + WATCH.to3.stat.count,
+    copyAt: WATCH.to3.cmp.at + WATCH.to3.cmp.dur,
+    settleAt: WATCH.to3.cmp.at + WATCH.to3.cmp.dur,
+  },
+  profiles: {
+    reference: {
+      // probe, 26 Nov 2026, 390 × 844, from Screen 05 (?mprofile=reference)
+      measured: { handoverEnd: 0.49, heroAt: 4.0, copyAt: 4.42, settleAt: 4.42 },
+      source: "src/screens/VideoWatchline.tsx + watchHandoff.ts (reference branch), motion/primitives.ts",
+      notes:
+        "Timing exception (approved Nov 26). The minutes are the four lesson cards folding into the year's tiles (their own times and curves), ending ≈ 3.17 s; the number lands + 0.05 s (C3 video); the comparison follows + 0.4 s, the badge rises + 0.5 s on the panel spring. Wide row: the swell is scaled to stay 8 px inside the screen (≈ 1.12 at 390 px). Tap lock unchanged (150 ms).",
+    },
+  },
+  target: STAT,
+};
+
+export const LIVE_RESERVED_MOTION: ScreenMotion = {
+  label: "03 Live · The Reserved Seat",
+  category: "M1",
+  source: "src/screens/LiveReservedSeat.tsx",
+  library: "GSAP",
+  ambientLoops: ["backgroundTwinkle"],
+  measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
+  code: { handoverEnd: MOTION.nav.duration, heroAt: 2.8, copyAt: 3.9, settleAt: 4.76 },
+  target: STAT,
+};
+
 // Literal code values below come from constants that are not exported; each names its source.
 export const SCREEN_MOTION = {
   cover: {
@@ -178,22 +231,7 @@ export const SCREEN_MOTION = {
     target: STAT,
     notes: "Clock hands land at t0 + 0.3 + 3.2 ≈ 3.78 s (code); counted as the concept, not the settle.",
   },
-  live: {
-    label: "03 Live classes",
-    category: "M1",
-    reference: true,
-    source: "src/screens/LiveClass.tsx, heroHandoff.ts (FLOW)",
-    library: "GSAP + Motion",
-    ambientLoops: ["backgroundTwinkle"],
-    measured: { handoverEnd: 0.57, heroAt: 1.71, copyAt: 1.92, settleAt: 1.97 },
-    code: {
-      handoverEnd: FLOW.out,
-      heroAt: FLOW.stat.at + FLOW.stat.count,
-      copyAt: FLOW.stat.at + 0.22 + 0.45,
-      settleAt: Math.max(FLOW.halo.out + 0.45, FLOW.stat.at + 0.22 + 0.45),
-    },
-    target: { heroAt: "keep", copyAt: "keep", settleAt: "keep" },
-  },
+  live: LIVE_RESERVED_MOTION,
   teacher: {
     label: "04 Teacher",
     category: "M2",
@@ -250,30 +288,7 @@ export const SCREEN_MOTION = {
       },
     },
   },
-  video: {
-    label: "06 Video",
-    category: "M1",
-    source: "src/screens/VideoWatchline.tsx, watchHandoff.ts (WATCH)",
-    library: "Motion",
-    ambientLoops: ["backgroundTwinkle"],
-    measured: { handoverEnd: 0.49, heroAt: 3.14, copyAt: 3.24, settleAt: 3.24 },
-    code: {
-      handoverEnd: WATCH.out,
-      heroAt: WATCH.to3.stat.at + WATCH.to3.stat.count,
-      copyAt: WATCH.to3.cmp.at + WATCH.to3.cmp.dur,
-      settleAt: WATCH.to3.cmp.at + WATCH.to3.cmp.dur,
-    },
-    profiles: {
-      reference: {
-        // probe, 26 Nov 2026, 390 × 844, from Screen 05 (?mprofile=reference)
-        measured: { handoverEnd: 0.49, heroAt: 4.0, copyAt: 4.42, settleAt: 4.42 },
-        source: "src/screens/VideoWatchline.tsx + watchHandoff.ts (reference branch), motion/primitives.ts",
-        notes:
-          "Timing exception (approved Nov 26). The minutes are the four lesson cards folding into the year's tiles (their own times and curves), ending ≈ 3.17 s; the number lands + 0.05 s (C3 video); the comparison follows + 0.4 s, the badge rises + 0.5 s on the panel spring. Wide row: the swell is scaled to stay 8 px inside the screen (≈ 1.12 at 390 px). Tap lock unchanged (150 ms).",
-      },
-    },
-    target: STAT,
-  },
+  video: VIDEO_BEYOND_MOTION,
   subject: {
     label: "07 Subject",
     category: "M1",

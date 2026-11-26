@@ -20,12 +20,11 @@ import type { JourneyMode } from "../journey/journeyMode";
  * Final (26 Nov 2026, chosen in the dev panel): Study Time = clock only with the
  * day/night sky; badges = impact landing; Teacher = Cinematic Spotlight; Quiz =
  * Quiz Activities A (centered). These are the defaults and the dev panel no
- * longer offers the finalized axes. Study's character and Live's design remain
- * available in the panel for requested comparisons; URLs can reach all axes.
+ * longer offers finalized axes. Older designs remain available via review URLs.
  */
 export const FACETS = {
   cover: {
-    design: { label: "Design", options: { legacy: "Wrap cover", svg: "SVG Bird Journey", bird3d: "3D Bird Journey" }, default: "legacy" },
+    design: { label: "Design", options: { legacy: "Wrap cover", svg: "SVG Bird Journey", bird3d: "3D Bird Journey" }, default: "bird3d" },
   },
   study: {
     character: { label: "Character", options: { original: "Original clock", timekeeper: "Timekeeper (bird)" }, default: "original" },
@@ -37,10 +36,10 @@ export const FACETS = {
     reveal: { label: "Reveal", options: { impact: "Impact landing", original: "Original" }, default: "impact" },
   },
   live: {
-    design: { label: "Design", options: { original: "The Front-Row Seat", alive: "The Classroom Comes Alive", reserved: "The Reserved Seat" }, default: "original" },
+    design: { label: "Design", options: { original: "The Front-Row Seat", alive: "The Classroom Comes Alive", reserved: "The Reserved Seat" }, default: "reserved" },
   },
   video: {
-    design: { label: "Design", options: { original: "The Watchline", beyond: "Beyond the Screen" }, default: "original" },
+    design: { label: "Design", options: { original: "The Watchline", beyond: "Beyond the Screen" }, default: "beyond" },
   },
   learner: {
     animation: { label: "Animation", options: { original: "The Big Reveal", shuffle: "Identity Shuffle" }, default: "shuffle" },
@@ -87,7 +86,7 @@ const valid = (key: FacetKey, v: string | null | undefined): v is string => !!v 
 export const JOURNEY_PRESETS: Record<JourneyMode, FacetMap> = {
   current: {},
   bird: {},
-  birdled: { "study.character": "timekeeper" },
+  birdled: {},
 };
 
 /** Facet values given in the URL (`?study.character=timekeeper`). */
