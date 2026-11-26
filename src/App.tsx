@@ -19,6 +19,7 @@ import { DirectionBoard } from "./dev/DirectionBoard";
 import { CoverExplore } from "./explore/CoverExplore";
 import { CoverVariantCtx, type CoverVariant } from "./explore/variant";
 import { inspectorFrameParams } from "./inspector/frameParams";
+import { FacetProvider, resolveFacets } from "./variants/facets";
 
 // Development only: the Motion Inspector workspace (?view=motion) and its preview frame (?motionFrame).
 const MotionInspector = import.meta.env.DEV ? lazy(() => import("./inspector/MotionInspector")) : null;
@@ -33,6 +34,7 @@ const DEFAULTS: DevSettings = {
   device: "390x844",
   cover: "current",
   journey: "current",
+  facets: {},
   marksheet: "current",
 };
 
@@ -134,6 +136,9 @@ function Prototype() {
     setRoute("story");
   };
 
+  // screen-level effect variations: URL, then dev overrides, then the journey's preset, then the default
+  const facets = useMemo(() => resolveFacets(settings.journey, settings.facets), [settings.journey, settings.facets]);
+
   const shareCard: ExportCardProps | null = useMemo(() => {
     if (sheet !== "type" && sheet !== "marksheet") return null;
     const ms = plan.slides.find((s) => s.id === "marksheet");
@@ -196,6 +201,7 @@ function Prototype() {
     return (
       <MarksheetDesignCtx.Provider value={settings.marksheet}>
         <JourneyCtx.Provider value={settings.journey}>
+    <FacetProvider value={facets}>
           <CoverVariantCtx.Provider value={settings.cover}>
             <PrefsProvider motion={settings.motion} repeatView={false}>
               <div className="shell shell-narrow motion-frame-shell">
@@ -203,13 +209,15 @@ function Prototype() {
               </div>
             </PrefsProvider>
           </CoverVariantCtx.Provider>
-        </JourneyCtx.Provider>
+            </FacetProvider>
+    </JourneyCtx.Provider>
       </MarksheetDesignCtx.Provider>
     );
 
   return (
     <MarksheetDesignCtx.Provider value={settings.marksheet}>
     <JourneyCtx.Provider value={settings.journey}>
+    <FacetProvider value={facets}>
     <CoverVariantCtx.Provider value={settings.cover}>
     <PrefsProvider motion={settings.motion} repeatView={settings.repeatView}>
       <div className={`shell ${narrow ? "shell-narrow" : ""}`}>
@@ -245,6 +253,7 @@ function Prototype() {
       </div>
     </PrefsProvider>
     </CoverVariantCtx.Provider>
+        </FacetProvider>
     </JourneyCtx.Provider>
     </MarksheetDesignCtx.Provider>
   );

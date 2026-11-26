@@ -15,7 +15,8 @@ import { MarksheetBento } from "./MarksheetBento";
 import { MarksheetV2 } from "./MarksheetV2";
 import { YearTurnsClosing } from "./YearTurnsClosing";
 import { useMarksheetDesign } from "../marksheet/design";
-import { isBirdJourney, isBirdLed, useJourney } from "../journey/journeyMode";
+import { isBirdJourney, useJourney } from "../journey/journeyMode";
+import { useFacet } from "../variants/facets";
 import { StudyTimekeeper } from "./StudyTimekeeper";
 import { ExperimentalBirdJourneyClosingSky } from "../journey/ExperimentalBirdJourneyClosingSky";
 import { ExperimentalBirdJourneyCover } from "../journey/ExperimentalBirdJourneyCover";
@@ -127,8 +128,9 @@ function MarksheetSwitch(props: ScreenProps<"marksheet">) {
 }
 
 function StudySwitch(props: ScreenProps<"study">) {
-  // Bird-led Storytelling (version 2 experiment): "The Timekeeper"; otherwise the approved clock.
-  return isBirdLed(useJourney()) ? <StudyTimekeeper {...props} /> : <StudyClock {...props} />;
+  // Character choreography is a screen facet (variants/facets.tsx): the approved clock, or "The Timekeeper"
+  // (the Bird-led journey's preset; selectable on its own from the URL or the dev panel).
+  return useFacet("study", "character") === "timekeeper" ? <StudyTimekeeper {...props} /> : <StudyClock {...props} />;
 }
 
 function CloseSwitch(props: ScreenProps<"close">) {
