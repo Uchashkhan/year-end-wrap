@@ -19,6 +19,7 @@ export const AMBIENT = {
   videoLessonLight: { where: "06 Video · Beyond the Screen", essential: false, note: "a quiet light pulse inside the lesson, 6.4 s" },
   birdCoverHover: { where: "3D Bird Journey cover and closing", essential: false, note: "1.5 px airborne hover, 5.8 s cycle" },
   birdIdle: { where: "Bird cover", essential: false, note: "the resting bird's idle movement" },
+  birdWingCycle: { where: "3D Bird Journey cover and closing", essential: false, note: "six held image poses, 12 fps at cruise and 6.6 fps at hover" },
   birdSkyDrift: { where: "3D Bird Journey closing", essential: false, note: "slow cloud parallax and soft airflow after arrival" },
   birdFlight: { where: "Bird closing", essential: false, note: "wingbeat, airflow and clouds" },
 } as const;

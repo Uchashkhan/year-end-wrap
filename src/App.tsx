@@ -6,7 +6,7 @@ import { MarksheetDesignCtx, marksheetDesignFromUrl } from "./marksheet/design";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { preload } from "react-dom";
 import { LEARNER_BADGE_ORDER, learnerBadgeSrc } from "./components/LearnerBadge";
-import { BIRD_3D_IMAGE } from "./journey/Bird3DFlight";
+import { BIRD_FLIGHT_FRAMES } from "./journey/Bird3DFlight";
 import { AnimatePresence, motion } from "motion/react";
 import { composeStory } from "./data/compose";
 import { DEFAULT_PREVIEW_PROFILE_ID, getProfile } from "./data/profiles";
@@ -156,7 +156,11 @@ function Prototype() {
     }),
     [settings.journey, settings.facets, settings.liveDesign, settings.studyCharacter],
   );
-  if (facets["cover.design"] === "bird3d") preload(BIRD_3D_IMAGE, { as: "image" });
+  if (facets["cover.design"] === "bird3d") {
+    const stillBird = FRAME?.reduced || settings.repeatView || settings.motion === "reduce"
+      || (settings.motion === "system" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    for (const src of stillBird ? BIRD_FLIGHT_FRAMES.slice(0, 1) : BIRD_FLIGHT_FRAMES) preload(src, { as: "image" });
+  }
   if (facets["learner.animation"] === "shuffle") {
     LEARNER_BADGE_ORDER.forEach((type) => preload(learnerBadgeSrc(type), { as: "image" }));
   }

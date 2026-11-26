@@ -1,7 +1,11 @@
 import { useId, type Ref } from "react";
-import { smooth, type flightPose } from "../motion/birdFlight";
+import { BIRD_WINGS, smooth, wingFrame, type flightPose } from "../motion/birdFlight";
 
-export const BIRD_3D_IMAGE = "/assets/journey/bird-3d.png";
+import "../styles/bird-3d-flight.css";
+
+export const BIRD_FLIGHT_FRAMES = BIRD_WINGS.frameEnds.map(
+  (_, i) => `/assets/journey/bird-flight/bird-flight-0${i + 1}.webp`,
+);
 const wrap = (n: number, period: number) => ((n % period) + period) % period;
 
 // Lanes carry the wind past the wings, with the fastest lines at the edges.
@@ -46,8 +50,48 @@ function Airflow({ foreground }: { foreground?: boolean }) {
   );
 }
 
-export function Bird3DImage({ ref }: { ref?: Ref<HTMLImageElement> }) {
-  return <img ref={ref} className="b3-bird" src={BIRD_3D_IMAGE} width={2158} height={2222} alt="" draggable={false} fetchPriority="high" />;
+export function Bird3DImage({ ref, still }: { ref?: Ref<HTMLSpanElement>; still: boolean }) {
+  const frames = still ? BIRD_FLIGHT_FRAMES.slice(0, 1) : BIRD_FLIGHT_FRAMES;
+  return (
+    <span ref={ref} className="b3-bird" aria-hidden="true">
+      {frames.map((src, i) => (
+        <img key={src} className="b3-bird-frame" src={src} width={606} height={624} alt=""
+          draggable={false} fetchPriority={i === 0 ? "high" : "auto"} />
+      ))}
+    </span>
+  );
+}
+
+type BirdFrames = { decoded: boolean; ready: Promise<void>; paint: (cycles: number) => void };
+const framePlayers = new WeakMap<HTMLElement, BirdFrames>();
+
+export function birdFrames(root: HTMLElement): BirdFrames {
+  const cached = framePlayers.get(root);
+  if (cached) return cached;
+
+  const frames = [...root.querySelectorAll<HTMLImageElement>(".b3-bird-frame")];
+  let visible = 0;
+  let decoded = false;
+  const show = (next: number) => {
+    if (next === visible) return;
+    frames[visible].style.visibility = "hidden";
+    frames[next].style.visibility = "visible";
+    visible = next;
+  };
+  const ready = Promise.allSettled(frames.map((frame) => frame.decode())).then((results) => {
+    decoded = results.length === BIRD_FLIGHT_FRAMES.length && results.every((result) => result.status === "fulfilled");
+    if (!decoded) {
+      const fallback = results.findIndex((result) => result.status === "fulfilled");
+      if (fallback >= 0) show(fallback);
+    }
+  });
+  const player: BirdFrames = {
+    get decoded() { return decoded; },
+    ready,
+    paint(cycles) { if (decoded) show(wingFrame(cycles)); },
+  };
+  framePlayers.set(root, player);
+  return player;
 }
 
 export function Bird3DWind() {

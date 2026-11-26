@@ -5,10 +5,10 @@ import { COPY } from "../data/copy";
 import { usePrefs } from "../lib/prefs";
 import { Button } from "../components/primitives";
 import { useEntry } from "../story/entry";
-import { BIRD_HOVER, flightPose, smooth } from "../motion/birdFlight";
+import { BIRD_HOVER, BIRD_WINGS, flightPose, smooth, wingCycles } from "../motion/birdFlight";
 import { gsapEase } from "../motion/ease";
 import { devRegister, fromGsap } from "../motion/timeline";
-import { Bird3DImage, Bird3DWind, createBird3DEnvironment } from "./Bird3DFlight";
+import { Bird3DImage, Bird3DWind, birdFrames, createBird3DEnvironment } from "./Bird3DFlight";
 import type { ScreenProps } from "../screens/types";
 import { BirdRig } from "./BirdCharacter";
 import { createFlight, type Cloud } from "./flight";
@@ -143,7 +143,8 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
 
     const rig = q(".bj-rig");
     if (!raster) gsap.set(q(".bj-rest"), { opacity: 0 });
-    const mascot = raster ? q<HTMLImageElement>(".b3-bird") : null;
+    const mascot = raster ? q<HTMLElement>(".b3-bird") : null;
+    const wings = mascot && !still ? birdFrames(mascot) : null;
     const BW = raster ? 188 : 200.173;
     const BH = raster ? BW * 2222 / 2158 : 152.315;
     if (raster) rig.style.width = `${BW}px`;
@@ -203,7 +204,9 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
     const driftTravel = CLIMB * f * driftSpeed;
     const climbTravel = H * 2.25 * (1 - driftSpeed);
     const arrivalTravel = climbTravel + C.climb.dur * driftTravel;
-    const restPose = { ...flightPose(1, f), velocity: driftSpeed };
+    const entrySpeed = 0.78;
+    const restPose = { ...flightPose(1, f, entrySpeed), velocity: driftSpeed };
+    const arrivalCycles = wingCycles(C.climb.dur, C.climb.dur, restPose.integral);
     let drift: gsap.core.Tween | null = null;
     const startDrift = () => {
       if (!environment || drift) return;
@@ -212,6 +215,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
         repeat: -1,
         onUpdate(this: gsap.core.Tween) {
           const elapsed = this.totalTime();
+          wings?.paint(arrivalCycles + elapsed * BIRD_WINGS.hoverCyclesPerSecond);
           const travel = elapsed * driftTravel;
           const phase = restPose.phase + (travel / climbTravel) * Math.PI * 3.1;
           environment.paint({ ...restPose, phase }, arrivalTravel + travel);
@@ -221,7 +225,8 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
 
     const paintRasterFlight = (u: number) => {
       if (!mascot || !environment) return;
-      const pose = flightPose(u, f, 0.78);
+      const pose = flightPose(u, f, entrySpeed);
+      wings?.paint(wingCycles(u * C.climb.dur, C.climb.dur, pose.integral));
       const rise = smooth(pose.distance / 0.23);
       const arrival = smooth((u - 0.62) / 0.38);
       const centerY = below.y + (cruise.y - below.y) * rise;
@@ -293,7 +298,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
       fly({ speed: 0.9, amp: 24, trail: 0.7, beats: 0.6, pitch: -4, climb: CLIMB });
     }
 
-    const tl = gsap.timeline({ onComplete: () => finish() });
+    const tl = gsap.timeline({ paused: raster, onComplete: () => finish() });
 
     // the marksheet recedes as one artifact (only when we came from it)
     const ms = fromMarksheet ? el.closest(".story")?.querySelector<HTMLElement>(".slide.ms") : null;
@@ -396,7 +401,14 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
       }
       settle();
     };
+    let cancelled = false;
+    if (wings) {
+      const play = () => { if (!cancelled) tl.play(); };
+      if (wings.decoded) play();
+      else void wings.ready.then(play);
+    }
     const stop = () => {
+      cancelled = true;
       unregister();
       tl.kill();
       hover?.kill();
@@ -457,7 +469,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
       {raster ? (
         <>
           <Bird3DWind />
-          <div className="bj-rig b3-rig" aria-hidden="true"><Bird3DImage /></div>
+          <div className="bj-rig b3-rig" aria-hidden="true"><Bird3DImage key={String(still)} still={still} /></div>
         </>
       ) : (
         <>
@@ -497,7 +509,7 @@ export function ExperimentalBirdJourneyClosingSky({ slide, actions, raster = fal
           </div>
         )}
       </div>
-      {playing && <button type="button" className="bj-skip" aria-label="এগিয়ে যাও" onClick={() => ctl.current?.skip()} />}
+      {playing && (!raster || !still) && <button type="button" className="bj-skip" aria-label="এগিয়ে যাও" onClick={() => ctl.current?.skip()} />}
     </div>
   );
 }

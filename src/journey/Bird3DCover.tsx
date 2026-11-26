@@ -3,8 +3,8 @@ import { usePresence } from "motion/react";
 import gsap from "gsap";
 import { usePrefs } from "../lib/prefs";
 import { BIRD_COVER as T } from "../motion/birdCover";
-import { BIRD_HOVER, flightPose, smooth } from "../motion/birdFlight";
-import { Bird3DImage, Bird3DWind, createBird3DEnvironment } from "./Bird3DFlight";
+import { BIRD_HOVER, BIRD_WINGS, flightPose, smooth, wingCycles } from "../motion/birdFlight";
+import { Bird3DImage, Bird3DWind, birdFrames, createBird3DEnvironment } from "./Bird3DFlight";
 import { gsapEase } from "../motion/ease";
 import { devRegister, fromGsap } from "../motion/timeline";
 import type { ScreenProps } from "../screens/types";
@@ -22,7 +22,8 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
   const [isPresent, safeToRemove] = usePresence();
   const nav = useNav();
   const root = useRef<HTMLDivElement>(null);
-  const bird = useRef<HTMLImageElement>(null);
+  const bird = useRef<HTMLSpanElement>(null);
+  const wingTime = useRef(0);
   const finish = useRef<(() => void) | null>(null);
   const focusStart = useRef(false);
 
@@ -38,17 +39,21 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
     const spans = all(".bj-yr-6 .bj-yr-d");
     const boxes = all(".bj-dg");
     const digits = all(".bj-dgm");
+    const wings = birdFrames(mascot);
     const environment = createBird3DEnvironment(el, CLOUDS);
     const playhead = { time: 0 };
     const layout = { w: 0, h: 0, x: 0, y: 0, ratio: 1 };
     let years: { x: number; height: number }[] = [];
     let origins: { x: number; y: number }[] = [];
 
+    let elapsed = 0;
     const paintFlight = () => {
       const { w, h, x: anchorX, y: anchorY, ratio } = layout;
       const u = Math.min(playhead.time / T.climb, 1);
       const pose = flightPose(u, ratio);
       const { distance, drift, lift } = pose;
+      wingTime.current = wingCycles(elapsed, T.climb, pose.integral);
+      wings.paint(wingTime.current);
       const entry = 1 - smooth(distance / 0.17);
       const arrival = smooth((u - 0.70) / 0.30);
       const y = (h * (0.51 + 0.34 * entry) - anchorY) * (1 - arrival) + lift;
@@ -98,12 +103,15 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
     let timeline: gsap.core.Timeline;
     const context = gsap.context(() => {
       timeline = gsap.timeline({
-        paused: !mascot.complete,
+        paused: true,
         onComplete: () => {
           focusStart.current = document.activeElement === one(".bj-skip");
           setRevealed(true);
         },
-        onUpdate: paintFlight,
+        onUpdate() {
+          elapsed = timeline.time();
+          paintFlight();
+        },
       });
       timeline.to(playhead, { time: T.climb, duration: T.climb, ease: "none" }, 0);
       timeline.to(markers.slice(0, -1), { opacity: 0, duration: 0.45, ease: gsapEase("refSoft") }, T.climb - 0.6);
@@ -127,9 +135,10 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
       timeline.to(one(".bj-support"), { opacity: 1, duration: T.support.duration, ease: gsapEase("refSoft") }, T.support.at);
       timeline.to(one(".bj-cta"), { opacity: 1, duration: T.cta.duration, ease: gsapEase("refSoft") }, T.cta.at);
     }, el);
-    const play = () => { timeline.play(); };
-    mascot.addEventListener("load", play);
-    mascot.addEventListener("error", play);
+    let cancelled = false;
+    const play = () => { if (!cancelled) timeline.play(); };
+    if (wings.decoded) play();
+    else void wings.ready.then(play);
     const unregister = devRegister("01 3D Bird Journey", fromGsap(timeline!));
     finish.current = () => {
       focusStart.current = document.activeElement === one(".bj-skip");
@@ -138,10 +147,11 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
     return () => {
       finish.current = null;
       observer.disconnect();
-      mascot.removeEventListener("load", play);
-      mascot.removeEventListener("error", play);
+      cancelled = true;
       unregister();
+      const lastCycles = wingTime.current;
       context.revert();
+      wingTime.current = lastCycles;
       mascot.style.removeProperty("transform");
     };
   }, [flying, isPresent]);
@@ -152,9 +162,14 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
     if (!el || !mascot || flying || still || !isPresent) return;
     if (focusStart.current) el.querySelector<HTMLButtonElement>(".bj-cta")?.focus();
     focusStart.current = false;
+    const wings = birdFrames(mascot);
+    const startCycles = wingTime.current;
     const hover = gsap.to(mascot, {
       y: -BIRD_HOVER.amplitude, duration: BIRD_HOVER.period / 2,
       ease: "sine.inOut", repeat: -1, yoyo: true,
+      onUpdate(this: gsap.core.Tween) {
+        wings.paint(startCycles + this.totalTime() * BIRD_WINGS.hoverCyclesPerSecond);
+      },
     });
     return () => { hover.revert(); };
   }, [flying, still, isPresent]);
@@ -188,7 +203,7 @@ export function Bird3DCover({ actions }: ScreenProps<"cover">) {
       className="b3"
       flying={flying}
       lockCta
-      bird={<Bird3DImage ref={bird} />}
+      bird={<Bird3DImage key={String(still)} ref={bird} still={still} />}
       air={<Bird3DWind />}
       onNext={actions.next}
       onSkip={() => finish.current?.()}

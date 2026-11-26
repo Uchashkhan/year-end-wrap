@@ -74,7 +74,7 @@ export const BIRD_3D_MOTION: ScreenMotion = {
   category: "M4",
   source: "src/journey/Bird3DCover.tsx, src/motion/birdCover.ts",
   library: "GSAP",
-  ambientLoops: ["backgroundTwinkle", "birdCoverHover"],
+  ambientLoops: ["backgroundTwinkle", "birdCoverHover", "birdWingCycle"],
   measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
   code: {
     handoverEnd: null,
@@ -392,7 +392,7 @@ export const BIRD_3D_CLOSE_MOTION: ScreenMotion = {
   label: "11 See You 2027 · 3D Bird Journey",
   source: "src/journey/ExperimentalBirdJourneyClosingSky.tsx, src/motion/birdFlight.ts",
   library: "GSAP",
-  ambientLoops: ["birdCoverHover", "birdSkyDrift"],
+  ambientLoops: ["birdCoverHover", "birdSkyDrift", "birdWingCycle"],
   measured: { handoverEnd: null, heroAt: null, copyAt: null, settleAt: null },
   notes: "The same 3D flight curve drives the bird, sky, wind, and checkpoint. The recommendation uses the existing closing timing.",
 };

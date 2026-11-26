@@ -1,0 +1,15 @@
+.b3-bird {
+  position: relative;
+  aspect-ratio: 2158 / 2222;
+}
+
+.b3-bird-frame {
+  position: absolute;
+  inset: -7%;
+  display: block;
+  width: 114%;
+  height: 114%;
+  object-fit: contain;
+}
+
+.b3-bird-frame:not(:first-child) { visibility: hidden; }
