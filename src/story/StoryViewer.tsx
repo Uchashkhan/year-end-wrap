@@ -76,6 +76,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
   const marksheetDesign = useMarksheetDesign();
   const quizDesign = useFacet("quiz", "design");
   const teacherDesign = useFacet("teacher", "design");
+  const liveDesign = useFacet("live", "design");
   const chosenCover = useCoverVariant();
   // Bird Journey (dev-only): its own cover, so the approved cover's hand-over is not used.
   const coverVariant = isBirdJourney(journey) ? "bird" : chosenCover;
@@ -110,6 +111,7 @@ export function StoryViewer({ plan, index, onIndex, onClose, actions, autoAdvanc
       marksheetCurrent: marksheetDesign === "current",
       quizParade: quizDesign === "original",
       teacherOriginal: teacherDesign === "original",
+      liveOriginal: liveDesign === "original",
     });
     nav.current = { d: index > prevIndex.current ? 1 : -1, kind, frame };
     const navTiming = KIND_TIMING[kind].navigation;

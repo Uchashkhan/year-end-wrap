@@ -21,6 +21,8 @@ import { useMemo } from "react";
 import { StudySky } from "./studySky/StudySky";
 import { QuizActivities } from "./QuizActivities";
 import { TeacherCinematic } from "./TeacherCinematic";
+import { LiveClassAlive } from "./LiveClassAlive";
+import { LiveReservedSeat } from "./LiveReservedSeat";
 import { SkyProgressCtx, createSkyProgress } from "./studySky/progress";
 import { StudyTimekeeper } from "./StudyTimekeeper";
 import { ExperimentalBirdJourneyClosingSky } from "../journey/ExperimentalBirdJourneyClosingSky";
@@ -53,7 +55,7 @@ export function renderSlide(slide: Slide, actions: ScreenActions, active: boolea
       return new URLSearchParams(location.search).get("study") === "geo" ? <StudyGeo slide={slide} {...p} /> : <StudySwitch slide={slide} {...p} />;
     case "live":
       // Default: the live-class collection (Nov 2026 brief). The V2 attendance screen stays at ?live=v2.
-      return new URLSearchParams(location.search).get("live") === "v2" ? <Attendance slide={slide} {...p} /> : <LiveClass slide={slide} {...p} />;
+      return new URLSearchParams(location.search).get("live") === "v2" ? <Attendance slide={slide} {...p} /> : <LiveSwitch slide={slide} {...p} />;
     case "teacher":
       // Default: "Teacher in the Spotlight" (Nov 2026 brief). The M1 placeholder stays at ?teacher=v2.
       return new URLSearchParams(location.search).get("teacher") === "v2" ? <Teacher slide={slide} {...p} /> : <TeacherSwitch slide={slide} {...p} />;
@@ -130,6 +132,13 @@ export const SLIDE_LABEL: Record<Slide["id"], string> = {
 function MarksheetSwitch(props: ScreenProps<"marksheet">) {
   const d = useMarksheetDesign();
   return d === "current" ? <MarksheetBento {...props} /> : <MarksheetV2 {...props} look={d === "v2a" ? "a" : "b"} />;
+}
+
+function LiveSwitch(props: ScreenProps<"live">) {
+  // Screen facet live.design (variants/facets.tsx): "The Front-Row Seat" (original), or "The Classroom Comes Alive".
+  const design = useFacet("live", "design");
+  if (design === "reserved") return <LiveReservedSeat {...props} />;
+  return design === "alive" ? <LiveClassAlive {...props} /> : <LiveClass {...props} />;
 }
 
 function TeacherSwitch(props: ScreenProps<"teacher">) {

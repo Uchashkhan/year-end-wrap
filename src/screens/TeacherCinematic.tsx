@@ -66,6 +66,8 @@ const T = {
   breath: 5.0,
 } as const;
 /** The opening in the silhouette (where the light falls on the portrait), as shares of the portrait's width. */
+/** The silhouette's hold before the light starts (approved 0.8–1 s). */
+const HOLD = 0.8;
 const HOLE = { glimpse: 0.3, full: 1.9, feather: 0.34 } as const;
 /** The teacher is lit when the beam is within this many degrees of them (fully within LIT_IN). */
 const LIT_OUT = 16;
@@ -183,6 +185,11 @@ export function TeacherCinematic({ slide }: ScreenProps<"teacher">) {
     const hand = from ? focusTimeline(el, { from, shift: 0 }) : null;
 
     const at = (t: number) => t + shift;
+    // the silhouette waits for Screen 03's seat only when the original Live screen hands it over (FOCUS);
+    // otherwise it comes up at once. Either way it then holds HOLD s before the light starts, and
+    // everything after the hold moves with it (lead).
+    const concealAt = fromLive ? T.conceal.at : 0.2;
+    const lead = concealAt + T.conceal.dur + HOLD - T.beamOn.at;
     const tl = gsap.timeline({ onUpdate: paint });
     tl.set(S, { dim: 0 }, 0);
     // 1 anticipation
@@ -193,12 +200,12 @@ export function TeacherCinematic({ slide }: ScreenProps<"teacher">) {
       { opacity: 1, y: 0, scale: 1, duration: TEXT.up.dur, ease: gsapEase("refPop") },
       at(T.framing),
     );
-    tl.to(S, { conceal: 1, duration: T.conceal.dur, ease: gsapEase("settle") }, at(T.conceal.at));
+    tl.to(S, { conceal: 1, duration: T.conceal.dur, ease: gsapEase("settle") }, at(concealAt));
     // 2 search: the beam opens on the left and sweeps across, accelerating then decelerating
-    tl.to(S, { beam: 1, duration: T.beamOn.dur, ease: "power1.out" }, at(T.beamOn.at));
-    tl.fromTo(S, { angle: T.sweep.from }, { angle: T.sweep.to, duration: T.sweep.dur, ease: gsapEase("glide") }, at(T.sweep.at));
+    tl.to(S, { beam: 1, duration: T.beamOn.dur, ease: "power1.out" }, at(T.beamOn.at + lead));
+    tl.fromTo(S, { angle: T.sweep.from }, { angle: T.sweep.to, duration: T.sweep.dur, ease: gsapEase("glide") }, at(T.sweep.at + lead));
     // 3 discovery: it swings back onto the teacher; they rise into the light; the room lifts
-    const findAt = at(T.sweep.at + T.sweep.dur);
+    const findAt = at(T.sweep.at + T.sweep.dur + lead);
     tl.call(() => (swingFrom = S.angle), undefined, findAt);
     tl.fromTo(S, { settleT: 0 }, { settleT: T.settle.dur, duration: T.settle.dur, ease: "none", immediateRender: false }, findAt);
     tl.fromTo(S, { foundT: 0 }, { foundT: 1.2, duration: 1.2, ease: "none", immediateRender: false }, findAt + 0.12);
@@ -212,7 +219,7 @@ export function TeacherCinematic({ slide }: ScreenProps<"teacher">) {
     let breath: gsap.core.Tween | null = null;
     tl.call(() => {
       breath = gsap.to(S, { gain: 0.93, duration: 3.2, ease: "sine.inOut", yoyo: true, repeat: -1, onUpdate: paint });
-    }, undefined, at(T.breath));
+    }, undefined, at(T.breath + lead));
     paint();
 
     stopRef.current = () => {

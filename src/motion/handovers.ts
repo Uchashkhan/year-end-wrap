@@ -38,8 +38,8 @@ export interface KindTiming {
 /** Forward, one step, full motion. Any other step is "fade" (two sky slides) or "normal" (T1). */
 export const HANDOVERS: readonly Handover[] = [
   { kind: "sky", from: "cover", to: "study", requires: "coverOnSky" },
-  { kind: "flow", from: "study", to: "live" },
-  { kind: "focus", from: "live", to: "teacher" },
+  { kind: "flow", from: "study", to: "live", requires: "liveOriginal" },
+  { kind: "focus", from: "live", to: "teacher", requires: "liveOriginal" },
   { kind: "answer", from: "teacher", to: "quiz", requires: ["quizParade", "teacherOriginal"] },
   { kind: "watch", from: "quiz", to: "video", requires: "quizParade" },
   { kind: "takeover", from: "video", to: "subject" },
@@ -83,8 +83,10 @@ export interface StepContext {
   quizParade: boolean;
   /** Screen 04 is "Teacher in the Spotlight" (04 → 05 takes over its figure and light); its Cinematic Spotlight has its own light. */
   teacherOriginal: boolean;
+  /** Screen 03 is the original "Front-Row Seat" (03 → 04 takes over its yellow seat); its other designs have none. */
+  liveOriginal: boolean;
 }
-type Requirement = "coverOnSky" | "marksheetCurrent" | "quizParade" | "teacherOriginal";
+type Requirement = "coverOnSky" | "marksheetCurrent" | "quizParade" | "teacherOriginal" | "liveOriginal";
 
 /** Which hand-over a navigation runs (same rules StoryViewer used inline before). */
 export function resolveKind(from: ScreenId | undefined, to: ScreenId, ctx: StepContext): HandoverKind {

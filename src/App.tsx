@@ -38,6 +38,7 @@ const DEFAULTS: DevSettings = {
   facets: {},
   motionProfile: "original",
   motionSparks: false,
+  liveDesign: "original",
   marksheet: "current",
 };
 
@@ -141,7 +142,7 @@ function Prototype() {
 
   // screen-level effect variations: URL, then dev overrides, then the journey's preset, then the default
   // screen-level choices are final (variants/facets.tsx defaults); stored overrides from the former panel switches are ignored
-  const facets = useMemo(() => resolveFacets(settings.journey, {}), [settings.journey]);
+  const facets = useMemo(() => resolveFacets(settings.journey, { "live.design": settings.liveDesign }), [settings.journey, settings.liveDesign]);
   // global motion profile (dev only): URL, then the dev panel, then "original"
   const motionProfile = useMemo(
     () => resolveMotionProfile({ profile: settings.motionProfile, sparks: settings.motionSparks }),

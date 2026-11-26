@@ -719,7 +719,8 @@ export function StudyTimekeeper({ slide }: ScreenProps<"study">) {
       return;
     }
     wasLeaving.current = true;
-    tlRef.current?.progress(1);
+    // leave from wherever the bird is: freeze the entrance (never jump it to its end pose mid-move)
+    tlRef.current?.pause();
     if (nav.kind !== "flow" || !el) {
       safeToRemove?.();
       return;

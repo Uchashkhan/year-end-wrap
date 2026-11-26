@@ -37,6 +37,8 @@ export interface DevSettings {
   motionProfile: MotionProfile;
   /** Reference profile only: optional one-shot landing sparks. */
   motionSparks: boolean;
+  /** 03 Live: the Front-Row Seat (original) or The Classroom Comes Alive (variants/facets.tsx live.design). */
+  liveDesign: "original" | "alive" | "reserved";
 }
 
 interface Props {
@@ -249,6 +251,21 @@ export function DevPanel({ profileId, onProfile, settings, onSettings, plan, rou
               </option>
             ))}
           </select>
+        </Field>
+      </Section>
+
+      <Section title="Live classes">
+        <Field label="03 Live · Design" hint="The Classroom Comes Alive: a classroom with the attendance lit seat by seat. URL ?live.design= wins.">
+          <Seg
+            label="Live design"
+            value={settings.liveDesign}
+            options={[
+              { id: "original", name: "Front-Row Seat" },
+              { id: "alive", name: "Classroom Comes Alive" },
+              { id: "reserved", name: "Reserved Seat" },
+            ]}
+            onChange={(v) => set("liveDesign", v)}
+          />
         </Field>
       </Section>
 

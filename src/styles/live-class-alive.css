@@ -1,0 +1,99 @@
+/*
+ * 03 Live classes — "The Classroom Comes Alive" (LiveClassAlive.tsx). The
+ * screen's own background (the Live background, untouched). Three sections:
+ * the attendance statement at the top, centred; the classroom in the middle
+ * and lower part (the teaching screen at the far wall, six rows of chairs in
+ * perspective); the Front Bencher artwork at the bottom.
+ */
+.slide.la {
+  color: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+.la-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* top: centred statement */
+.la-top {
+  position: absolute;
+  left: var(--gutter, 24px);
+  right: var(--gutter, 24px);
+  top: clamp(88px, 12cqh, 116px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.la-head { margin: 0; font: inherit; font-size: 24px; line-height: 1.4; font-weight: 700; color: #fff; will-change: transform, opacity; }
+.la-stat { margin-top: clamp(6px, 1.4cqh, 14px); display: flex; flex-direction: column; align-items: center; }
+/* the hero number: our yellow numeral (the Quiz/Study treatment), with the landing's swell */
+.la-num { font-size: var(--la-num); line-height: 1.02; font-weight: 700; letter-spacing: -0.02em; color: var(--ds-warning-500); text-shadow: 0 0.045em 0 rgba(10, 27, 104, 0.55); position: relative; transform-origin: 50% 75%; isolation: isolate; }
+.la-t { display: inline-block; font-variant-numeric: tabular-nums; }
+.la-tail { margin: 0; font-size: 22px; line-height: 1.35; font-weight: 700; color: #fff; white-space: nowrap; }
+.la-held { margin: 4px 0 0; font-size: 15px; line-height: 1.4; font-weight: 500; color: rgba(255, 255, 255, 0.78); }
+
+/* the room: the stage's aspect, sized to the width */
+.la-room {
+  /* one coordinate space for the screen and the chairs: the hall's own 390 : 480 box, centred */
+  position: absolute;
+  left: 50%;
+  bottom: 15cqh;
+  height: 45cqh;
+  width: calc(50cqh * 390 / 480);
+  transform: translateX(-50%);
+}
+.la-tv {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 46%;
+  transform: translateX(-50%);
+  aspect-ratio: 170 / 150;
+  z-index: 1;
+}
+.la-tv-frame {
+  position: absolute;
+  inset: 0 0 26% 0;
+  border-radius: 9px;
+  background: #1c2a7d;
+  box-shadow: inset 0 0 0 1.5px rgba(170, 186, 255, 0.85);
+  padding: 4% 4% 4%;
+}
+.la-tv-screen { position: relative; width: 100%; height: 100%; border-radius: 6px; background: #2c3a9c; overflow: hidden; }
+.la-tv-figure { position: absolute; left: 50%; bottom: 0; width: 44%; transform: translateX(-50%); }
+.la-tv-figure svg { display: block; width: 100%; height: auto; }
+.la-live {
+  position: absolute;
+  left: 8%;
+  top: 9%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px 2px 6px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  transition: opacity 0.2s ease;
+}
+.la-live i { width: 5px; height: 5px; border-radius: 50%; background: #fff; display: block; }
+.la-tv-stand { position: absolute; left: 50%; top: 80%; width: 26%; height: 14%; transform: translateX(-50%); background: #1f2c80; clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%); }
+.la-tv-off { position: absolute; inset: 0 0 26% 0; width: 100%; height: 100%; pointer-events: none; }
+.la-tv-off rect { transition: none; }
+
+.la-hall { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.la-chair-muted { fill: #33449e; opacity: 0.7; }
+.la-chair-lit { fill: #ffc93c; }
+.la-band { mix-blend-mode: screen; }
+
+/* bottom: the achievement, below the classroom */
+.la-badge { position: absolute; left: 0; right: 0; bottom: clamp(20px, 3.4cqh, 34px); display: flex; justify-content: center; }
+.la-badge .badge-mark, .la-badge .badge-live { --badge-art-h: 64px; }
+
+/* the LIVE dot's gentle pulse, once the class is on (not for reduced motion / repeat view) */
+@media (prefers-reduced-motion: no-preference) {
+  .slide.la:not(.la-still) .la-live i { animation: la-live 2.2s ease-in-out infinite; }
+}
+@keyframes la-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }

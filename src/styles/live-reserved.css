@@ -1,0 +1,74 @@
+/*
+ * 03 Live classes — "The Reserved Seat" (LiveReservedSeat.tsx). The Live
+ * background (Signature Blue) shows through; this screen draws only its
+ * foreground: the statement at the top, then the stage — a few muted chairs in
+ * perspective, the Live Class icon above the hero chair, the yellow hero chair
+ * with the Front Bencher sticker on its backrest.
+ */
+.slide.lr {
+  color: #fff;
+  overflow: hidden;
+  /* statement at the top, the scene centred in the space beneath it */
+  display: flex;
+  flex-direction: column;
+  padding: clamp(88px, 12cqh, 116px) var(--gutter, 24px) clamp(14px, 2.6cqh, 28px);
+}
+.lr-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* the statement: one centred block */
+.lr-top {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.lr-head { margin: 0; font: inherit; font-size: 24px; line-height: 1.4; font-weight: 700; }
+.lr-stat { margin-top: clamp(6px, 1.4cqh, 14px); display: flex; flex-direction: column; align-items: center; }
+.lr-num {
+  font-size: var(--lr-num);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ds-warning-500);
+  text-shadow: 0 0.045em 0 rgba(10, 27, 104, 0.55);
+}
+.lr-t { display: inline-block; font-variant-numeric: tabular-nums; }
+.lr-tail { margin: 0; font-size: 22px; line-height: 1.35; font-weight: 700; white-space: nowrap; }
+.lr-held { margin: 4px 0 0; font-size: 15px; line-height: 1.4; font-weight: 500; color: rgba(255, 255, 255, 0.78); }
+
+/* the stage: one 390 × 420 coordinate space, centred at the foot of the screen */
+.lr-stage {
+  /* --lr-ratio: the stage's height ÷ width (taller when the sticker's place is added) */
+  --lr-stage-h: min(calc(100cqw * var(--lr-ratio, 0.8615)), 56cqh);
+  position: relative;
+  flex: none;
+  align-self: center;
+  margin: auto 0;
+  height: var(--lr-stage-h);
+  width: calc(var(--lr-stage-h) / var(--lr-ratio, 0.8615));
+  container-type: inline-size;
+}
+.lr-room { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+/* the Live Class icon (Figma artwork, inline so its record button can pulse) */
+.lr-icon { position: absolute; aspect-ratio: 1; opacity: 0; filter: drop-shadow(0 4px 10px rgba(8, 18, 82, 0.28)); }
+.lr-icon > svg { display: block; width: 100%; height: 100%; }
+
+/* the hero chair and its sticker: one body, so the sticker's impact moves the chair */
+.lr-hero { position: absolute; transform-origin: 50% 100%; will-change: transform, opacity; }
+.lr-hero-chair { display: block; width: 100%; height: 100%; overflow: visible; }
+.lr-hero-muted { fill: #4059d7; fill-opacity: 0.84; }
+.lr-hero-lit { fill: var(--ds-warning-500); }
+.lr-lip { fill: #fff; fill-opacity: 0.1; }
+.lr-hero-lit .lr-lip { fill: #fff4b6; fill-opacity: 0.45; }
+.lr-sticker {
+  /* under the chair, centred, a slight tilt: placed on the floor in front of the seat */
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 20px);
+  transform: translateX(-50%) rotate(-4deg);
+  --badge-art-h: 17cqi;
+  z-index: 2;
+}
+.lr-sticker .badge-art { display: block; }

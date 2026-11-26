@@ -33,6 +33,9 @@ export const FACETS = {
     // or the original reveal (the static artwork in its container's existing fade)
     reveal: { label: "Reveal", options: { impact: "Impact landing", original: "Original" }, default: "impact" },
   },
+  live: {
+    design: { label: "Design", options: { original: "The Front-Row Seat", alive: "The Classroom Comes Alive", reserved: "The Reserved Seat" }, default: "original" },
+  },
   teacher: {
     design: { label: "Design", options: { original: "Teacher in the Spotlight", cinematic: "Cinematic Spotlight" }, default: "cinematic" },
   },
@@ -59,7 +62,7 @@ export type FacetKey = { [S in FacetScreen]: `${S}.${FacetAxis<S>}` }[FacetScree
 export type FacetMap = Partial<Record<FacetKey, string>>;
 
 /** Dev-panel names of the screens that have facets. */
-export const FACET_SCREEN_LABEL: Record<FacetScreen, string> = { study: "02 Study time", badge: "Badges (03 · 05 · 06 · 10)", teacher: "04 Teacher", quiz: "05 Quiz" };
+export const FACET_SCREEN_LABEL: Record<FacetScreen, string> = { study: "02 Study time", badge: "Badges (03 · 05 · 06 · 10)", live: "03 Live", teacher: "04 Teacher", quiz: "05 Quiz" };
 export const facetScreen = (key: FacetKey) => key.split(".")[0] as FacetScreen;
 
 const axisDef = (key: FacetKey) => {
